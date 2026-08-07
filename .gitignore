@@ -1,0 +1,44 @@
+# IntelliJ / Android Studio
+*.iml
+*.ipr
+*.iws
+.idea/
+/out/
+/.idea/caches
+/.idea/libraries
+/.idea/modules.xml
+/.idea/workspace.xml
+/.idea/navEditor.xml
+/.idea/assetWizardSettings.xml
+
+# Gradle
+.gradle/
+build/
+/build
+
+# Local configuration
+local.properties
+
+# Log Files
+*.log
+
+# OS generated files
+.DS_Store
+
+# Android artifacts
+/captures
+.externalNativeBuild
+.cxx
+*.apks
+*.aab
+*.apk
+
+# Keystore files (CRITICAL: NEVER COMMIT THESE)
+*.jks
+*.keystore
+
+# Firebase (Commit this only if you want others to use your Firebase project)
+# google-services.json
+
+# Custom
+screenshots/

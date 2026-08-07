@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "456938354775",
+    "project_id": "com-example-lumeria",
+    "storage_bucket": "com-example-lumeria.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:456938354775:android:d9e4140eb5f82ad1e94b12",
+        "android_client_info": {
+          "package_name": "com.example.lumeria"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyALfZO1V498x29GmL8Q-1RG7P7QKd7HwUo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
