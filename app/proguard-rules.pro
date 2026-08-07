@@ -7,15 +7,15 @@
 # Keep kotlinx.serialization classes
 -keepattributes *Annotation*, EnclosingMethod, Signature
 -keep,allowobfuscation,allowshrinking class kotlinx.serialization.json.JsonObject { *; }
--keepclassmembers class com.example.lumeria.data.** {
+-keepclassmembers class com.solerforge.lumeria.data.** {
     *** Companion;
     *** $serializer;
 }
 
 # Keep PlayerData specifically as it is critical for saves
--keep class com.example.lumeria.data.PlayerData { *; }
--keep class com.example.lumeria.data.Quest { *; }
+-keep class com.solerforge.lumeria.data.PlayerData { *; }
+-keep class com.solerforge.lumeria.data.Quest { *; }
 
 # Keep data classes in models and database if accessed via reflection
--keep class com.example.lumeria.models.** { *; }
--keep class com.example.lumeria.database.** { *; }
+-keep class com.solerforge.lumeria.models.** { *; }
+-keep class com.solerforge.lumeria.database.** { *; }

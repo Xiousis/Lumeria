@@ -9,17 +9,13 @@ plugins {
 }
 
 android {
-    namespace = "com.example.lumeria"
-    compileSdk {
-        version = release(36) {
-            minorApiLevel = 1
-        }
-    }
+    namespace = "com.solerforge.lumeria"
+    compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.example.lumeria"
+        applicationId = "com.solerforge.lumeria"
         minSdk = 24
-        targetSdk = 36
+        targetSdk = 35
         versionCode = 1
         versionName = "1.0"
 
@@ -77,6 +73,8 @@ dependencies {
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.analytics)
     implementation(libs.firebase.crashlytics)
+    implementation(libs.firebase.firestore)
+    implementation(libs.kotlinx.coroutines.play.services)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)

@@ -8,7 +8,7 @@ This Privacy Policy describes how Lumeria ("the Game", "we", "us") handles your 
 Lumeria is designed to prioritize your privacy. Most of your game data is stored locally on your device.
 
 ### Local Data (Stored on your device)
-- **Save Data:** Your progress (level, gold, inventory, etc.) is stored locally using Android DataStore. This data never leaves your device unless you manually use the "Export Save" feature.
+- **Save Data:** Your progress (level, gold, inventory, etc.) is stored locally on your device. If Cloud Save is enabled in your settings, your save data is also stored using Google Play Games Services. Your data never leaves your device unless you manually use the "Export Save" feature or enable Cloud Save.
 - **Settings:** Your music/SFX preferences and haptic feedback settings are stored locally.
 
 ### Data Collected by Third Parties
@@ -24,7 +24,7 @@ We use the collected data solely for:
 - Fulfilling in-app purchase requests.
 
 ## 3. Data Retention & Deletion
-- **Local Data:** You can delete all local save data at any time by clearing the app's cache/data in your Android System Settings or by uninstalling the app.
+- **Local Data:** You can delete all local save data at any time by clearing the app's storage/data in your Android System Settings or by uninstalling the app.
 - **Analytics Data:** Anonymous data collected by Firebase is kept for a limited period (up to 26 months).
 - **Deletion Requests:** If you wish to request the deletion of any anonymous identifiers associated with your device, please contact us at `jose.soler821@gmail.com` with your Device ID (found in the Game Settings).
 

@@ -38,7 +38,7 @@ local.properties
 *.keystore
 
 # Firebase (Commit this only if you want others to use your Firebase project)
-# google-services.json
+google-services.json
 
 # Custom
 screenshots/
