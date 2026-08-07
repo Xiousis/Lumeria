@@ -327,6 +327,8 @@ fun SettingsScreen(
                 title = { Text("Lumeria Credits", fontWeight = FontWeight.Bold) },
                 text = {
                     Column {
+                        Text("© 2026 Jose Soler. All Rights Reserved.", fontWeight = FontWeight.Bold, color = Color.Yellow, fontSize = 12.sp)
+                        Spacer(modifier = Modifier.height(12.dp))
                         Text("Lead Developer:", fontWeight = FontWeight.Bold, color = Color.Cyan)
                         Text("Jose Soler", color = Color.White)
                         Spacer(modifier = Modifier.height(12.dp))

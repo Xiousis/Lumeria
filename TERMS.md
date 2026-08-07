@@ -4,7 +4,12 @@
 
 By downloading and playing Lumeria, you agree to these Terms of Service.
 
-## 1. License to Use
+## 1. Ownership & Copyright
+Lumeria, including its source code, artwork, music, and story dialogue, is the intellectual property of Jose Soler. 
+
+**© 2026 Jose Soler. All rights reserved.**
+
+## 2. License to Use
 We grant you a personal, non-exclusive, non-transferable license to play Lumeria on your Android device for personal, non-commercial use.
 
 ## 2. User Conduct
