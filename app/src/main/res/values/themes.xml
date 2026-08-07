@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="Theme.TEXTBASEDRPGMAGIC" parent="android:Theme.Material.Light.NoActionBar" />
+
+    <style name="Theme.Lumeria.Starting" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">#000000</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/lumeria_icon</item>
+        <item name="postSplashScreenTheme">@style/Theme.TEXTBASEDRPGMAGIC</item>
+    </style>
+
+</resources>

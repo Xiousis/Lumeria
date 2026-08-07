@@ -1,0 +1,55 @@
+<resources>
+    <string name="app_name">Lumeria</string>
+
+    <!-- Settings Screen -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_haptic_feedback">Haptic Feedback</string>
+    <string name="settings_music">Music</string>
+    <string name="settings_sfx">Sound Effects</string>
+    <string name="settings_redeem_code">Redeem Code</string>
+    <string name="settings_enter_code_placeholder">Enter code&#8230;</string>
+    <string name="settings_redeem_button">Redeem</string>
+    <string name="settings_support_header">Support</string>
+    <string name="settings_view_credits">📜 View Game Credits</string>
+    <string name="settings_join_discord">Join Official Discord</string>
+    <string name="settings_buy_coffee">☕ Buy the Dev a Coffee</string>
+    <string name="settings_legal_header">Legal</string>
+    <string name="settings_privacy_policy">🛡️ Privacy Policy</string>
+    <string name="settings_terms_of_service">⚖️ Terms of Service</string>
+    <string name="settings_save_management">Save Management</string>
+    <string name="settings_export_save">📤 Export Save to Clipboard</string>
+    <string name="settings_save_copied_feedback">Save code copied! Keep it safe.</string>
+    <string name="settings_import_save_header">Import Save Code</string>
+    <string name="settings_paste_save_placeholder">Paste save code&#8230;</string>
+
+    <string name="settings_import_button">Import</string>
+    <string name="settings_version_format">Version %1$s</string>
+
+    <!-- Battle Screen -->
+    <string name="battle_crit_format">CRIT! %1$s</string>
+    <string name="battle_hero_name">Xious</string>
+    <string name="battle_stats_format">ATK: %1$d | DEF: %2$d</string>
+    <string name="battle_victory_indicator">Victory!</string>
+    <string name="battle_defeat_indicator">Defeat&#8230;</string>
+    <string name="battle_processing_indicator">Processing&#8230;</string>
+    <string name="battle_your_turn_indicator">Your Turn</string>
+    <string name="battle_stunned_status">STUNNED!</string>
+    <string name="battle_tap_to_recover">Tap to recover</string>
+    <string name="battle_no_moves">NO MOVES AVAILABLE</string>
+    <string name="battle_tap_to_rest">Tap to Rest (Pass Turn)</string>
+    <string name="battle_cooldown_format">Wait: %1$d</string>
+    <string name="battle_mana_cost_format">%1$d MP</string>
+    <string name="battle_action_items">Items</string>
+    <string name="battle_action_run">Run</string>
+    <string name="battle_items_title">Consumables</string>
+    <string name="battle_no_items">No items available!</string>
+    <string name="battle_close">Close</string>
+    <string name="battle_victory_title">VICTORY!</string>
+    <string name="battle_victory_rewards">Gained: %1$d XP &amp; %2$s Gold</string>
+    <string name="battle_loot_header">Loot Found:</string>
+    <string name="battle_btn_again">Again</string>
+    <string name="battle_btn_continue">Continue</string>
+    <string name="battle_btn_return">Return</string>
+
+
+</resources>
