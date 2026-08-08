@@ -279,10 +279,14 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
             val isReplay = playerData.value.completedStoryArcs.contains(arc.id) || 
                            playerData.value.completedSideStoryArcs.contains(arc.id)
             
+            battleOrchestrator.isStoryReplay = isReplay
+            
             val savedArcId = playerData.value.activeStoryArcId
             val savedIndex = playerData.value.currentStoryEventIndex
 
-            if (!isReplay && savedArcId == arc.id) {
+            if (isReplay) {
+                currentEventIndex = 0
+            } else if (savedArcId == arc.id) {
                 currentEventIndex = savedIndex
                 if (currentEventIndex >= arc.events.size) {
                     processArcCompletion(arc)
@@ -300,7 +304,10 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
         val arc = selectedStoryArc ?: return
         currentEventIndex++
         
-        updatePlayer { it.copy(currentStoryEventIndex = currentEventIndex) }
+        val isReplay = battleOrchestrator.isStoryReplay
+        if (!isReplay) {
+            updatePlayer { it.copy(currentStoryEventIndex = currentEventIndex) }
+        }
         
         if (currentEventIndex >= arc.events.size) {
             processArcCompletion(arc)
@@ -660,22 +667,18 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
     }
 
     fun onArenaBattleStart(opponent: com.solerforge.lumeria.database.ArenaOpponent) {
-        updatePlayer { it.copy(battleBuffsConsumed = false) }
         battleOrchestrator.startArenaBattle(opponent, playerData.value)
     }
 
     fun onShadowBattleStart(shadow: PlayerData) {
-        updatePlayer { it.copy(battleBuffsConsumed = false) }
         battleOrchestrator.startShadowBattle(shadow, playerData.value)
     }
 
     fun onTowerBattleStart() {
-        updatePlayer { it.copy(battleBuffsConsumed = false) }
         battleOrchestrator.startTowerBattle(playerData.value)
     }
 
     fun onStartGuildExam(exam: com.solerforge.lumeria.database.GuildDatabase.GuildExam) {
-        updatePlayer { it.copy(battleBuffsConsumed = false) }
         battleOrchestrator.startGuildExam(exam, playerData.value)
     }
 
@@ -700,7 +703,6 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
     }
 
     fun onBossBattle(locationName: String) {
-        updatePlayer { it.copy(battleBuffsConsumed = false) }
         battleOrchestrator.locationOverride = locationName
         battleOrchestrator.startBossBattle(locationName, grindingPlayerData ?: playerData.value)
     }

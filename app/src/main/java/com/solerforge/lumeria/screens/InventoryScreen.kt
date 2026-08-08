@@ -685,7 +685,7 @@ fun InventoryScreen(
                                         mana = finalMana,
                                         inventory = newInventory,
                                         consumedGodFishCount = finalConsumedCount
-                                    )
+                                    ).recalculateVitals()
                                     onPlayerUpdate(inventorySnapshot)
                                 }
                             }

@@ -91,10 +91,14 @@ object BattleEngine {
             playerHp = nextHpWithRegen,
         )
 
-        // 2. CHECK STUN
+        // 2. CHECK STUN / FREEZE
         if (state.playerStunnedTurns > 0) {
             newLogs.add(LogEntry("Xious is stunned and cannot move!", Color.Red))
             return PlayerTurnResult(currentState.copy(playerStunnedTurns = state.playerStunnedTurns - 1), newLogs, true)
+        }
+        if (state.playerFrozenTurns > 0) {
+            newLogs.add(LogEntry("Xious is frozen in ice and cannot move!", Color.Cyan))
+            return PlayerTurnResult(currentState.copy(playerFrozenTurns = state.playerFrozenTurns - 1), newLogs, true)
         }
 
         // 3. DEFENSE CALCULATION
@@ -142,6 +146,12 @@ object BattleEngine {
                 activeDamageMultiplier = 1.5
                 superBuffTurns = 5
                 newLogs.add(LogEntry("Xious uses ${skill.name}! Entering a state of high power!", Color.Green))
+            }
+            "AgilityBuff" -> {
+                activeEvasionBonus = 0.20
+                evasionBuffTurns = 3
+                critBuffTurns = 3
+                newLogs.add(LogEntry("Xious uses ${skill.name}! Agility increased!", Color.Green))
             }
             "Parry" -> {
                 parryActive = true
@@ -266,11 +276,13 @@ object BattleEngine {
         
         var bleedTurns = state.bleedTurns
         var enemyStunnedTurns = state.enemyStunnedTurns
+        var enemyFrozenTurns = state.enemyFrozenTurns
         var burnTurns = state.burnTurns
         var poisonTurns = state.poisonTurns
         
         var enemy2BleedTurns = state.enemy2BleedTurns
         var enemy2StunnedTurns = state.enemy2StunnedTurns
+        var enemy2FrozenTurns = state.enemy2FrozenTurns
         var enemy2BurnTurns = state.enemy2BurnTurns
         var enemy2PoisonTurns = state.enemy2PoisonTurns
 
@@ -299,6 +311,10 @@ object BattleEngine {
                     newLogs.add(LogEntry("${state.enemy.name} was stunned!", Color.Yellow))
                     enemyStunnedTurns = 1
                 }
+                StatusEffect.Freeze -> {
+                    newLogs.add(LogEntry("${state.enemy.name} was frozen!", Color.Cyan))
+                    enemyFrozenTurns = 1
+                }
                 StatusEffect.Burn -> {
                     burnTurns = 3
                     newLogs.add(LogEntry("${state.enemy.name} caught on fire!", Color(0xFFFF5722)))
@@ -313,8 +329,9 @@ object BattleEngine {
             // --- Status Effects for Enemy 2 (if AoE hit) ---
             if (isAoE && state.enemy2 != null && enemy2Hp < state.enemy2Hp) {
                 // AoE has 25% chance to apply status to secondary target if it has one
-                if ((skill.statusEffect != StatusEffect.None) && (Math.random() < 0.25)) {
-                    when (skill.statusEffect) {
+                if ((skill.statusEffect != StatusEffect.None || skill.effectType == "Freeze") && (Math.random() < 0.25)) {
+                    val effectToApply = if (skill.effectType == "Freeze") StatusEffect.Freeze else skill.statusEffect
+                    when (effectToApply) {
                         StatusEffect.Bleed -> {
                             enemy2BleedTurns = 3
                             newLogs.add(LogEntry("${state.enemy2.name} is bleeding!", Color.Yellow))
@@ -322,6 +339,10 @@ object BattleEngine {
                         StatusEffect.Stun -> {
                             enemy2StunnedTurns = 1
                             newLogs.add(LogEntry("${state.enemy2.name} was stunned!", Color.Yellow))
+                        }
+                        StatusEffect.Freeze -> {
+                            enemy2FrozenTurns = 1
+                            newLogs.add(LogEntry("${state.enemy2.name} was frozen!", Color.Cyan))
                         }
                         StatusEffect.Burn -> {
                             enemy2BurnTurns = 3
@@ -416,6 +437,8 @@ object BattleEngine {
             enemy2BleedTurns = enemy2BleedTurns,
             enemyStunnedTurns = enemyStunnedTurns,
             enemy2StunnedTurns = enemy2StunnedTurns,
+            enemyFrozenTurns = enemyFrozenTurns,
+            enemy2FrozenTurns = enemy2FrozenTurns,
             burnTurns = burnTurns,
             enemy2BurnTurns = enemy2BurnTurns,
             poisonTurns = poisonTurns,
@@ -468,10 +491,13 @@ object BattleEngine {
 
         // --- ENEMY 1 ACTION ---
         if (currentState.enemyHp > 0) {
-            // Check if stunned
+            // Check if stunned or frozen
             if (currentState.enemyStunnedTurns > 0) {
                 newLogs.add(LogEntry("${currentState.enemy.name} is stunned!", Color.Yellow))
                 currentState = currentState.copy(enemyStunnedTurns = currentState.enemyStunnedTurns - 1)
+            } else if (currentState.enemyFrozenTurns > 0) {
+                newLogs.add(LogEntry("${currentState.enemy.name} is frozen in ice!", Color.Cyan))
+                currentState = currentState.copy(enemyFrozenTurns = currentState.enemyFrozenTurns - 1)
             } else {
                 val (turnState, turnLogs) = when {
                     currentState.isArenaBattle -> processArenaAction(currentState)
@@ -485,10 +511,13 @@ object BattleEngine {
 
         // --- ENEMY 2 ACTION ---
         if (state.enemy2 != null && currentState.enemy2Hp > 0 && currentState.playerHp > 0) {
-            // Check if stunned
+            // Check if stunned or frozen
             if (state.enemy2StunnedTurns > 0) {
                 newLogs.add(LogEntry("${state.enemy2.name} is stunned!", Color.Yellow))
                 currentState = currentState.copy(enemy2StunnedTurns = state.enemy2StunnedTurns - 1)
+            } else if (state.enemy2FrozenTurns > 0) {
+                newLogs.add(LogEntry("${state.enemy2.name} is frozen in ice!", Color.Cyan))
+                currentState = currentState.copy(enemy2FrozenTurns = state.enemy2FrozenTurns - 1)
             } else {
                 // Centralized dodge calculation
                 val dodgeChance = BattleLogic.calculateDodgeChance(currentState.currentPlayerSnapshot, currentState.evasionBuffBonus)

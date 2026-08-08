@@ -217,7 +217,7 @@ fun GameMenuScreen(
                 when (selectedTabIndex) {
                     0 -> AdventureTab(onBattle, onStory, onArena, onBounty, onTower, onQuests, playerData.defeatedBosses)
                     1 -> PlayerTab(playerData, onInventory, onStats, onSkills, onJournal, onBestiary, onTrophyRoom, onCodex, onWorldChat, onLeaderboard)
-                    2 -> TownSquareTab(onShop, onElder, onInn, onGambling, onBlacksmith, onBank, onKingdom, onGuild, onFishing, onFamiliarStore, onRebirth, playerData.renown)
+                    2 -> TownSquareTab(onShop, onElder, onInn, onGambling, onBlacksmith, onBank, onKingdom, onGuild, onFishing, onFamiliarStore, onRebirth, playerData.renown, playerData.isReborn)
                 }
             }
 
@@ -329,17 +329,20 @@ fun TownSquareTab(
     onFamiliarStore: () -> Unit,
     onRebirth: () -> Unit,
     renown: Long,
+    isReborn: Boolean,
 ) {
     Column(
         modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        MenuCard(
-            title = "REBIRTH ALTAR",
-            subtitle = "Transcend your mortal limits and forge a legacy.",
-            onClick = onRebirth,
-            highlight = true
-        )
+        if (!isReborn) {
+            MenuCard(
+                title = "REBIRTH ALTAR",
+                subtitle = "Transcend your mortal limits and forge a legacy.",
+                onClick = onRebirth,
+                highlight = true
+            )
+        }
 
         MenuCard("THE ROYAL COURT", "Visit King Alaric and review your standing.", onKingdom)
         

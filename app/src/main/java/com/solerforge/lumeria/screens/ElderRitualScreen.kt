@@ -47,8 +47,9 @@ fun ElderRitualScreen(
     val baseRespecCost = playerData.level * 100
     val respecCost = CurrencyUtils.applyDiscount(baseRespecCost, playerData.nationUpgradeLevel, playerData.activeKingdomLawId)
     val canAffordRespec = playerData.gold >= respecCost
-    val hasSpentPoints = playerData.strength > 5 || playerData.vitality > 5 || playerData.defense > 5 || 
-                         playerData.intelligence > 5 || playerData.agility > 5 || playerData.luck > 5 || playerData.wisdom > 5
+    val baseStats = com.solerforge.lumeria.database.GameDatabase.getClassBaseStats(playerData.playerClass)
+    val hasSpentPoints = playerData.strength > baseStats[0] || playerData.vitality > baseStats[1] || playerData.defense > baseStats[2] || 
+                         playerData.intelligence > baseStats[3] || playerData.agility > baseStats[4] || playerData.luck > baseStats[5] || playerData.wisdom > baseStats[6]
 
     val baseWishCost = if (playerData.freeWishesUsed < 3) 0 else 10000
     val wishCost = CurrencyUtils.applyDiscount(baseWishCost, playerData.nationUpgradeLevel, playerData.activeKingdomLawId)
@@ -179,10 +180,7 @@ fun ElderRitualScreen(
                                         freeWishesUsed = playerData.freeWishesUsed + 1,
                                         unlockedTraits = listOf(newTrait.name)
                                     )
-                                    onPlayerUpdate(updatedPlayer.copy(
-                                        maxHp = updatedPlayer.calculateMaxHp(),
-                                        maxMana = updatedPlayer.calculateMaxMana()
-                                    ))
+                                    onPlayerUpdate(updatedPlayer.recalculateVitals())
                                     selectedTraitName = null
                                 }
 
@@ -217,10 +215,7 @@ fun ElderRitualScreen(
                                                 freeWishesUsed = playerData.freeWishesUsed + 1,
                                                 unlockedTraits = listOf(newTrait.name)
                                             )
-                                            onPlayerUpdate(updatedPlayer.copy(
-                                                maxHp = updatedPlayer.calculateMaxHp(),
-                                                maxMana = updatedPlayer.calculateMaxMana()
-                                            ))
+                                            onPlayerUpdate(updatedPlayer.recalculateVitals())
                                             revealedTrait = newTrait
                                             selectedTraitName = null
                                         }
@@ -340,7 +335,7 @@ fun ElderRitualScreen(
                         onClick = {
                             val isRareResult = trait.rarity == "Legendary" || trait.rarity == "Mythic" || trait.rarity == "God Tier"
                             
-                            val performReroll = {
+                                val performReroll = {
                                 val newTrait = TraitDatabase.rollTrait()
                                 // Replaces current trait with the new one
                                 val updatedPlayer = playerData.copy(
@@ -348,10 +343,7 @@ fun ElderRitualScreen(
                                     freeWishesUsed = playerData.freeWishesUsed + 1,
                                     unlockedTraits = listOf(newTrait.name)
                                 )
-                                onPlayerUpdate(updatedPlayer.copy(
-                                    maxHp = updatedPlayer.calculateMaxHp(),
-                                    maxMana = updatedPlayer.calculateMaxMana()
-                                ))
+                                onPlayerUpdate(updatedPlayer.recalculateVitals())
                                 revealedTrait = newTrait
                             }
 

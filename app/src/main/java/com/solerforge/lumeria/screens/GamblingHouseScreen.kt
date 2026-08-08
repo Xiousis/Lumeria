@@ -30,10 +30,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.solerforge.lumeria.data.PlayerData
 
+import kotlinx.serialization.Serializable
+
 enum class GamblingStatus {
     BETTING, PLAYER_TURN, DEALER_TURN, ENDED
 }
 
+@Serializable
 data class Card(val rank: String, val suit: String, val value: Int)
 
 fun createDeck(): MutableList<Card> {
@@ -77,9 +80,19 @@ fun GamblingHouseScreen(
     var dealerHand by remember { mutableStateOf(listOf<Card>()) }
     var currentBet by remember { mutableIntStateOf(10) }
     var frankDialogue by remember { mutableStateOf("Welcome to my house! Ready to place a bet?") }
+    
+    // ATOMIC TRANSACTION: Hold the snapshot from the moment the bet starts
+    var escrowedSnapshot by remember { mutableStateOf<PlayerData?>(null) }
 
     LaunchedEffect(Unit) {
         com.solerforge.lumeria.utils.MusicManager.playMusic(context, R.raw.lumeria_main_menu_theme)
+        
+        // Handle recovery from interrupted game
+        if (playerData.pendingWager > 0) {
+            val wager = playerData.pendingWager
+            frankDialogue = "You left in quite a hurry! Here's your $wager gold back. Try not to run off again."
+            onPlayerUpdate(playerData.copy(gold = playerData.gold + wager, pendingWager = 0))
+        }
     }
 
     val playerValue = calculateHandValue(playerHand)
@@ -96,18 +109,23 @@ fun GamblingHouseScreen(
         dealerHand = listOf(deck.removeAt(0), deck.removeAt(0))
         
         val initialPlayerValue = calculateHandValue(playerHand)
+        
+        // Create the escrowed snapshot immediately
+        val snapshot = playerData.copy(gold = playerData.gold - currentBet, pendingWager = currentBet)
+        escrowedSnapshot = snapshot
+
         if (initialPlayerValue == 21) {
             val payout = (currentBet * 1.5).toInt()
-            onPlayerUpdate(playerData.copy(
-                gold = playerData.gold + payout, 
-                gamblingWins = playerData.gamblingWins + 1,
+            // Settle against snapshot: return original bet + payout
+            onPlayerUpdate(snapshot.copy(
+                gold = snapshot.gold + currentBet + payout, 
+                gamblingWins = snapshot.gamblingWins + 1,
                 pendingWager = 0
             ))
             frankDialogue = "BLACKJACK! Unbelievable luck! You win ${payout} gold!"
             status = GamblingStatus.ENDED
         } else {
-            // --- BET ESCROW: Deduct immediately ---
-            onPlayerUpdate(playerData.copy(gold = playerData.gold - currentBet, pendingWager = currentBet))
+            onPlayerUpdate(snapshot)
             status = GamblingStatus.PLAYER_TURN
             frankDialogue = "Cards are on the table. What's your move?"
         }
@@ -117,8 +135,10 @@ fun GamblingHouseScreen(
         playerHand = playerHand + deck.removeAt(0)
         if (calculateHandValue(playerHand) > 21) {
             frankDialogue = "Bust! Better luck next time. You lose $currentBet gold."
-            // Bet already deducted, just clear pending
-            onPlayerUpdate(playerData.copy(pendingWager = 0))
+            // Settle against escrow
+            escrowedSnapshot?.let { 
+                onPlayerUpdate(it.copy(pendingWager = 0))
+            }
             status = GamblingStatus.ENDED
         } else {
             frankDialogue = "Another one? Feeling lucky?"
@@ -132,6 +152,7 @@ fun GamblingHouseScreen(
 
     LaunchedEffect(status) {
         if (status == GamblingStatus.DEALER_TURN) {
+            val snapshot = escrowedSnapshot ?: return@LaunchedEffect
             var currentDealerHand = dealerHand
             while (calculateHandValue(currentDealerHand) < 17) {
                 kotlinx.coroutines.delay(800)
@@ -144,28 +165,28 @@ fun GamblingHouseScreen(
             
             if (finalDealerValue > 21) {
                 frankDialogue = "I busted! You win $currentBet gold!"
-                // Return wager + winnings
-                onPlayerUpdate(playerData.copy(
-                    gold = playerData.gold + (currentBet * 2), 
-                    gamblingWins = playerData.gamblingWins + 1,
+                // Return wager + winnings (total 2x bet)
+                onPlayerUpdate(snapshot.copy(
+                    gold = snapshot.gold + (currentBet * 2), 
+                    gamblingWins = snapshot.gamblingWins + 1,
                     pendingWager = 0
                 ))
             } else if (finalDealerValue > finalPlayerValue) {
                 frankDialogue = "Looks like I take this one. $currentBet gold is mine."
                 // Bet already deducted
-                onPlayerUpdate(playerData.copy(pendingWager = 0))
+                onPlayerUpdate(snapshot.copy(pendingWager = 0))
             } else if (finalDealerValue < finalPlayerValue) {
                 frankDialogue = "You beat me! Take your $currentBet gold."
-                // Return wager + winnings
-                onPlayerUpdate(playerData.copy(
-                    gold = playerData.gold + (currentBet * 2), 
-                    gamblingWins = playerData.gamblingWins + 1,
+                // Return wager + winnings (total 2x bet)
+                onPlayerUpdate(snapshot.copy(
+                    gold = snapshot.gold + (currentBet * 2), 
+                    gamblingWins = snapshot.gamblingWins + 1,
                     pendingWager = 0
                 ))
             } else {
                 frankDialogue = "A tie! A push! Your bet is safe."
                 // Return wager
-                onPlayerUpdate(playerData.copy(gold = playerData.gold + currentBet, pendingWager = 0))
+                onPlayerUpdate(snapshot.copy(gold = snapshot.gold + currentBet, pendingWager = 0))
             }
             status = GamblingStatus.ENDED
         }

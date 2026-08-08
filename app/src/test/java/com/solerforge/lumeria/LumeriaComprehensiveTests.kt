@@ -215,4 +215,21 @@ class LumeriaComprehensiveTests {
         assertEquals("Should not have duplicate God Tier items", 1, endbringerCount)
         assertTrue("Should still gain normal items", updated.inventory.contains("Iron Sword"))
     }
+
+    @Test
+    fun testAllSkillEffectsHaveEngineHandlers() {
+        val supportedEffects = setOf(
+            "Buff", "DefenseBuff", "EvasionBuff", "CritBuff", "SuperBuff", 
+            "Parry", "Heal", "Stun", "Freeze", "Bleed", "MultiHit", 
+            "IgnoreArmor", "Execute", "Lifesteal", "HealAttack", 
+            "MultiHitIgnore", "LimitBreak", "AgilityBuff", "Normal"
+        )
+        
+        val allSkills = SkillDatabase.skills + GuildDatabase.allSkills
+        val missingHandlers = allSkills.filter { 
+            it.effectType !in supportedEffects 
+        }.map { "${it.name} (${it.effectType})" }
+        
+        assertTrue("Skills missing engine handlers: $missingHandlers", missingHandlers.isEmpty())
+    }
 }

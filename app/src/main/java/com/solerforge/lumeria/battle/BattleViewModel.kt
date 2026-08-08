@@ -678,7 +678,7 @@ class BattleViewModel(
             // REWARDS FOR ENEMY 2
             currentState.enemy2?.let { e2 ->
                 val (baseXp2, baseGold2) = BattleLogic.calculateRewards(
-                    player = finalUpdatedPlayer,
+                    player = currentState.currentPlayerSnapshot,
                     enemy = e2,
                     isBossBattle = false,
                     isStoryMode = false,

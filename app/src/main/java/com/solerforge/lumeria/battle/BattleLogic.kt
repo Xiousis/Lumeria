@@ -214,7 +214,7 @@ object BattleLogic {
                     nextPlayerHp = minOf(nextPlayerHp + healAmount.toInt(), player.maxHp)
                 }
                 "Parry" -> { /* Handled in Engine */ }
-                "Buff", "DefenseBuff", "EvasionBuff", "CritBuff", "SuperBuff" -> { /* Handled in Engine */ }
+                "Buff", "DefenseBuff", "EvasionBuff", "CritBuff", "SuperBuff", "AgilityBuff" -> { /* Handled in Engine */ }
                 else -> {
                     // Attack logic
                     multiHits = when (skill.effectType) {
@@ -325,6 +325,8 @@ object BattleLogic {
                     } else if ((skill.effectType == "Stun") && (Math.random() < 0.3)) {
                          stunApplied = true
                          appliedStatus = StatusEffect.Stun
+                    } else if ((skill.effectType == "Freeze") && (Math.random() < 0.3)) {
+                         appliedStatus = StatusEffect.Freeze
                     } else if (skill.effectType == "Bleed") {
                          bleedApplied = true
                          appliedStatus = StatusEffect.Bleed

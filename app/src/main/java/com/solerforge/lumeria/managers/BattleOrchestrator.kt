@@ -46,7 +46,7 @@ class BattleOrchestrator(
     }
 
     fun startBossBattle(locationName: String, player: PlayerData) {
-        val newData = player.copy(currentLocation = locationName)
+        val newData = player.copy(currentLocation = locationName, battleBuffsConsumed = false)
         grindingPlayerData = newData 
         locationOverride = locationName
         onUpdatePlayer(newData)
@@ -70,7 +70,7 @@ class BattleOrchestrator(
         isStoryReplay = false
         shadowOpponent = null
         storyEnemyName = null
-        grindingPlayerData = player
+        grindingPlayerData = player.copy(battleBuffsConsumed = false)
         battleSeed++
         onNavigateToBattleScreen()
     }
@@ -83,7 +83,7 @@ class BattleOrchestrator(
         isStoryReplay = false
         shadowOpponent = null
         storyEnemyName = null
-        grindingPlayerData = player
+        grindingPlayerData = player.copy(battleBuffsConsumed = false)
         battleSeed++
         onNavigateToBattleScreen()
     }
@@ -97,7 +97,7 @@ class BattleOrchestrator(
         storyEnemyName = exam.enemyName
         arenaOpponent = null
         isTowerBattle = false
-        grindingPlayerData = player
+        grindingPlayerData = player.copy(battleBuffsConsumed = false)
         battleSeed++
         onNavigateToBattleScreen()
     }
@@ -135,7 +135,7 @@ class BattleOrchestrator(
         isStoryReplay = false
         arenaOpponent = null
         storyEnemyName = null
-        grindingPlayerData = player
+        grindingPlayerData = player.copy(battleBuffsConsumed = false)
         battleSeed++
         onNavigateToBattleScreen()
     }

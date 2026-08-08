@@ -303,7 +303,7 @@ fun InnScreen(
                                         onPlayerUpdate(
                                             playerData.copy(
                                                 gold = playerData.gold - mealCost,
-                                                activeBuffs = (nonFoodBuffs + meal.buff).distinctBy { it.type }
+                                                activeBuffs = nonFoodBuffs.filter { it.type != meal.buff.type } + meal.buff
                                             )
                                         )
                                         showMenu = false

@@ -33,14 +33,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.solerforge.lumeria.R
 import com.solerforge.lumeria.data.PlayerData
+import com.solerforge.lumeria.data.PlayerDataRepository
+import com.solerforge.lumeria.data.SaveStatus
 import com.solerforge.lumeria.utils.MusicManager
 
 @Composable
 fun MainMenu(
     activePlayerData: PlayerData,
-    slot1Data: PlayerData?,
-    slot2Data: PlayerData?,
-    slot3Data: PlayerData?,
+    slot1Data: PlayerDataRepository.SaveResult,
+    slot2Data: PlayerDataRepository.SaveResult,
+    slot3Data: PlayerDataRepository.SaveResult,
     activeSlot: Int,
     onSelectSlot: (Int) -> Unit,
     onStartGame: () -> Unit,
@@ -125,11 +127,14 @@ fun MainMenu(
 @Composable
 fun SlotCard(
     number: Int,
-    data: PlayerData?,
+    result: PlayerDataRepository.SaveResult,
     isActive: Boolean,
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
+    val data = result.data
+    val status = result.status
+
     Box(
         modifier = modifier
             .height(110.dp)
@@ -145,7 +150,7 @@ fun SlotCard(
         contentAlignment = Alignment.Center
     ) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            if (data != null && data.level > 0) {
+            if (status == SaveStatus.Loaded || status == SaveStatus.RecoveredFromBackup) {
                 Image(
                     painter = painterResource(id = R.drawable.xious_hp_100),
                     contentDescription = "Profile",
@@ -157,13 +162,23 @@ fun SlotCard(
                 )
             }
             
-            Column(horizontalAlignment = if (data != null && data.level > 0) Alignment.Start else Alignment.CenterHorizontally) {
+            Column(horizontalAlignment = if (status == SaveStatus.Loaded || status == SaveStatus.RecoveredFromBackup) Alignment.Start else Alignment.CenterHorizontally) {
                 Text("Slot $number", style = MaterialTheme.typography.labelSmall, color = if (isActive) Color.Yellow else Color.LightGray)
-                if (data != null && data.level > 0) {
-                    Text("Lv. ${data.level}", style = MaterialTheme.typography.titleMedium, color = Color.White, fontWeight = FontWeight.Bold)
-                    Text(data.currentLocation, style = MaterialTheme.typography.labelSmall, color = Color.Gray, maxLines = 1)
-                } else {
-                    Text("Empty", style = MaterialTheme.typography.titleSmall, color = Color.DarkGray)
+                when (status) {
+                    SaveStatus.Loaded -> {
+                        Text("Lv. ${data.level}", style = MaterialTheme.typography.titleMedium, color = Color.White, fontWeight = FontWeight.Bold)
+                        Text(data.currentLocation, style = MaterialTheme.typography.labelSmall, color = Color.Gray, maxLines = 1)
+                    }
+                    SaveStatus.RecoveredFromBackup -> {
+                        Text("RECOVERED", style = MaterialTheme.typography.titleSmall, color = Color.Cyan, fontWeight = FontWeight.Bold)
+                        Text("Lv. ${data.level}", style = MaterialTheme.typography.labelSmall, color = Color.LightGray)
+                    }
+                    SaveStatus.Corrupt -> {
+                        Text("CORRUPTED", style = MaterialTheme.typography.titleSmall, color = Color.Red, fontWeight = FontWeight.Bold)
+                    }
+                    SaveStatus.Empty -> {
+                        Text("EMPTY", style = MaterialTheme.typography.titleSmall, color = Color.DarkGray)
+                    }
                 }
             }
         }
