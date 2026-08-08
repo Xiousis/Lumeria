@@ -370,7 +370,9 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
     }
 
     fun onBattleAgain(newData: PlayerData) {
-        battleOrchestrator.handleBattleAgain(newData)
+        val finalData = newData.consumeBattleBuffs()
+        battleOrchestrator.handleBattleAgain(finalData)
+        updatePlayer(finalData)
     }
 
     fun onBattleFlee(newData: PlayerData) {
@@ -400,7 +402,7 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
 
         selectedStoryArc = null
         
-        var stateToSave = finalData
+        var stateToSave = finalData.consumeBattleBuffs()
 
         if ((currentArc != null) && victoryProcessed) {
             selectedStoryArc = currentArc
@@ -428,15 +430,6 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
                 stateToSave = stateToSave.copy(towerUnlockedMessageSeen = true)
             }
             popBackstack() 
-        }
-
-        // Apply Buff Reductions to the state we're about to save
-        if (stateToSave.activeBuffs.isNotEmpty()) {
-            val updatedBuffs = stateToSave.activeBuffs.asSequence()
-                .map { it.copy(battlesRemaining = it.battlesRemaining - 1) }
-                .filter { it.battlesRemaining > 0 }
-                .toList()
-            stateToSave = stateToSave.copy(activeBuffs = updatedBuffs)
         }
 
         updatePlayer(stateToSave)

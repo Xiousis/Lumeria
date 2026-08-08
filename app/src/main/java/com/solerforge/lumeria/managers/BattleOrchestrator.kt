@@ -53,6 +53,7 @@ class BattleOrchestrator(
         isBossBattle = true
         isTowerBattle = false
         isPvPBattle = false
+        isStoryReplay = false
         shadowOpponent = null
         isRiftBattle = (newData.voidIncursionLocation == locationName)
         arenaOpponent = null
@@ -66,6 +67,7 @@ class BattleOrchestrator(
         isBossBattle = false
         isTowerBattle = false
         isPvPBattle = false
+        isStoryReplay = false
         shadowOpponent = null
         storyEnemyName = null
         grindingPlayerData = player
@@ -78,6 +80,7 @@ class BattleOrchestrator(
         isBossBattle = (player.towerFloor % 10 == 0)
         arenaOpponent = null
         isPvPBattle = false
+        isStoryReplay = false
         shadowOpponent = null
         storyEnemyName = null
         grindingPlayerData = player
@@ -89,6 +92,7 @@ class BattleOrchestrator(
         currentGuildExam = exam
         isBossBattle = true
         isPvPBattle = false
+        isStoryReplay = false
         shadowOpponent = null
         storyEnemyName = exam.enemyName
         arenaOpponent = null
@@ -129,6 +133,7 @@ class BattleOrchestrator(
         isPvPBattle = true
         isBossBattle = false
         isTowerBattle = false
+        isStoryReplay = false
         arenaOpponent = null
         storyEnemyName = null
         grindingPlayerData = player
@@ -176,6 +181,7 @@ class BattleOrchestrator(
         isRiftBattle = false
         isBossBattle = false
         isTowerBattle = false
+        isStoryReplay = false
         arenaOpponent = null
         currentGuildExam = null
         
@@ -210,6 +216,7 @@ class BattleOrchestrator(
         isBossBattle = false
         isTowerBattle = false
         isPvPBattle = false
+        isStoryReplay = false
         arenaOpponent = null
         shadowOpponent = null
         currentGuildExam = null

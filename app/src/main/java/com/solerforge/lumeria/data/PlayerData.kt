@@ -149,6 +149,17 @@ data class PlayerData(
         return currentData
     }
 
+    fun consumeBattleBuffs(): PlayerData {
+        if (activeBuffs.isEmpty()) return this
+        
+        val updatedBuffs = activeBuffs.asSequence()
+            .map { it.copy(battlesRemaining = it.battlesRemaining - 1) }
+            .filter { it.battlesRemaining > 0 }
+            .toList()
+        
+        return copy(activeBuffs = updatedBuffs)
+    }
+
     fun calculateMaxHp(): Int {
         val traitBonusHp = unlockedTraits.sumOf { TraitDatabase.getTrait(it)?.hpBonus ?: 0 }
         val traitBonusVit = unlockedTraits.sumOf { TraitDatabase.getTrait(it)?.vitBonus ?: 0 }

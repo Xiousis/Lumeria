@@ -18,6 +18,13 @@ object BattleEngine {
     ): Pair<BattleUiState, List<LogEntry>> {
         val skill = SkillDatabase.getSkill(skillName)
         val newLogs = mutableListOf<LogEntry>()
+
+        // 0. COOLDOWN VALIDATION
+        val remainingCooldown = state.skillCooldowns[skill.name] ?: 0
+        if (remainingCooldown > 0 && skill.name != "None") {
+            newLogs.add(LogEntry("${skill.name} is still cooling down!", Color.Red))
+            return Pair(state.copy(isProcessing = false), newLogs)
+        }
         
         // 1. START OF TURN HOUSEKEEPING (Decrement all active cooldowns and debuffs)
         val workingCooldowns = state.skillCooldowns.toMutableMap()
@@ -26,19 +33,7 @@ object BattleEngine {
             if (cd > 0) workingCooldowns[name] = cd - 1
         }
 
-        // Mana Validation First
-        if (state.playerMana < skill.manaCost && skill.name != "None") {
-            newLogs.add(LogEntry("Not enough Mana for ${skill.name}!", Color.Red))
-            return Pair(state.copy(isProcessing = false), newLogs)
-        }
-
-        var currentState = state.copy(
-            parryActive = false, // Reset parry stance at start of turn
-            skillCooldowns = workingCooldowns,
-            playerDefenseDebuffTurns = maxOf(0, state.playerDefenseDebuffTurns - 1)
-        )
-
-        // Mana Regeneration (Wisdom based)
+        // --- MANA & HP REGENERATION FIRST ---
         val offHand1 = GameDatabase.getOffHand(state.currentPlayerSnapshot.equippedOffHand)
         val offHand2 = GameDatabase.getOffHand(state.currentPlayerSnapshot.equippedOffHand2)
         val totalWisdom = state.currentPlayerSnapshot.wisdom + offHand1.wisdom + offHand2.wisdom
@@ -62,7 +57,6 @@ object BattleEngine {
             newLogs.add(LogEntry("Regenerated ${nextManaWithRegen - state.playerMana} Mana.", Color.Cyan))
         }
 
-        // --- HP REGENERATION ---
         var hpRegen = 0
         if (state.currentPlayerSnapshot.unlockedTraits.contains("Blood of the Gods")) hpRegen += 10
         if (state.currentPlayerSnapshot.unlockedTraits.contains("Eyes of the Creator")) hpRegen += 20
@@ -78,7 +72,21 @@ object BattleEngine {
             newLogs.add(LogEntry("Regenerated ${nextHpWithRegen - state.playerHp} HP.", Color.Green))
         }
 
-        currentState = currentState.copy(
+        // Mana Validation After Regen
+        if (nextManaWithRegen < skill.manaCost && skill.name != "None") {
+            newLogs.add(LogEntry("Not enough Mana for ${skill.name}!", Color.Red))
+            return Pair(state.copy(
+                isProcessing = false,
+                playerMana = nextManaWithRegen,
+                playerHp = nextHpWithRegen,
+                skillCooldowns = workingCooldowns
+            ), newLogs)
+        }
+
+        var currentState = state.copy(
+            parryActive = false, // Reset parry stance at start of turn
+            skillCooldowns = workingCooldowns,
+            playerDefenseDebuffTurns = maxOf(0, state.playerDefenseDebuffTurns - 1),
             playerMana = nextManaWithRegen,
             playerHp = nextHpWithRegen,
         )
@@ -198,7 +206,7 @@ object BattleEngine {
         val workingUnlockedSkills = state.currentPlayerSnapshot.unlockedSkills.toMutableList()
         val workingEquippedSkills = state.currentPlayerSnapshot.equippedSkills.toMutableList()
 
-        if (skill.name != "None") {
+        if (skill.name != "None" && !state.isStoryReplay) {
             val currentExp = workingSkillExp[skill.name] ?: 0
             val currentLvl = workingSkillLevels[skill.name] ?: 1
             

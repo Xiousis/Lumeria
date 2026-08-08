@@ -80,8 +80,8 @@ class BattleViewModel(
                 maxHp = shadowOpponent.maxHp,
                 level = shadowOpponent.level,
                 isHumanoid = true,
-                rewardXp = shadowOpponent.level * 20,
-                rewardGold = shadowOpponent.level * 5
+                rewardXp = shadowOpponent.level * 20L,
+                rewardGold = shadowOpponent.level * 5L
             )
             guildExam != null -> Enemy(guildExam.enemyName, guildExam.enemyName, guildExam.hp, guildExam.level, isHumanoid = true, materialDrop = GameDatabase.getRequiredMaterial("Grand Arena"))
             isTowerBattle -> {
@@ -96,8 +96,8 @@ class BattleViewModel(
                     baseName = "The Echo of Xious",
                     maxHp = legacy.maxHp * 2,
                     level = legacy.level,
-                    rewardXp = 500000,
-                    rewardGold = 0,
+                    rewardXp = 500000L,
+                    rewardGold = 0L,
                     isHumanoid = true,
                     materialDrop = "Spirit of the Founder"
                 )
@@ -213,6 +213,7 @@ class BattleViewModel(
             isFleeable = (storyEnemyName == null) && (!isBossBattle) && (arenaOpponent == null) && (!isPvPBattle) && (!isTowerBattle) && (!isRiftBattle) && (guildExam == null), // Disable flee for story/boss/arena/ambush/pvp/tower/rift/exams
             isStoryMode = (storyEnemyName != null) || isBossBattle || (arenaOpponent != null) || isTowerBattle || isPvPBattle,
             isStoryBoss = (storyEnemyName != null) && isBossBattle,
+            isStoryReplay = isStoryReplay,
             isBossBattle = isBossBattle,
             isRiftBattle = isRiftBattle,
             isArenaBattle = arenaOpponent != null || isPvPBattle,

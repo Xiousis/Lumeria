@@ -132,8 +132,8 @@ fun ShopScreen(
 
             val billyDialogue = when {
                 mainTab == "Sell" -> "\"Looking to offload some junk? I'll take it off your hands for a fair price.\""
-                shopSnapshot.gold > 500000 -> "\"Whoa! A high roller! Only the best for you, friend!\""
-                shopSnapshot.gold < 100 -> "\"You're looking a bit light on coin... but a look is free!\""
+                shopSnapshot.gold > 500000L -> "\"Whoa! A high roller! Only the best for you, friend!\""
+                shopSnapshot.gold < 100L -> "\"You're looking a bit light on coin... but a look is free!\""
                 else -> "\"Hey there! I'm Billy. Looking for some quality gear?\""
             }
 

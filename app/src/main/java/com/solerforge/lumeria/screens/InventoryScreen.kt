@@ -648,7 +648,7 @@ fun InventoryScreen(
                                 val statText = when {
                                     (consumable != null) && (consumable.healAmount > 0) -> "Heals ${consumable.healAmount} HP"
                                     (consumable != null) && (consumable.manaAmount > 0) -> "Restores ${consumable.manaAmount} MP"
-                                    (fish != null) && (fish.rarity == "God Tier") && (fish.basePrice == 0) -> "Perm +2% Max HP"
+                                    (fish != null) && (fish.rarity == "God Tier") && (fish.basePrice == 0L) -> "Perm +2% Max HP"
                                     fish != null -> "Fresh Catch (Value: ${fish.basePrice}G)"
                                     else -> ""
                                 }
@@ -660,7 +660,7 @@ fun InventoryScreen(
                                     description = consumable?.description ?: fish?.description ?: "",
                                     lore = consumable?.lore ?: "",
                                     isEquipped = false, 
-                                    actionLabel = if (fish != null && fish.rarity == "God Tier" && fish.basePrice == 0) "Eat" else "Use",
+                                    actionLabel = if (fish != null && fish.rarity == "God Tier" && fish.basePrice == 0L) "Eat" else "Use",
                                     count = count
                                 ) {
                                     val newInventory = inventorySnapshot.inventory.toMutableList()
@@ -673,7 +673,7 @@ fun InventoryScreen(
                                     if (consumable != null) {
                                         finalHp = minOf(inventorySnapshot.hp + consumable.healAmount, inventorySnapshot.maxHp)
                                         finalMana = minOf(inventorySnapshot.mana + consumable.manaAmount, inventorySnapshot.maxMana)
-                                    } else if (fish != null && fish.rarity == "God Tier" && fish.basePrice == 0) {
+                                    } else if (fish != null && fish.rarity == "God Tier" && fish.basePrice == 0L) {
                                         finalConsumedCount++
                                     } else {
                                         // If it's a regular fish or something else, we shouldn't have consumed it

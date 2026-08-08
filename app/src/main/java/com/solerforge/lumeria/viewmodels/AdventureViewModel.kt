@@ -26,16 +26,17 @@ class AdventureViewModel : ViewModel() {
         onNavigateToBattle: (Boolean, PlayerData) -> Unit,
         onNavigateToEvent: () -> Unit
     ) {
-        val newData = playerData.copy(currentLocation = locationName)
-        onUpdatePlayer(newData)
+        var newData = playerData.copy(currentLocation = locationName)
         
         // 5% Chance for World Event
         if (Math.random() < 0.05) {
             currentWorldEvent = WorldEventDatabase.getRandomEvent()
             eventOutcomeMessage = null
-            onUpdatePlayer(newData.copy(worldEventsEncountered = newData.worldEventsEncountered + 1))
+            newData = newData.copy(worldEventsEncountered = newData.worldEventsEncountered + 1)
+            onUpdatePlayer(newData)
             onNavigateToEvent()
         } else {
+            onUpdatePlayer(newData)
             val isRift = (newData.voidIncursionLocation == locationName)
             onNavigateToBattle(isRift, newData)
         }
