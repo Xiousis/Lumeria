@@ -657,6 +657,9 @@ class BattleViewModel(
                 )
             } else updatedPlayerStep1
             
+            // Consume buffs atomically with victory
+            val finalUpdatedPlayer = updatedPlayer.consumeBattleBuffs()
+
             val (baseXp1, baseGold1) = BattleLogic.calculateRewards(
                 player = currentState.currentPlayerSnapshot, 
                 enemy = currentState.enemy, 
@@ -675,7 +678,7 @@ class BattleViewModel(
             // REWARDS FOR ENEMY 2
             currentState.enemy2?.let { e2 ->
                 val (baseXp2, baseGold2) = BattleLogic.calculateRewards(
-                    player = updatedPlayer,
+                    player = finalUpdatedPlayer,
                     enemy = e2,
                     isBossBattle = false,
                     isStoryMode = false,
@@ -694,12 +697,12 @@ class BattleViewModel(
                 victoryLoot = drops,
                 xpGained = finalXp,
                 goldGained = finalGold,
-                currentPlayerSnapshot = updatedPlayer,
-                battleLog = (it.battleLog + if (updatedPlayer.equippedFamiliar != "None") {
-                    val oldLvl = currentState.currentPlayerSnapshot.familiarLevels[updatedPlayer.equippedFamiliar] ?: 1
-                    val newLvl = updatedPlayer.familiarLevels[updatedPlayer.equippedFamiliar] ?: 1
+                currentPlayerSnapshot = finalUpdatedPlayer,
+                battleLog = (it.battleLog + if (finalUpdatedPlayer.equippedFamiliar != "None") {
+                    val oldLvl = currentState.currentPlayerSnapshot.familiarLevels[finalUpdatedPlayer.equippedFamiliar] ?: 1
+                    val newLvl = finalUpdatedPlayer.familiarLevels[finalUpdatedPlayer.equippedFamiliar] ?: 1
                     if (newLvl > oldLvl) {
-                        listOf(LogEntry("🐾 ${updatedPlayer.equippedFamiliar} LEVELED UP to Lv $newLvl!", Color.Magenta))
+                        listOf(LogEntry("🐾 ${finalUpdatedPlayer.equippedFamiliar} LEVELED UP to Lv $newLvl!", Color.Magenta))
                     } else {
                         emptyList()
                     }
@@ -708,7 +711,7 @@ class BattleViewModel(
                 }).takeLast(20)
             ) }
 
-            onUpdate(updatedPlayer)
+            onUpdate(finalUpdatedPlayer)
         }
     }
 

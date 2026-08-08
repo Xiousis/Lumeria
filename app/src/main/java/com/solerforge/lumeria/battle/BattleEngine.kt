@@ -383,21 +383,10 @@ object BattleEngine {
                     newLogs.add(LogEntry("${familiar.name} boosted your attack!", Color.Yellow))
                 }
                 FamiliarActionType.Debuff -> {
-                    when (familiar.name) {
-                        "Shadow Bat" -> {
-                            enemyDamageMultiplier = 0.90
-                            enemyDamageDebuffTurns = 2
-                            newLogs.add(LogEntry("Shadow Bat uses Echolocation! Enemy damage reduced by 10%.", Color.Magenta))
-                        }
-                        "Mire Hydra" -> {
-                            enemyDamageMultiplier = 0.80
-                            enemyDamageDebuffTurns = 2
-                            newLogs.add(LogEntry("Mire Hydra releases Toxic Fumes! Enemy damage reduced by 20%.", Color.Magenta))
-                        }
-                        else -> {
-                            newLogs.add(LogEntry("${familiar.name} distracted the enemy!", Color.Magenta))
-                        }
-                    }
+                    val debuffPercent = power / 100.0
+                    enemyDamageMultiplier = (1.0 - debuffPercent).coerceAtLeast(0.1)
+                    enemyDamageDebuffTurns = 2
+                    newLogs.add(LogEntry("${familiar.name} used its debuff action! Enemy damage reduced by $power%.", Color.Magenta))
                 }
             }
         }
@@ -466,16 +455,8 @@ object BattleEngine {
             enemySkillCooldowns = workingCooldowns,
             bossEnrageTurns = maxOf(0, state.bossEnrageTurns - 1),
             bossShieldTurns = maxOf(0, state.bossShieldTurns - 1),
-            enemyDamageDebuffTurns = maxOf(0, state.enemyDamageDebuffTurns - 1),
-            enemyEvasionBuffTurns = maxOf(0, state.enemyEvasionBuffTurns - 1)
+            // Timing fixed: decrements happen at end of turn
         )
-
-        if (currentState.enemyDamageDebuffTurns == 0) {
-            currentState = currentState.copy(enemyDamageMultiplier = 1.0)
-        }
-        if (currentState.enemyEvasionBuffTurns == 0) {
-            currentState = currentState.copy(enemyEvasionBonus = 0.0)
-        }
 
         // --- PASSIVE STATUS DAMAGE (Burn, Poison, Bleed) ---
         val (passiveState, passiveLogs) = applyPassiveDamage(currentState)
@@ -521,31 +502,30 @@ object BattleEngine {
                 if (isDodge) {
                     newLogs.add(LogEntry("Xious dodged the ${currentState.enemy2?.name ?: "enemy"}'s attack!", Color.Cyan))
                 } else {
-                    val armorDef = GameDatabase.getArmor(currentState.currentPlayerSnapshot.equippedArmor).defense
-                    val headDef = GameDatabase.getHeadGear(currentState.currentPlayerSnapshot.equippedHead).defense
-                    val shieldDef = GameDatabase.getShield(currentState.currentPlayerSnapshot.equippedShield).defense
-                    val offHand1 = GameDatabase.getOffHand(currentState.currentPlayerSnapshot.equippedOffHand)
-                    val offHand2 = GameDatabase.getOffHand(currentState.currentPlayerSnapshot.equippedOffHand2)
-                    val itemDef = offHand1.defense + offHand2.defense
-                    
-                    val traitBonusDef = currentState.currentPlayerSnapshot.unlockedTraits.sumOf { TraitDatabase.getTrait(it)?.vitBonus ?: 0 }
-                    var totalDef = currentState.currentPlayerSnapshot.defense + armorDef + headDef + shieldDef + itemDef + traitBonusDef
-                    
-                    // Apply Passive Defense Buffs from Food/Events
-                    currentState.currentPlayerSnapshot.activeBuffs.find { it.type == com.solerforge.lumeria.models.BuffType.Defense }?.let {
-                        totalDef = (totalDef * it.value).toInt()
-                    }
-
-                    val effectiveDef = if (currentState.playerDefenseDebuffTurns > 0) (totalDef * 0.8).toInt() else totalDef
-                    var enemyDmgDealt = BattleLogic.calculateEnemyDamage(currentState.enemy2?.name ?: "enemy", currentState.enemy2?.level ?: 1, effectiveDef)
-                    if (currentState.parryActive) enemyDmgDealt /= 2
-                    enemyDmgDealt = maxOf(1, enemyDmgDealt)
+                    val enemyDmgDealt = calculateIncomingEnemyDamage(
+                        state = currentState,
+                        enemyLevel = currentState.enemy2?.level ?: 1,
+                        enemyName = currentState.enemy2?.name ?: "enemy",
+                        isBoss = false
+                    )
                     
                     val playerHp = maxOf(0, currentState.playerHp - enemyDmgDealt)
                     currentState = currentState.copy(playerHp = playerHp)
                     newLogs.add(LogEntry("${currentState.enemy2?.name ?: "Enemy"} attacks for $enemyDmgDealt damage.", Color.Red))
                 }
             }
+        }
+
+        // --- END OF TURN HOUSEKEEPING (Decrement buffs) ---
+        currentState = currentState.copy(
+            enemyDamageDebuffTurns = maxOf(0, currentState.enemyDamageDebuffTurns - 1),
+            enemyEvasionBuffTurns = maxOf(0, currentState.enemyEvasionBuffTurns - 1)
+        )
+        if (currentState.enemyDamageDebuffTurns == 0) {
+            currentState = currentState.copy(enemyDamageMultiplier = 1.0)
+        }
+        if (currentState.enemyEvasionBuffTurns == 0) {
+            currentState = currentState.copy(enemyEvasionBonus = 0.0)
         }
         
         return Pair(currentState, newLogs)
@@ -654,37 +634,14 @@ object BattleEngine {
             )
         }
 
-        val armorDef = GameDatabase.getArmor(state.currentPlayerSnapshot.equippedArmor).defense
-        val headDef = GameDatabase.getHeadGear(state.currentPlayerSnapshot.equippedHead).defense
-        val shieldDef = GameDatabase.getShield(state.currentPlayerSnapshot.equippedShield).defense
-        val offHand1 = GameDatabase.getOffHand(state.currentPlayerSnapshot.equippedOffHand)
-        val offHand2 = GameDatabase.getOffHand(state.currentPlayerSnapshot.equippedOffHand2)
-        val itemDef = offHand1.defense + offHand2.defense
-        
-        val traitBonusDef = state.currentPlayerSnapshot.unlockedTraits.sumOf { TraitDatabase.getTrait(it)?.vitBonus ?: 0 }
-        var totalDef = state.currentPlayerSnapshot.defense + armorDef + headDef + shieldDef + itemDef + traitBonusDef
-        
-        // Apply Passive Defense Buffs from Food/Events
-        state.currentPlayerSnapshot.activeBuffs.find { it.type == com.solerforge.lumeria.models.BuffType.Defense }?.let {
-            totalDef = (totalDef * it.value).toInt()
-        }
-        
         // Apply Active Skill Defense Buff
-        totalDef = (totalDef * state.defenseBuffMultiplier).toInt()
-
-        val effectiveDef = if (state.playerDefenseDebuffTurns > 0) (totalDef * 0.8).toInt() else totalDef
+        val enemyDmgDealt = calculateIncomingEnemyDamage(
+            state = state,
+            enemyLevel = state.enemy.level,
+            enemyName = state.enemy.name,
+            isBoss = false
+        )
         
-        var enemyDmgDealt = BattleLogic.calculateEnemyDamage(state.enemy.name, state.enemy.level, effectiveDef)
-        enemyDmgDealt = (enemyDmgDealt * state.enemyDamageMultiplier).toInt()
-        
-        // --- KINGDOM LAWS ---
-        when (state.currentPlayerSnapshot.activeKingdomLawId) {
-            2 -> enemyDmgDealt = (enemyDmgDealt * 1.15).toInt() // Warrior's Draft: +15% Enemy Dmg
-        }
-
-        if (state.parryActive) enemyDmgDealt /= 2
-        
-        enemyDmgDealt = maxOf(1, enemyDmgDealt)
         var playerHp = maxOf(0, state.playerHp - enemyDmgDealt)
         var enemyHp = state.enemyHp
 
@@ -810,7 +767,8 @@ object BattleEngine {
         if (player.joinedGuild == "House of Wind") dodgeChance += 0.02
         dodgeChance = dodgeChance.coerceIn(0.0, 0.90)
         
-        val isSelfTarget = attack.effectType == "Heal" || attack.effectType == "Buff"
+        val selfTargetEffects = setOf("Heal", "Buff", "DamageBuff", "DefenseBuff", "EvasionBuff", "Shield")
+        val isSelfTarget = attack.effectType in selfTargetEffects
         val isDodge = if (isSelfTarget) false else Math.random() < dodgeChance
         
         if (isDodge) {
@@ -830,55 +788,15 @@ object BattleEngine {
         var enemyEvasionBonus = state.enemyEvasionBonus
         var enemyEvasionBuffTurns = state.enemyEvasionBuffTurns
 
-        // 3. DAMAGE CALCULATION
-        val armorDef = GameDatabase.getArmor(state.currentPlayerSnapshot.equippedArmor).defense
-        val headDef = GameDatabase.getHeadGear(state.currentPlayerSnapshot.equippedHead).defense
-        val shieldDef = GameDatabase.getShield(state.currentPlayerSnapshot.equippedShield).defense
-        val offHand1 = GameDatabase.getOffHand(state.currentPlayerSnapshot.equippedOffHand)
-        val offHand2 = GameDatabase.getOffHand(state.currentPlayerSnapshot.equippedOffHand2)
-        val itemDef = offHand1.defense + offHand2.defense
-        
-        val traitBonusDef = state.currentPlayerSnapshot.unlockedTraits.sumOf { TraitDatabase.getTrait(it)?.vitBonus ?: 0 }
-        var totalDef = state.currentPlayerSnapshot.defense + armorDef + headDef + shieldDef + itemDef + traitBonusDef
-
-        // Apply Passive Defense Buffs from Food/Events
-        state.currentPlayerSnapshot.activeBuffs.find { it.type == com.solerforge.lumeria.models.BuffType.Defense }?.let {
-            totalDef = (totalDef * it.value).toInt()
-        }
-
         // Apply Active Skill Defense Buff
-        totalDef = (totalDef * state.defenseBuffMultiplier).toInt()
-
-        val effectiveDef = if (playerDefenseDebuffTurns > 0) (totalDef * 0.8).toInt() else totalDef
-        
-        var multiplier = attack.multiplier
-        if (currentEnrageTurns > 0) {
-            multiplier *= 1.25 
-        }
-        
-        val ignoreArmor = attack.effectType == "IgnoreArmor"
-        var baseDmg = BattleLogic.calculateBossDamage(state.enemy.level, effectiveDef, multiplier, ignoreArmor)
-        baseDmg = (baseDmg * state.enemyDamageMultiplier).toInt()
-
-        // --- KINGDOM LAWS ---
-        when (state.currentPlayerSnapshot.activeKingdomLawId) {
-            2 -> baseDmg = (baseDmg * 1.15).toInt() // Warrior's Draft: +15% Enemy Dmg
-            3 -> {
-                // Void Resistance: Reduce damage from Void/Dark bosses
-                if (state.enemy.name.contains("Void") || state.enemy.name.contains("Xarthos") || state.enemy.name.contains("Umbra")) {
-                    baseDmg = (baseDmg * 0.8).toInt()
-                }
-            }
-        }
-
-        if (state.parryActive) baseDmg /= 2
-        
-        // If multiplier is 0 (Heal/Buff only), damage should be 0
-        if (attack.multiplier <= 0.0) {
-            baseDmg = 0
-        } else {
-            baseDmg = maxOf(1, baseDmg)
-        }
+        val baseDmg = calculateIncomingEnemyDamage(
+            state = state,
+            enemyLevel = state.enemy.level,
+            enemyName = state.enemy.name,
+            isBoss = true,
+            multiplier = if (currentEnrageTurns > 0) attack.multiplier * 1.25 else attack.multiplier,
+            ignoreArmor = attack.effectType == "IgnoreArmor"
+        )
 
         if (state.parryActive && state.lastSkillName == "Absolute Counter" && baseDmg > 0) {
             val reflected = (baseDmg * 0.75).toInt()
@@ -979,5 +897,56 @@ object BattleEngine {
             ),
             newLogs
         )
+    }
+
+    private fun calculateIncomingEnemyDamage(
+        state: BattleUiState,
+        enemyLevel: Int,
+        enemyName: String,
+        isBoss: Boolean,
+        multiplier: Double = 1.0,
+        ignoreArmor: Boolean = false
+    ): Int {
+        val armorDef = GameDatabase.getArmor(state.currentPlayerSnapshot.equippedArmor).defense
+        val headDef = GameDatabase.getHeadGear(state.currentPlayerSnapshot.equippedHead).defense
+        val shieldDef = GameDatabase.getShield(state.currentPlayerSnapshot.equippedShield).defense
+        val offHand1 = GameDatabase.getOffHand(state.currentPlayerSnapshot.equippedOffHand)
+        val offHand2 = GameDatabase.getOffHand(state.currentPlayerSnapshot.equippedOffHand2)
+        val itemDef = offHand1.defense + offHand2.defense
+        
+        val traitBonusDef = state.currentPlayerSnapshot.unlockedTraits.sumOf { TraitDatabase.getTrait(it)?.vitBonus ?: 0 }
+        var totalDef = state.currentPlayerSnapshot.defense + armorDef + headDef + shieldDef + itemDef + traitBonusDef
+
+        // Apply Passive Defense Buffs from Food/Events
+        state.currentPlayerSnapshot.activeBuffs.find { it.type == com.solerforge.lumeria.models.BuffType.Defense }?.let {
+            totalDef = (totalDef * it.value).toInt()
+        }
+
+        // Apply Active Skill Defense Buff
+        totalDef = (totalDef * state.defenseBuffMultiplier).toInt()
+
+        val effectiveDef = if (state.playerDefenseDebuffTurns > 0) (totalDef * 0.8).toInt() else totalDef
+        
+        var baseDmg = if (isBoss) {
+            BattleLogic.calculateBossDamage(enemyLevel, effectiveDef, multiplier, ignoreArmor)
+        } else {
+            BattleLogic.calculateEnemyDamage(enemyName, enemyLevel, effectiveDef, multiplier, ignoreArmor)
+        }
+        
+        baseDmg = (baseDmg * state.enemyDamageMultiplier).toInt()
+
+        // --- KINGDOM LAWS ---
+        when (state.currentPlayerSnapshot.activeKingdomLawId) {
+            2 -> baseDmg = (baseDmg * 1.15).toInt() // Warrior's Draft: +15% Enemy Dmg
+            3 -> {
+                if (isBoss && (enemyName.contains("Void") || enemyName.contains("Xarthos") || enemyName.contains("Umbra"))) {
+                    baseDmg = (baseDmg * 0.8).toInt()
+                }
+            }
+        }
+
+        if (state.parryActive) baseDmg /= 2
+        
+        return if (multiplier <= 0.0) 0 else maxOf(1, baseDmg)
     }
 }

@@ -80,7 +80,7 @@ object WorldDatabase {
             bossUnlocked = true,
             x = 0.25f,
             y = 0.3f,
-            requiredLevel = 25,
+            requiredLevel = 51,
         ),
         WorldLocation(
             name = "Dark Citadel",

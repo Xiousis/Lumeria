@@ -12,5 +12,6 @@ data class Skill(
     val elementType: ElementType = ElementType.Physical,
     val statusEffect: StatusEffect = StatusEffect.None,
     val evolvesTo: String? = null,
-    val requiredClasses: List<String> = emptyList()
+    val requiredClasses: List<String> = emptyList(),
+    val isEvolutionOnly: Boolean = false
 )

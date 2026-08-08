@@ -229,7 +229,7 @@ fun StatsScreen(
                         canIncrease = playerData.statPoints > 0,
                         onHelp = { helpItem = "Strength (STR)" to "Increases physical damage dealt by 2 per point. Higher strength allows you to crush enemies with brute force." },
                         onIncrease = {
-                            onPlayerUpdate(playerData.copy(strength = playerData.strength + 2, statPoints = playerData.statPoints - 1))
+                            onPlayerUpdate(playerData.copy(strength = playerData.strength + 2, statPoints = playerData.statPoints - 1).recalculateVitals())
                         }
                     )
                 }
@@ -243,9 +243,8 @@ fun StatsScreen(
                         canIncrease = playerData.statPoints > 0,
                         onHelp = { helpItem = "Vitality (VIT)" to "Each point grants +10 Max HP. High vitality is essential for surviving the devastating 'Warrior Arts' used by bosses." },
                         onIncrease = {
-                            val updated = playerData.copy(vitality = playerData.vitality + 5, statPoints = playerData.statPoints - 1)
-                            val nextMax = updated.calculateMaxHp()
-                            onPlayerUpdate(updated.copy(maxHp = nextMax, hp = minOf(playerData.hp + 50, nextMax)))
+                            val updated = playerData.copy(vitality = playerData.vitality + 5, statPoints = playerData.statPoints - 1).recalculateVitals()
+                            onPlayerUpdate(updated.copy(hp = minOf(playerData.hp + 50, updated.maxHp)))
                         }
                     )
                 }
@@ -258,7 +257,7 @@ fun StatsScreen(
                         canIncrease = playerData.statPoints > 0,
                         onHelp = { helpItem = "Defense (DEF)" to "Reduces incoming damage from all sources. Higher defense makes you harder to take down." },
                         onIncrease = {
-                            onPlayerUpdate(playerData.copy(defense = playerData.defense + 2, statPoints = playerData.statPoints - 1))
+                            onPlayerUpdate(playerData.copy(defense = playerData.defense + 2, statPoints = playerData.statPoints - 1).recalculateVitals())
                         }
                     )
                 }
@@ -272,9 +271,8 @@ fun StatsScreen(
                         canIncrease = playerData.statPoints > 0,
                         onHelp = { helpItem = "Intelligence (INT)" to "Increases magic damage and grants +5 Max Mana per point. Crucial for mages using high-tier elemental skills." },
                         onIncrease = {
-                            val updated = playerData.copy(intelligence = playerData.intelligence + 2, statPoints = playerData.statPoints - 1)
-                            val nextMax = updated.calculateMaxMana()
-                            onPlayerUpdate(updated.copy(maxMana = nextMax, mana = minOf(playerData.mana + 10, nextMax)))
+                            val updated = playerData.copy(intelligence = playerData.intelligence + 2, statPoints = playerData.statPoints - 1).recalculateVitals()
+                            onPlayerUpdate(updated.copy(mana = minOf(playerData.mana + 10, updated.maxMana)))
                         }
                     )
                 }
@@ -296,7 +294,7 @@ fun StatsScreen(
                         canIncrease = playerData.statPoints > 0,
                         onHelp = { helpItem = "Agility (AGI)" to "Grants +2% Critical Hit chance and +1% Dodge chance per point. Allows you to strike fast and avoid danger." },
                         onIncrease = {
-                            onPlayerUpdate(playerData.copy(agility = playerData.agility + 2, statPoints = playerData.statPoints - 1))
+                            onPlayerUpdate(playerData.copy(agility = playerData.agility + 2, statPoints = playerData.statPoints - 1).recalculateVitals())
                         }
                     )
                 }
@@ -313,7 +311,7 @@ fun StatsScreen(
                         canIncrease = playerData.statPoints > 0,
                         onHelp = { helpItem = "Luck (LCK)" to "A versatile stat. Grants +0.5% Crit, +0.2% Dodge, and +1% Gold found per point. Higher luck also helps in the Gambling House." },
                         onIncrease = {
-                            onPlayerUpdate(playerData.copy(luck = playerData.luck + 2, statPoints = playerData.statPoints - 1))
+                            onPlayerUpdate(playerData.copy(luck = playerData.luck + 2, statPoints = playerData.statPoints - 1).recalculateVitals())
                         }
                     )
                 }
@@ -330,7 +328,7 @@ fun StatsScreen(
                         canIncrease = playerData.statPoints > 0,
                         onHelp = { helpItem = "Wisdom (WIS)" to "Determines your Mana regeneration per turn. You regain 1 Mana for every 5 points of Wisdom. Vital for prolonged battles." },
                         onIncrease = {
-                            onPlayerUpdate(playerData.copy(wisdom = playerData.wisdom + 2, statPoints = playerData.statPoints - 1))
+                            onPlayerUpdate(playerData.copy(wisdom = playerData.wisdom + 2, statPoints = playerData.statPoints - 1).recalculateVitals())
                         }
                     )
                 }

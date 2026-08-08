@@ -78,7 +78,7 @@ object FamiliarDatabase {
             description = "A creature of the night that weakens foes.",
             rarity = "Rare",
             actionType = FamiliarActionType.Debuff,
-            basePower = 5,
+            basePower = 10,
             price = 150000,
             element = ElementType.Dark,
             requiredClasses = listOf("Assassin", "Necromancer", "Archer")
@@ -106,7 +106,7 @@ object FamiliarDatabase {
             description = "A multi-headed beast from the deep marsh.",
             rarity = "Mythic",
             actionType = FamiliarActionType.Debuff,
-            basePower = 15,
+            basePower = 20,
             price = 0,
             element = ElementType.Dark
         ),

@@ -102,7 +102,6 @@ fun GamblingHouseScreen(
             frankDialogue = "BLACKJACK! Unbelievable luck! You win ${payout} gold!"
             status = GamblingStatus.ENDED
         } else {
-            onPlayerUpdate(playerData.copy(gold = playerData.gold - currentBet))
             status = GamblingStatus.PLAYER_TURN
             frankDialogue = "Cards are on the table. What's your move?"
         }
@@ -112,6 +111,7 @@ fun GamblingHouseScreen(
         playerHand = playerHand + deck.removeAt(0)
         if (calculateHandValue(playerHand) > 21) {
             frankDialogue = "Bust! Better luck next time. You lose $currentBet gold."
+            onPlayerUpdate(playerData.copy(gold = playerData.gold - currentBet))
             status = GamblingStatus.ENDED
         } else {
             frankDialogue = "Another one? Feeling lucky?"
@@ -137,15 +137,15 @@ fun GamblingHouseScreen(
             
             if (finalDealerValue > 21) {
                 frankDialogue = "I busted! You win $currentBet gold!"
-                onPlayerUpdate(playerData.copy(gold = playerData.gold + (currentBet * 2), gamblingWins = playerData.gamblingWins + 1))
+                onPlayerUpdate(playerData.copy(gold = playerData.gold + currentBet, gamblingWins = playerData.gamblingWins + 1))
             } else if (finalDealerValue > finalPlayerValue) {
                 frankDialogue = "Looks like I take this one. $currentBet gold is mine."
+                onPlayerUpdate(playerData.copy(gold = playerData.gold - currentBet))
             } else if (finalDealerValue < finalPlayerValue) {
                 frankDialogue = "You beat me! Take your $currentBet gold."
-                onPlayerUpdate(playerData.copy(gold = playerData.gold + (currentBet * 2), gamblingWins = playerData.gamblingWins + 1))
+                onPlayerUpdate(playerData.copy(gold = playerData.gold + currentBet, gamblingWins = playerData.gamblingWins + 1))
             } else {
                 frankDialogue = "A tie! A push! Your bet is safe."
-                onPlayerUpdate(playerData.copy(gold = playerData.gold + currentBet))
             }
             status = GamblingStatus.ENDED
         }

@@ -115,7 +115,8 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
         initialValue = com.solerforge.lumeria.data.GameSettings()
     )
 
-    val goldLostOnDeath: Long get() = playerData.value.gold * 15L / 100L
+    var goldLostOnDeath by mutableStateOf(0L)
+        private set
     
     val levelsGainedOnCompletion: Int get() = maxOf(0, playerData.value.level - previousLevelForCompletion)
 
@@ -167,9 +168,10 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
     fun updatePlayer(transform: (PlayerData) -> PlayerData) {
         if (isResetting) return
 
+        val targetSlot = activeSlot
         viewModelScope.launch {
             try {
-                repository.updatePlayer(activeSlot) { current ->
+                repository.updatePlayer(targetSlot) { current ->
                     val newData = transform(current)
                     val newlyUnlocked = AchievementManager.checkAchievements(newData)
                     
@@ -228,9 +230,10 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
     }
 
     fun onNewGame() {
+        val targetSlot = activeSlot
         viewModelScope.launch {
             isResetting = true
-            repository.clearPlayerData(activeSlot)
+            repository.clearPlayerData(targetSlot)
             
             selectedStoryArc = null
             currentEventIndex = 0
@@ -240,7 +243,7 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
             battleOrchestrator.grindingPlayerData = null
             
             delay(100.milliseconds) 
-            repository.savePlayerData(PlayerData(), activeSlot)
+            repository.savePlayerData(PlayerData(), targetSlot)
             
             _backstack.clear()
             _backstack.add(Screen.Story)
@@ -250,8 +253,9 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
 
     fun onIntroSeen() {
         if (!isResetting) {
+            val targetSlot = activeSlot
             viewModelScope.launch {
-                repository.savePlayerData(playerData.value.copy(introSeen = true), activeSlot)
+                repository.savePlayerData(playerData.value.copy(introSeen = true), targetSlot)
             }
         }
         navigateTo(Screen.GameMenu)
@@ -359,8 +363,8 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
     }
 
     fun onBattleDeath(snapshot: PlayerData) {
-        val goldLost = snapshot.gold * 15L / 100L
-        val updated = battleOrchestrator.handleDeath(snapshot, goldLost)
+        goldLostOnDeath = snapshot.gold * 15L / 100L
+        val updated = battleOrchestrator.handleDeath(snapshot, goldLostOnDeath)
         updatePlayer(updated)
     }
 
@@ -370,8 +374,7 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
     }
 
     fun onBattleAgain(newData: PlayerData) {
-        val buffedData = newData.consumeBattleBuffs()
-        val finalData = battleOrchestrator.handleBattleAgain(buffedData)
+        val finalData = battleOrchestrator.handleBattleAgain(newData)
         updatePlayer(finalData)
     }
 
@@ -402,7 +405,7 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
 
         selectedStoryArc = null
         
-        var stateToSave = finalData.consumeBattleBuffs()
+        var stateToSave = finalData
 
         if ((currentArc != null) && victoryProcessed) {
             selectedStoryArc = currentArc
@@ -609,30 +612,24 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
                 equippedBoots = "Leather Boots"
             )
         }.let { data ->
-            val maxHp = data.calculateMaxHp()
-            val maxMana = data.calculateMaxMana()
-            data.copy(
-                hp = maxHp,
-                maxHp = maxHp,
-                mana = maxMana,
-                maxMana = maxMana
-            )
+            data.recalculateVitals()
         }
 
+        val targetSlot = activeSlot
         viewModelScope.launch {
-            repository.savePlayerData(finalizedData, activeSlot)
+            repository.savePlayerData(finalizedData, targetSlot)
             _backstack.clear()
             _backstack.add(Screen.GameMenu)
         }
     }
 
     fun onDeathReturn() {
-        val currentData = playerData.value
-        val healedPlayer = currentData.copy(
-            hp = currentData.maxHp,
-            mana = currentData.maxMana,
-        )
-        updatePlayer(healedPlayer)
+        updatePlayer { current ->
+            current.copy(
+                hp = current.maxHp,
+                mana = current.maxMana,
+            )
+        }
         _backstack.clear()
         _backstack.add(Screen.GameMenu)
     }
@@ -746,7 +743,7 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
     fun importPlayerData(saveString: String): String {
         val importedData = repository.importSave(saveString)
         return if (importedData != null) {
-            updatePlayer(importedData)
+            updatePlayer { importedData }
             "Save imported successfully! Welcome back, hero."
         } else {
             "Invalid save code. Please try again."
@@ -754,8 +751,9 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
     }
 
     fun syncCloudSave(onResult: (String) -> Unit) {
+        val targetSlot = activeSlot
         viewModelScope.launch {
-            val success = repository.syncFromCloud(activeSlot)
+            val success = repository.syncFromCloud(targetSlot)
             if (success) {
                 onResult("Cloud save restored successfully!")
             } else {

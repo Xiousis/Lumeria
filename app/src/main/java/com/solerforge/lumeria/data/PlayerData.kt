@@ -98,6 +98,7 @@ data class PlayerData(
     // Leaderboard & PvP
     val pvpWins: Int = 0,
     val pvpLosses: Int = 0,
+    val battleBuffsConsumed: Boolean = false,
     val lastSavedAt: Long = 0L
 ) {
     fun getLevelCap(): Int = if (isReborn) 200 else 100
@@ -133,8 +134,12 @@ data class PlayerData(
             .asSequence()
             .filter { skill ->
                 val classMatches = skill.requiredClasses.isEmpty() || skill.requiredClasses.contains(playerClass)
+                val isEvolvedVersionOwned = skill.evolvesTo != null && unlockedSkills.contains(skill.evolvesTo)
+                
                 (skill.unlockLevel <= stats.level) && 
                 (!unlockedSkills.contains(skill.name)) &&
+                (!skill.isEvolutionOnly) &&
+                (!isEvolvedVersionOwned) &&
                 classMatches
             }
             .map { it.name }
@@ -149,15 +154,56 @@ data class PlayerData(
         return currentData
     }
 
+    fun recalculateVitals(): PlayerData {
+        val hpMax = calculateMaxHp()
+        val manaMax = calculateMaxMana()
+
+        return copy(
+            maxHp = hpMax,
+            maxMana = manaMax,
+            hp = hp.coerceAtMost(hpMax),
+            mana = mana.coerceAtMost(manaMax)
+        )
+    }
+
+    fun respec(): PlayerData {
+        val totalInvested = (level - 1) * 5
+        
+        // Base stats from class definitions (mirroring onPerformRebirth)
+        val baseStats = when (playerClass) {
+            "Mage", "Necromancer" -> listOf(5, 5, 5, 15, 5, 5, 10) // str, vit, def, int, agi, luck, wis
+            "Samurai" -> listOf(8, 5, 5, 5, 15, 10, 5)
+            "Paladin" -> listOf(10, 12, 15, 5, 5, 5, 5)
+            "Assassin" -> listOf(8, 5, 5, 5, 15, 15, 5)
+            "Monk" -> listOf(10, 15, 5, 5, 5, 5, 12)
+            "Archer" -> listOf(12, 5, 5, 5, 12, 10, 5)
+            "Bard" -> listOf(5, 5, 5, 5, 10, 15, 15)
+            "Berserker" -> listOf(20, 15, 2, 5, 5, 5, 5)
+            else -> listOf(12, 10, 8, 5, 5, 5, 5) // Warrior
+        }
+
+        return copy(
+            strength = baseStats[0],
+            vitality = baseStats[1],
+            defense = baseStats[2],
+            intelligence = baseStats[3],
+            agility = baseStats[4],
+            luck = baseStats[5],
+            wisdom = baseStats[6],
+            statPoints = totalInvested,
+            respecCount = respecCount + 1
+        ).recalculateVitals()
+    }
+
     fun consumeBattleBuffs(): PlayerData {
-        if (activeBuffs.isEmpty()) return this
+        if (battleBuffsConsumed || activeBuffs.isEmpty()) return this
         
         val updatedBuffs = activeBuffs.asSequence()
             .map { it.copy(battlesRemaining = it.battlesRemaining - 1) }
             .filter { it.battlesRemaining > 0 }
             .toList()
         
-        return copy(activeBuffs = updatedBuffs)
+        return copy(activeBuffs = updatedBuffs, battleBuffsConsumed = true)
     }
 
     fun calculateMaxHp(): Int {

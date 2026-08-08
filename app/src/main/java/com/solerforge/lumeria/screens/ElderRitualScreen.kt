@@ -48,7 +48,7 @@ fun ElderRitualScreen(
     val respecCost = CurrencyUtils.applyDiscount(baseRespecCost, playerData.nationUpgradeLevel, playerData.activeKingdomLawId)
     val canAffordRespec = playerData.gold >= respecCost
     val hasSpentPoints = playerData.strength > 5 || playerData.vitality > 5 || playerData.defense > 5 || 
-                         playerData.intelligence > 5 || playerData.agility > 5
+                         playerData.intelligence > 5 || playerData.agility > 5 || playerData.luck > 5 || playerData.wisdom > 5
 
     val baseWishCost = if (playerData.freeWishesUsed < 3) 0 else 10000
     val wishCost = CurrencyUtils.applyDiscount(baseWishCost, playerData.nationUpgradeLevel, playerData.activeKingdomLawId)
@@ -148,20 +148,10 @@ fun ElderRitualScreen(
                         // RESPEC ACTION
                         Button(
                             onClick = {
-                                val totalInvested = (playerData.level - 1) * 5
-                                val resetPlayer = playerData.copy(
-                                    gold = playerData.gold - respecCost,
-                                    strength = 5,
-                                    vitality = 5,
-                                    defense = 5,
-                                    intelligence = 5,
-                                    agility = 5,
-                                    statPoints = totalInvested,
-                                    maxHp = 30 + ((playerData.level - 1) * 10) + (5 * 10),
-                                    maxMana = 20 + ((playerData.level - 1) * 5) + (5 * 5),
-                                    respecCount = playerData.respecCount + 1
+                                val resetPlayer = playerData.respec().copy(
+                                    gold = playerData.gold - respecCost
                                 )
-                                onPlayerUpdate(resetPlayer.copy(hp = resetPlayer.maxHp, mana = resetPlayer.maxMana))
+                                onPlayerUpdate(resetPlayer)
                             },
                             enabled = canAffordRespec && hasSpentPoints,
                             modifier = Modifier.fillMaxWidth()

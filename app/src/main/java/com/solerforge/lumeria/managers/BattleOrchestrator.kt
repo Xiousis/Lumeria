@@ -38,11 +38,11 @@ class BattleOrchestrator(
         storyEnemyName = enemyName
         arenaOpponent = null
         isTowerBattle = false
-        grindingPlayerData = snapshot
+        grindingPlayerData = snapshot.copy(battleBuffsConsumed = false)
         locationOverride = location
         battleSeed++
         onNavigateToBattleScreen()
-        checkSpawnVoidIncursion(snapshot)
+        // Rift spawning moved to post-battle handlers
     }
 
     fun startBossBattle(locationName: String, player: PlayerData) {
@@ -103,15 +103,14 @@ class BattleOrchestrator(
     }
 
     fun handleBattleAgain(newData: PlayerData): PlayerData {
-        grindingPlayerData = newData
+        grindingPlayerData = newData.copy(battleBuffsConsumed = false)
         if (isRiftBattle) {
             isBossBattle = (newData.riftStep >= 3)
         }
-        if (isPvPBattle) {
-            // Cannot play again in PvP for now, but resetting state
-        }
         battleSeed++
-        return checkSpawnVoidIncursion(newData)
+        
+        val buffedData = newData.consumeBattleBuffs()
+        return checkSpawnVoidIncursion(buffedData)
     }
 
     private fun checkSpawnVoidIncursion(current: PlayerData): PlayerData {
@@ -186,7 +185,8 @@ class BattleOrchestrator(
         currentGuildExam = null
         
         onNavigate(Screen.Defeated)
-        return result
+        val buffedResult = result.consumeBattleBuffs()
+        return checkSpawnVoidIncursion(buffedResult)
     }
 
     fun handleLeave(newData: PlayerData): PlayerData {
@@ -223,6 +223,7 @@ class BattleOrchestrator(
         storyEnemyName = null
         locationOverride = null
         
-        return finalPlayerData
+        val buffedFinalData = finalPlayerData.consumeBattleBuffs()
+        return checkSpawnVoidIncursion(buffedFinalData)
     }
 }

@@ -164,13 +164,13 @@ fun BlacksmithScreen(
                                 }
 
                                 val newPlayer = when (type) {
-                                    "Weapon" -> playerData.copy(equippedWeapon = newName, inventory = updatedInventory, gold = playerData.gold - cost, blacksmithUpgrades = playerData.blacksmithUpgrades + 1)
-                                    "Armor" -> playerData.copy(equippedArmor = newName, inventory = updatedInventory, gold = playerData.gold - cost, blacksmithUpgrades = playerData.blacksmithUpgrades + 1)
-                                    "Head" -> playerData.copy(equippedHead = newName, inventory = updatedInventory, gold = playerData.gold - cost, blacksmithUpgrades = playerData.blacksmithUpgrades + 1)
-                                    "Boots" -> playerData.copy(equippedBoots = newName, inventory = updatedInventory, gold = playerData.gold - cost, blacksmithUpgrades = playerData.blacksmithUpgrades + 1)
-                                    "Shield" -> playerData.copy(equippedShield = newName, inventory = updatedInventory, gold = playerData.gold - cost, blacksmithUpgrades = playerData.blacksmithUpgrades + 1)
-                                    "Off-Hand 1" -> playerData.copy(equippedOffHand = newName, inventory = updatedInventory, gold = playerData.gold - cost, blacksmithUpgrades = playerData.blacksmithUpgrades + 1)
-                                    "Off-Hand 2" -> playerData.copy(equippedOffHand2 = newName, inventory = updatedInventory, gold = playerData.gold - cost, blacksmithUpgrades = playerData.blacksmithUpgrades + 1)
+                                    "Weapon" -> playerData.copy(equippedWeapon = newName, inventory = updatedInventory, gold = playerData.gold - cost, blacksmithUpgrades = playerData.blacksmithUpgrades + 1).recalculateVitals()
+                                    "Armor" -> playerData.copy(equippedArmor = newName, inventory = updatedInventory, gold = playerData.gold - cost, blacksmithUpgrades = playerData.blacksmithUpgrades + 1).recalculateVitals()
+                                    "Head" -> playerData.copy(equippedHead = newName, inventory = updatedInventory, gold = playerData.gold - cost, blacksmithUpgrades = playerData.blacksmithUpgrades + 1).recalculateVitals()
+                                    "Boots" -> playerData.copy(equippedBoots = newName, inventory = updatedInventory, gold = playerData.gold - cost, blacksmithUpgrades = playerData.blacksmithUpgrades + 1).recalculateVitals()
+                                    "Shield" -> playerData.copy(equippedShield = newName, inventory = updatedInventory, gold = playerData.gold - cost, blacksmithUpgrades = playerData.blacksmithUpgrades + 1).recalculateVitals()
+                                    "Off-Hand 1" -> playerData.copy(equippedOffHand = newName, inventory = updatedInventory, gold = playerData.gold - cost, blacksmithUpgrades = playerData.blacksmithUpgrades + 1).recalculateVitals()
+                                    "Off-Hand 2" -> playerData.copy(equippedOffHand2 = newName, inventory = updatedInventory, gold = playerData.gold - cost, blacksmithUpgrades = playerData.blacksmithUpgrades + 1).recalculateVitals()
                                     else -> playerData
                                 }
                                 onPlayerUpdate(newPlayer)

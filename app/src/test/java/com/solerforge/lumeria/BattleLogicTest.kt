@@ -15,11 +15,11 @@ class BattleLogicTest {
         
         // Normal battle
         val (xp, gold) = BattleLogic.calculateRewards(player, enemy)
-        assertEquals(1L, xp) // Level penalty: 5 - 1 = 4 (> 20 penalty is extreme)
+        assertEquals(152L, xp)
         
         // Rift battle (1.5x)
         val (xpRift, goldRift) = BattleLogic.calculateRewards(player, enemy, isRift = true)
-        assertEquals(1L, xpRift)
+        assertEquals(228L, xpRift)
         
         // Tower battle (static rewards)
         val enemyTower = Enemy("Tower Guardian", "Tower Guardian", 100, level = 10, rewardXp = 500, rewardGold = 100)

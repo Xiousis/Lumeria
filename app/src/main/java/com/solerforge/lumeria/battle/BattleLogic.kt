@@ -141,17 +141,26 @@ object BattleLogic {
         var appliedStatus = StatusEffect.None
 
         // 0. CHECK ENEMY DODGE
-        if (skill.effectType != "Heal" && skill.effectType != "Buff" && Math.random() < enemyEvasionBonus) {
+        val canEnemyDodge = skill.skillType == "Attack"
+        if (canEnemyDodge && Math.random() < enemyEvasionBonus) {
             isDodge = true
             return TurnResult(
                 playerHp = currentHp,
-                playerMana = currentMana, // Handled in engine
+                playerMana = maxOf(0, currentMana - skill.manaCost),
                 enemyHp = currentEnemyHp,
                 isCrit = false,
                 isDodge = true,
                 playerDamage = 0,
                 enemyDamage = 0,
-                actualHeal = 0
+                actualHeal = 0,
+                stunApplied = false,
+                bleedApplied = false,
+                multiHits = 1,
+                secondWindTriggered = false,
+                reflectedDamage = 0,
+                appliedStatus = StatusEffect.None,
+                elementalMultiplier = 1.0,
+                comboTriggered = false
             )
         }
 

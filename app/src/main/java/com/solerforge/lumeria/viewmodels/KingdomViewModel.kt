@@ -38,7 +38,7 @@ class KingdomViewModel : ViewModel() {
 
     fun joinGuild(guildName: String, playerData: PlayerData, onUpdatePlayer: (PlayerData) -> Unit, onNavigateToIntro: () -> Unit) {
         if (playerData.joinedGuild == null) {
-            onUpdatePlayer(playerData.copy(joinedGuild = guildName, guildLevel = 1, guildXp = 0))
+            onUpdatePlayer(playerData.copy(joinedGuild = guildName, guildLevel = 1, guildXp = 0).recalculateVitals())
             onNavigateToIntro()
         }
     }

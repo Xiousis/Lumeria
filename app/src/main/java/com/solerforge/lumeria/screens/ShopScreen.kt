@@ -237,8 +237,8 @@ fun ShopScreen(
                             // WEAPONS
                             val availableWeapons = GameDatabase.weapons.filter { 
                                 val classMatches = it.requiredClasses.isEmpty() || it.requiredClasses.contains(shopSnapshot.playerClass)
-                                (it.price > 0) && (it.rarity !in listOf("Legendary", "Mythic", "God Tier")) && 
-                                (!it.isBossDrop) &&
+                                (it.price > 0) && (!it.isBossDrop) &&
+                                (it.rarity !in listOf("Legendary", "Mythic", "God Tier") || it.requiredRank > 0) &&
                                 isLocationUnlocked(it.requiredLocation) && 
                                 (currentRankId >= it.requiredRank) &&
                                 classMatches
@@ -278,8 +278,8 @@ fun ShopScreen(
                             // SHIELDS
                             val availableShields = GameDatabase.shields.filter {
                                 val classMatches = it.requiredClasses.isEmpty() || it.requiredClasses.contains(shopSnapshot.playerClass)
-                                (it.price > 0) && (it.rarity !in listOf("Legendary", "Mythic", "God Tier")) && 
-                                (!it.isBossDrop) &&
+                                (it.price > 0) && (!it.isBossDrop) &&
+                                (it.rarity !in listOf("Legendary", "Mythic", "God Tier") || it.requiredRank > 0) &&
                                 isLocationUnlocked(it.requiredLocation) &&
                                 (currentRankId >= it.requiredRank) &&
                                 classMatches
@@ -319,8 +319,8 @@ fun ShopScreen(
                             // HEAD GEAR
                             val availableHeadGear = GameDatabase.headGears.filter { 
                                 val classMatches = it.requiredClasses.isEmpty() || it.requiredClasses.contains(shopSnapshot.playerClass)
-                                (it.price > 0) && (it.rarity !in listOf("Legendary", "Mythic", "God Tier")) && 
-                                (!it.isBossDrop) &&
+                                (it.price > 0) && (!it.isBossDrop) &&
+                                (it.rarity !in listOf("Legendary", "Mythic", "God Tier") || it.requiredRank > 0) &&
                                 isLocationUnlocked(it.requiredLocation) &&
                                 (currentRankId >= it.requiredRank) &&
                                 classMatches
@@ -359,8 +359,8 @@ fun ShopScreen(
                             // ARMOR
                             val availableArmor = GameDatabase.armors.filter { 
                                 val classMatches = it.requiredClasses.isEmpty() || it.requiredClasses.contains(shopSnapshot.playerClass)
-                                (it.price > 0) && (it.rarity !in listOf("Legendary", "Mythic", "God Tier")) && 
-                                (!it.isBossDrop) &&
+                                (it.price > 0) && (!it.isBossDrop) &&
+                                (it.rarity !in listOf("Legendary", "Mythic", "God Tier") || it.requiredRank > 0) &&
                                 isLocationUnlocked(it.requiredLocation) &&
                                 (currentRankId >= it.requiredRank) &&
                                 classMatches
@@ -401,8 +401,8 @@ fun ShopScreen(
                             // BOOTS
                             val availableBoots = GameDatabase.boots.filter {
                                 val classMatches = it.requiredClasses.isEmpty() || it.requiredClasses.contains(shopSnapshot.playerClass)
-                                (it.price > 0) && (it.rarity !in listOf("Legendary", "Mythic", "God Tier")) && 
-                                (!it.isBossDrop) &&
+                                (it.price > 0) && (!it.isBossDrop) &&
+                                (it.rarity !in listOf("Legendary", "Mythic", "God Tier") || it.requiredRank > 0) &&
                                 isLocationUnlocked(it.requiredLocation) &&
                                 (currentRankId >= it.requiredRank) &&
                                 classMatches
@@ -442,8 +442,8 @@ fun ShopScreen(
                             // OFF-HANDS
                             val availableOffHands = GameDatabase.offHands.filter {
                                 val classMatches = it.requiredClasses.isEmpty() || it.requiredClasses.contains(shopSnapshot.playerClass)
-                                (it.price > 0) && (it.rarity !in listOf("Legendary", "Mythic", "God Tier")) && 
-                                (!it.isBossDrop) &&
+                                (it.price > 0) && (!it.isBossDrop) &&
+                                (it.rarity !in listOf("Legendary", "Mythic", "God Tier") || it.requiredRank > 0) &&
                                 isLocationUnlocked(it.requiredLocation) &&
                                 (currentRankId >= it.requiredRank) &&
                                 classMatches
@@ -740,7 +740,7 @@ fun ShopScreen(
                             GameDatabase.shields.any { it.name == baseName } -> shopSnapshot.copy(equippedShield = itemName)
                             GameDatabase.offHands.any { it.name == baseName } -> shopSnapshot.copy(equippedOffHand = itemName)
                             else -> shopSnapshot
-                        }
+                        }.recalculateVitals()
                         onPlayerUpdate(shopSnapshot)
                         pendingEquipItem = null
                     }) {

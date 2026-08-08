@@ -318,7 +318,7 @@ fun InventoryScreen(
                                     requiredClasses = itemData.requiredClasses
                                 ) {
                                     if (isClassMatch) {
-                                        inventorySnapshot = inventorySnapshot.copy(equippedWeapon = itemName)
+                                        inventorySnapshot = inventorySnapshot.copy(equippedWeapon = itemName).recalculateVitals()
                                         onPlayerUpdate(inventorySnapshot)
                                     }
                                 }
@@ -355,7 +355,7 @@ fun InventoryScreen(
                                     requiredClasses = itemData.requiredClasses
                                 ) {
                                     if (isClassMatch) {
-                                        inventorySnapshot = inventorySnapshot.copy(equippedShield = itemName)
+                                        inventorySnapshot = inventorySnapshot.copy(equippedShield = itemName).recalculateVitals()
                                         onPlayerUpdate(inventorySnapshot)
                                     }
                                 }
@@ -393,7 +393,7 @@ fun InventoryScreen(
                                     requiredClasses = itemData.requiredClasses
                                 ) {
                                     if (isClassMatch) {
-                                        inventorySnapshot = inventorySnapshot.copy(equippedHead = itemName)
+                                        inventorySnapshot = inventorySnapshot.copy(equippedHead = itemName).recalculateVitals()
                                         onPlayerUpdate(inventorySnapshot)
                                     }
                                 }
@@ -430,7 +430,7 @@ fun InventoryScreen(
                                     requiredClasses = itemData.requiredClasses
                                 ) {
                                     if (isClassMatch) {
-                                        inventorySnapshot = inventorySnapshot.copy(equippedArmor = itemName)
+                                        inventorySnapshot = inventorySnapshot.copy(equippedArmor = itemName).recalculateVitals()
                                         onPlayerUpdate(inventorySnapshot)
                                     }
                                 }
@@ -467,7 +467,7 @@ fun InventoryScreen(
                                     requiredClasses = itemData.requiredClasses
                                 ) {
                                     if (isClassMatch) {
-                                        inventorySnapshot = inventorySnapshot.copy(equippedBoots = itemName)
+                                        inventorySnapshot = inventorySnapshot.copy(equippedBoots = itemName).recalculateVitals()
                                         onPlayerUpdate(inventorySnapshot)
                                     }
                                 }
@@ -529,7 +529,7 @@ fun InventoryScreen(
                                         requiredClasses = itemData.requiredClasses
                                     ) {
                                         if (isClassMatch) {
-                                            inventorySnapshot = inventorySnapshot.copy(equippedOffHand = itemName)
+                                            inventorySnapshot = inventorySnapshot.copy(equippedOffHand = itemName).recalculateVitals()
                                             onPlayerUpdate(inventorySnapshot)
                                         }
                                     }
@@ -538,7 +538,7 @@ fun InventoryScreen(
                                         Button(
                                             onClick = {
                                                 if (isClassMatch) {
-                                                    inventorySnapshot = inventorySnapshot.copy(equippedOffHand2 = itemName)
+                                                    inventorySnapshot = inventorySnapshot.copy(equippedOffHand2 = itemName).recalculateVitals()
                                                     onPlayerUpdate(inventorySnapshot)
                                                 }
                                             },

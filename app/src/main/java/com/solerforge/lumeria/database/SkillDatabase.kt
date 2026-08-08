@@ -22,10 +22,10 @@ object SkillDatabase {
         Skill("Guard", "Hunker down to increase your defense.", 0, 3, 1, "Buff", effectType = "DefenseBuff", requiredClasses = listOf("Warrior", "Paladin", "Monk")),
         
         // --- EVOLVED SKILLS (Only acquired via evolution at Mastery Level 3) ---
-        Skill("Omnislash", "Master level flurry. Faster and sharper.", 2, 0, 99, "Attack", 1.5, "MultiHit", requiredClasses = listOf("Warrior", "Samurai", "Assassin", "Paladin")),
-        Skill("Grand Slam", "A massive earth-shaking strike.", 5, 2, 99, "Attack", 4.5, "Stun", statusEffect = StatusEffect.Stun, requiredClasses = listOf("Warrior", "Berserker", "Monk")),
-        Skill("Arcane Comet", "A rain of magical fire and ice.", 8, 3, 99, "Attack", 5.0, elementType = ElementType.Ice, statusEffect = StatusEffect.Burn, requiredClasses = listOf("Mage", "Necromancer")),
-        Skill("Holy Grace", "Divine light that heals and boosts.", 12, 4, 99, "Support", 2.5, "Heal", requiredClasses = listOf("Mage", "Paladin", "Monk", "Bard")),
+        Skill("Omnislash", "Master level flurry. Faster and sharper.", 2, 0, 99, "Attack", 1.5, "MultiHit", requiredClasses = listOf("Warrior", "Samurai", "Assassin", "Paladin"), isEvolutionOnly = true),
+        Skill("Grand Slam", "A massive earth-shaking strike.", 5, 2, 99, "Attack", 4.5, "Stun", statusEffect = StatusEffect.Stun, requiredClasses = listOf("Warrior", "Berserker", "Monk"), isEvolutionOnly = true),
+        Skill("Arcane Comet", "A rain of magical fire and ice.", 8, 3, 99, "Attack", 5.0, elementType = ElementType.Ice, statusEffect = StatusEffect.Burn, requiredClasses = listOf("Mage", "Necromancer"), isEvolutionOnly = true),
+        Skill("Holy Grace", "Divine light that heals and boosts.", 12, 4, 99, "Support", 2.5, "Heal", requiredClasses = listOf("Mage", "Paladin", "Monk", "Bard"), isEvolutionOnly = true),
 
         // --- MID TIER SKILLS ---
         Skill("Shield Bash", "Slam your guard into the enemy. Chance to stun.", 5, 3, 5, "Attack", 1.8, effectType = "Stun", statusEffect = StatusEffect.Stun, evolvesTo = "Bulwark Slam", requiredClasses = listOf("Paladin")),
@@ -34,10 +34,10 @@ object SkillDatabase {
         Skill("Bleeding Slash", "A jagged cut that deals damage over time.", 12, 4, 20, "Attack", 2.5, effectType = "Bleed", statusEffect = StatusEffect.Bleed, evolvesTo = "Vampiric Touch", requiredClasses = listOf("Assassin", "Necromancer", "Berserker")),
         
         // --- EVOLVED MID TIER (Only acquired via evolution at Mastery Level 3) ---
-        Skill("Bulwark Slam", "Devastating shield rush that ignores armor.", 10, 3, 99, "Attack", 3.0, "IgnoreArmor", requiredClasses = listOf("Paladin")),
-        Skill("Cyclone Edge", "A violent tornado of steel. 3 hits.", 15, 3, 99, "Attack", 1.8, "MultiHit", requiredClasses = listOf("Warrior", "Berserker", "Samurai")),
-        Skill("Absolute Counter", "Reflects a portion of the next hit.", 12, 4, 99, "Support", effectType = "Parry", requiredClasses = listOf("Warrior", "Samurai", "Paladin")),
-        Skill("Vampiric Touch", "Drains life while causing heavy bleeding.", 18, 4, 99, "Attack", 3.5, "Lifesteal", statusEffect = StatusEffect.Bleed, requiredClasses = listOf("Assassin", "Necromancer", "Berserker")),
+        Skill("Bulwark Slam", "Devastating shield rush that ignores armor.", 10, 3, 99, "Attack", 3.0, "IgnoreArmor", requiredClasses = listOf("Paladin"), isEvolutionOnly = true),
+        Skill("Cyclone Edge", "A violent tornado of steel. 3 hits.", 15, 3, 99, "Attack", 1.8, "MultiHit", requiredClasses = listOf("Warrior", "Berserker", "Samurai"), isEvolutionOnly = true),
+        Skill("Absolute Counter", "Reflects a portion of the next hit.", 12, 4, 99, "Support", effectType = "Parry", requiredClasses = listOf("Warrior", "Samurai", "Paladin"), isEvolutionOnly = true),
+        Skill("Vampiric Touch", "Drains life while causing heavy bleeding.", 18, 4, 99, "Attack", 3.5, "Lifesteal", statusEffect = StatusEffect.Bleed, requiredClasses = listOf("Assassin", "Necromancer", "Berserker"), isEvolutionOnly = true),
 
         // --- HIGH TIER SKILLS ---
         Skill("Executioner Strike", "Deals double damage if enemy HP is low (<30%).", 15, 5, 25, "Attack", 4.0, "Execute", requiredClasses = listOf("Warrior", "Assassin", "Berserker")),

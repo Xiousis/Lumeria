@@ -194,8 +194,8 @@ class PlayerDataRepository(
 
             // Save to local
             context.dataStore.edit { preferences ->
-                // Backup current local before overwriting with cloud
-                if (localJsonString != null) {
+                // Backup current local before overwriting with cloud, only if local was valid
+                if (localData != null && localJsonString != null) {
                     preferences[Keys.backupKey(slot)] = localJsonString
                 }
                 preferences[Keys.slotKey(slot)] = json.encodeToString(cloudMigrated)
