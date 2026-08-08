@@ -87,6 +87,19 @@ class BattleViewModel(
                 e.copy(baseName = e.name, materialDrop = GameDatabase.getRequiredMaterial("Tower of Trials"))
             }
             arenaOpponent != null -> arenaOpponent.enemy.copy(baseName = arenaOpponent.enemy.name, materialDrop = GameDatabase.getRequiredMaterial("Grand Arena"))
+            storyEnemyName == "The Echo of Xious" -> {
+                val legacy = playerData.legacyHeroStats ?: playerData
+                Enemy(
+                    name = "Echo of ${legacy.playerName}",
+                    baseName = "The Echo of Xious",
+                    maxHp = legacy.maxHp * 2,
+                    level = legacy.level,
+                    rewardXp = 500000,
+                    rewardGold = 0,
+                    isHumanoid = true,
+                    materialDrop = "Spirit of the Founder"
+                )
+            }
             (storyEnemyName != null) && isBossBattle -> {
                 val b = BossDatabase.resolveBoss(storyEnemyName) ?: error("Story Boss $storyEnemyName not found")
                 val isHuman = b.name.contains("Captain", ignoreCase = true) || b.name.contains("King", ignoreCase = true) || b.name.contains("Lord", ignoreCase = true)

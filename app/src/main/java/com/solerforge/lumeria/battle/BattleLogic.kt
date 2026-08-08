@@ -340,7 +340,9 @@ object BattleLogic {
         var xpGain: Int
         var goldGain: Int
 
-        if (bounty != null) {
+        val isBountyDefeated = bounty != null && enemy.baseName == bounty.targetName
+
+        if (isBountyDefeated) {
             xpGain = bounty.rewardXp
             goldGain = bounty.rewardGold
         } else if (isTower) {
@@ -350,9 +352,9 @@ object BattleLogic {
             xpGain = arenaOpponent.rewardXp
             goldGain = arenaOpponent.rewardGold
         } else if (isBossBattle) {
-            val bossData = BossDatabase.resolveBoss(enemy.baseName) ?: error("Boss ${enemy.baseName} not found")
-            xpGain = maxOf(1, bossData.rewardXp)
-            goldGain = bossData.rewardGold
+            val bossData = BossDatabase.resolveBoss(enemy.baseName)
+            xpGain = maxOf(1, bossData?.rewardXp ?: (enemy.level * 100))
+            goldGain = bossData?.rewardGold ?: (enemy.maxHp / 2)
         } else {
             if (isStoryMode) {
                 xpGain = maxOf(1, enemy.rewardXp)
@@ -376,7 +378,7 @@ object BattleLogic {
         }
 
         // Apply Level Penalty for XP
-        if ((!isBossBattle) && (bounty == null)) {
+        if ((!isBossBattle) && (!isBountyDefeated)) {
             val levelDiff = player.level - enemy.level
             when {
                 levelDiff > 20 -> xpGain = 1

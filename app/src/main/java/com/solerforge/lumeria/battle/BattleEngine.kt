@@ -91,7 +91,7 @@ object BattleEngine {
 
         // 3. DEFENSE CALCULATION
         var bossDef = if (isBossBattle) {
-            BossDatabase.resolveBoss(state.enemy.baseName)?.defense ?: 0
+            BossDatabase.resolveBoss(state.enemy.baseName)?.defense ?: (state.enemy.level * 5)
         } else 0
         
         if (state.bossShieldTurns > 0) {
