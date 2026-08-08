@@ -7,8 +7,8 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class PlayerData(
     val level: Int = 1,
-    val xp: Int = 0,
-    val gold: Int = 0,
+    val xp: Long = 0,
+    val gold: Long = 0,
     val hp: Int = 30,
     val maxHp: Int = 30,
     val mana: Int = 20,
@@ -35,6 +35,7 @@ data class PlayerData(
     val quests: List<Quest> = GameDatabase.starterQuests,
     val completedStoryArcs: List<Int> = emptyList(),
     val completedSideStoryArcs: List<Int> = emptyList(),
+    val currentStoryEventIndex: Int = 0,
     val unlockedTitles: List<String> = listOf("Novice"),
     val currentTitle: String = "Novice",
     val introSeen: Boolean = false,
@@ -43,7 +44,7 @@ data class PlayerData(
     val unlockedTraits: List<String> = emptyList(),
     val unlockedAchievements: List<String> = emptyList(),
     val freeWishesUsed: Int = 0,
-    val bankGold: Int = 0,
+    val bankGold: Long = 0,
     val activeBountyId: Int? = null,
     val completedBountyIds: List<Int> = emptyList(),
     val renown: Int = 0,
@@ -73,8 +74,8 @@ data class PlayerData(
     val visitedForge: Boolean = false,
     val voidIncursionLocation: String? = null,
     val riftStep: Int = 0,
-    val riftGold: Int = 0,
-    val riftXp: Int = 0,
+    val riftGold: Long = 0,
+    val riftXp: Long = 0,
     val riftLoot: List<String> = emptyList(),
     val towerUnlockedMessageSeen: Boolean = false,
     val skillExp: Map<String, Int> = emptyMap(),
@@ -100,7 +101,7 @@ data class PlayerData(
 ) {
     fun getLevelCap(): Int = if (isReborn) 200 else 100
 
-    fun gainExperience(amount: Int): PlayerData {
+    fun gainExperience(amount: Long): PlayerData {
         val oldLevel = this.level
         val stats = com.solerforge.lumeria.models.XiousStats(level, xp, getLevelCap()).gainXp(amount)
         val levelsGained = stats.level - oldLevel

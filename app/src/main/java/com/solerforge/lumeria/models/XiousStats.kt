@@ -2,23 +2,23 @@ package com.solerforge.lumeria.models
 
 data class XiousStats(
     val level: Int = 1,
-    val xp: Int = 0,
+    val xp: Long = 0,
     val maxLevel: Int = 200,
 ) {
     companion object {
-        fun getRequiredXp(level: Int): Int {
-            val base = (level * level * 50) + (level * 100)
+        fun getRequiredXp(level: Int): Long {
+            val base = (level.toLong() * level * 50) + (level * 100)
             return if (level >= 100) {
                 // Steeper curve after level 100: exponential growth to make cap difficult
                 val multiplier = 1.1 * Math.pow(1.05, (level - 100).toDouble())
-                (base * multiplier).toInt()
+                (base * multiplier).toLong()
             } else {
                 base
             }
         }
     }
 
-    fun gainXp(amount: Int): XiousStats {
+    fun gainXp(amount: Long): XiousStats {
         if (level >= maxLevel) return this
         
         var currentLevel = level
@@ -34,7 +34,7 @@ data class XiousStats(
         }
         
         // Cap XP at 0 if we reached max level
-        val finalXp = if (currentLevel >= maxLevel) 0 else currentXp
+        val finalXp = if (currentLevel >= maxLevel) 0L else currentXp
         
         return copy(level = currentLevel, xp = finalXp, maxLevel = maxLevel)
     }

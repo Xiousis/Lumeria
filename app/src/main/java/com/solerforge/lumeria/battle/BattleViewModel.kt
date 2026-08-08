@@ -27,6 +27,7 @@ class BattleViewModel(
     val isPvPBattle: Boolean = false,
     val shadowOpponent: PlayerData? = null,
     val guildExam: GuildDatabase.GuildExam? = null,
+    val currentEventIndex: Int = 0,
     val locationOverride: String? = null,
     val onHaptic: ((HapticType) -> Unit)? = null,
 ) : ViewModel() {
@@ -557,6 +558,7 @@ class BattleViewModel(
         if (currentState.playerHp <= 0) {
             _state.update { it.copy(isDying = true) }
             onHaptic?.invoke(HapticType.DEATH)
+            return
         }
 
         if ((currentState.enemyHp <= 0) && (currentState.enemy2Hp <= 0) && (!currentState.victoryProcessed)) {
@@ -615,6 +617,8 @@ class BattleViewModel(
                 isRift = isRiftBattle,
                 currentHp = currentState.playerHp,
                 currentMana = currentState.playerMana,
+                currentEventIndex = currentEventIndex,
+                currentGuildExam = guildExam,
             )
 
             // IF ENEMY 2 EXISTED, SYNC IT TOO
@@ -631,6 +635,8 @@ class BattleViewModel(
                     isRift = false, // We treat 2nd enemy as normal reward
                     currentHp = updatedPlayerStep1.hp,
                     currentMana = updatedPlayerStep1.mana,
+                    currentEventIndex = updatedPlayerStep1.currentStoryEventIndex,
+                    currentGuildExam = null, // Only one exam at a time
                 )
             } else updatedPlayerStep1
             
@@ -688,7 +694,8 @@ class BattleViewModel(
     }
 
     fun useItem(itemName: String, onUpdate: (PlayerData) -> Unit) {
-        val currentData = _state.value.currentPlayerSnapshot
+        val battleState = _state.value
+        val currentData = battleState.currentPlayerSnapshot
         val newItemList = currentData.inventory.toMutableList()
         
         // 1. Verify item ownership
@@ -709,8 +716,8 @@ class BattleViewModel(
         
         val newPlayer = currentData.copy(
             inventory = newItemList,
-            hp = minOf(currentData.maxHp, currentData.hp + healAmount),
-            mana = minOf(currentData.maxMana, currentData.mana + manaAmount),
+            hp = minOf(currentData.maxHp, battleState.playerHp + healAmount),
+            mana = minOf(currentData.maxMana, battleState.playerMana + manaAmount),
         )
         
         _state.update { it.copy(
@@ -735,6 +742,7 @@ class BattleViewModel(
             isPvP: Boolean = false,
             shadowOpponent: PlayerData? = null,
             guildExam: GuildDatabase.GuildExam? = null,
+            currentEventIndex: Int = 0,
             locationName: String? = null,
             onHaptic: ((HapticType) -> Unit)? = null,
         ): androidx.lifecycle.ViewModelProvider.Factory = object : androidx.lifecycle.ViewModelProvider.Factory {
@@ -751,6 +759,7 @@ class BattleViewModel(
                     isPvPBattle = isPvP,
                     shadowOpponent = shadowOpponent,
                     guildExam = guildExam,
+                    currentEventIndex = currentEventIndex,
                     locationOverride = locationName,
                     onHaptic = onHaptic
                 ) as T

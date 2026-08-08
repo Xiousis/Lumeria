@@ -133,6 +133,7 @@ fun AppNavigation(
                                     ?.activeBountyId
                                     ?.let { com.solerforge.lumeria.database.BountyDatabase.getBounty(it) },
                                 guildExam = mainViewModel.currentGuildExam,
+                                currentEventIndex = mainViewModel.currentEventIndex,
                                 locationName = mainViewModel.locationOverride
                             )
                         )

@@ -7,8 +7,8 @@ data class ArenaOpponent(
     val enemy: Enemy,
     val rank: String,
     val description: String,
-    val rewardGold: Int,
-    val rewardXp: Int,
+    val rewardGold: Long,
+    val rewardXp: Long,
     val moveset: List<BossAttack> = emptyList()
 )
 

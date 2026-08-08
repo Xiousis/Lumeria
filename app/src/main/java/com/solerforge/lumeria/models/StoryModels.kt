@@ -12,8 +12,8 @@ sealed class StoryEvent {
 data class StoryChoiceOption(
     val text: String,
     val outcomeMessage: String,
-    val rewardGold: Int = 0,
-    val rewardXp: Int = 0,
+    val rewardGold: Long = 0,
+    val rewardXp: Long = 0,
     val nextEventIndex: Int? = null
 )
 
@@ -25,7 +25,7 @@ data class StoryArc(
     val events: List<StoryEvent>,
     val backgroundId: Int? = null,
     val locationName: String? = null,
-    val rewardXp: Int = 0,
-    val rewardGold: Int = 0,
+    val rewardXp: Long = 0,
+    val rewardGold: Long = 0,
     val rewardTitle: String? = null
 )

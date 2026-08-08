@@ -21,31 +21,18 @@ class KingdomViewModel : ViewModel() {
     fun claimRankReward(rankId: Int, playerData: PlayerData, onUpdatePlayer: (PlayerData) -> Unit) {
         val rank = KingdomRankDatabase.ranks.find { it.id == rankId }
         if (rank != null && playerData.renown >= rank.requiredRenown && !playerData.claimedRankIds.contains(rankId)) {
-            val stats = XiousStats(playerData.level, playerData.xp, playerData.getLevelCap()).gainXp(rank.rewardXp)
-            val levelsGained = stats.level - playerData.level
-            
             val updatedTitles = if (rank.rewardTitle != null) {
                 (playerData.unlockedTitles + rank.rewardTitle).distinct()
             } else playerData.unlockedTitles
 
-            val updatedData = playerData.copy(
+            val updatedData = playerData.gainExperience(rank.rewardXp).copy(
                 gold = playerData.gold + rank.rewardGold,
-                level = stats.level,
-                xp = stats.xp,
                 unlockedTitles = updatedTitles,
                 currentTitle = rank.rewardTitle ?: playerData.currentTitle,
                 claimedRankIds = (playerData.claimedRankIds + rankId).distinct()
             )
-
-            // Recalculate max stats and heal if level up
-            val finalData = updatedData.copy(
-                maxHp = updatedData.calculateMaxHp(),
-                maxMana = updatedData.calculateMaxMana(),
-                hp = if (levelsGained > 0) updatedData.calculateMaxHp() else updatedData.hp,
-                mana = if (levelsGained > 0) updatedData.calculateMaxMana() else updatedData.mana
-            )
             
-            onUpdatePlayer(finalData)
+            onUpdatePlayer(updatedData)
         }
     }
 

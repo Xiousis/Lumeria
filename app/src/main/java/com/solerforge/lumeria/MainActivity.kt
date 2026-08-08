@@ -78,7 +78,7 @@ class MainActivity : ComponentActivity() {
                     contentWindowInsets = WindowInsets(0, 0, 0, 0),
                 ) { innerPadding ->
                     BackHandler(enabled = mainViewModel.backstack.size > 1) {
-                        if (mainViewModel.currentScreen != Screen.Battle) {
+                        if (mainViewModel.currentScreen != Screen.Battle && mainViewModel.currentScreen != Screen.Defeated) {
                             mainViewModel.popBackstack()
                         }
                     }

@@ -108,9 +108,12 @@ class PlayerDataRepository(
     suspend fun updatePlayer(slot: Int, transform: (PlayerData) -> PlayerData) {
         context.dataStore.edit { preferences ->
             val jsonString = preferences[Keys.slotKey(slot)]
+            var validJsonForBackup: String? = null
+            
             val currentData = if (jsonString != null) {
                 try {
                     val decoded = json.decodeFromString<PlayerData>(jsonString)
+                    validJsonForBackup = jsonString
                     migrateIfNeeded(decoded)
                 } catch (e: Exception) {
                     // If corrupted, try backup during update too
@@ -136,9 +139,9 @@ class PlayerDataRepository(
             )
             val updatedJson = json.encodeToString(updatedData)
 
-            // Preserve current as backup before overwriting
-            if (jsonString != null) {
-                preferences[Keys.backupKey(slot)] = jsonString
+            // Preserve current as backup before overwriting, only if it was valid
+            if (validJsonForBackup != null) {
+                preferences[Keys.backupKey(slot)] = validJsonForBackup
             }
 
             preferences[Keys.slotKey(slot)] = updatedJson

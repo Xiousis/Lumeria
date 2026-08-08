@@ -418,13 +418,15 @@ object BattleLogic {
         isRift: Boolean = false,
         currentHp: Int,
         currentMana: Int,
+        currentEventIndex: Int = 0,
+        currentGuildExam: com.solerforge.lumeria.database.GuildDatabase.GuildExam? = null,
     ): PlayerData {
         val (baseXpGain, baseGoldGain) = calculateRewards(player, enemy, isBossBattle, isStoryMode, arenaOpponent, activeBounty, isTower, isRift)
 
         var updatedActiveBountyId = player.activeBountyId
         var updatedCompletedBountyIds = player.completedBountyIds
         
-        if ((activeBounty != null) && (enemy.name == activeBounty.targetName)) {
+        if ((activeBounty != null) && (enemy.baseName == activeBounty.targetName)) {
             updatedActiveBountyId = null
             updatedCompletedBountyIds = (player.completedBountyIds + activeBounty.id).distinct()
         }
@@ -438,7 +440,7 @@ object BattleLogic {
         // Battle XP Boost (Guild Max Level)
         var finalXpGain = baseXpGain
         if ((player.joinedGuild != null) && (player.guildLevel >= 10)) {
-            finalXpGain = (finalXpGain * 1.05).toInt()
+            finalXpGain = (finalXpGain * 1.05).toLong()
         }
 
         // --- RIFT LOGIC: Store rewards in rift session if not boss fight ---
@@ -461,6 +463,7 @@ object BattleLogic {
             )
         }
 
+        // If it's a Rift Boss victory, we combine rift rewards with boss rewards
         val totalXpGain = if (isRift && isBossBattle) finalXpGain + player.riftXp else finalXpGain
         val totalGoldGain = if (isRift && isBossBattle) baseGoldGain + player.riftGold else baseGoldGain
         val combinedLoot = if (isRift && isBossBattle) player.riftLoot + lootDrops else lootDrops
@@ -485,7 +488,7 @@ object BattleLogic {
         // Renown Logic
         var renownGain = when {
             isRift -> 750
-            (activeBounty != null) && (enemy.name == activeBounty.targetName) -> 250
+            (activeBounty != null) && (enemy.baseName == activeBounty.targetName) -> 250
             isTower -> 40
             arenaOpponent != null -> 60
             isBossBattle -> 150
@@ -506,13 +509,19 @@ object BattleLogic {
 
         // Guild XP Logic
         var updatedGuildXp = updatedPlayer.guildXp
-        val updatedGuildLevel = updatedPlayer.guildLevel
+        var updatedGuildLevel = updatedPlayer.guildLevel
         if (updatedPlayer.joinedGuild != null) {
             val needed = com.solerforge.lumeria.database.GuildDatabase.getGuildXpForNextLevel(updatedGuildLevel)
             if (updatedGuildLevel < 10) {
                 updatedGuildXp += (enemy.level * 10) + 50
                 if (updatedGuildXp > needed) updatedGuildXp = needed
             }
+        }
+        
+        // Handle Guild Exam Victory
+        if (currentGuildExam != null) {
+            updatedGuildLevel++
+            updatedGuildXp = 0
         }
 
         // Familiar XP Logic
@@ -525,11 +534,11 @@ object BattleLogic {
             val famXpGain = (enemy.level * 5) + 20
             val newExp = currentExp + famXpGain
             val needed = com.solerforge.lumeria.database.FamiliarDatabase.getExpForNextLevel(currentLvl)
-            if (newExp >= needed) {
+            if (newExp >= (needed.toLong())) {
                 workingFamiliarLevels[fName] = currentLvl + 1
-                workingFamiliarExp[fName] = newExp - needed
+                workingFamiliarExp[fName] = (newExp - needed).toInt()
             } else {
-                workingFamiliarExp[fName] = newExp
+                workingFamiliarExp[fName] = newExp.toInt()
             }
         }
         
@@ -541,7 +550,26 @@ object BattleLogic {
             }
         }
 
-        updatedPlayer = updatedPlayer.copy(
+        var towerFloor = updatedPlayer.towerFloor
+        var towerHighestFloor = updatedPlayer.towerHighestFloor
+        var towerCompleted = updatedPlayer.towerCompleted
+        
+        if (isTower) {
+            if (towerFloor >= 100) {
+                towerCompleted = true
+                towerHighestFloor = maxOf(towerHighestFloor, towerFloor)
+            } else {
+                towerFloor++
+                towerHighestFloor = maxOf(towerHighestFloor, updatedPlayer.towerFloor)
+            }
+        }
+
+        var updatedEventIndex = currentEventIndex
+        if (isStoryMode) {
+            updatedEventIndex++
+        }
+
+        return updatedPlayer.copy(
             gold = updatedPlayer.gold + totalGoldGain,
             activeBountyId = updatedActiveBountyId,
             completedBountyIds = updatedCompletedBountyIds,
@@ -559,38 +587,42 @@ object BattleLogic {
             quests = updatedQuests,
             defeatedBosses = newDefeatedBosses,
             killCounts = newKillCounts,
-        )
-        
-        // Inventory Updates (Loot)
-        val filteredDrops = combinedLoot.filter { drop ->
-            val isFamiliar = com.solerforge.lumeria.database.FamiliarDatabase.familiars.any { it.name == drop }
-            if (isFamiliar) return@filter false
-            val isGodTier = com.solerforge.lumeria.database.BossLootDatabase.allGodTierItems.contains(drop)
-            if (isGodTier && updatedPlayer.inventory.contains(drop)) return@filter false
-            true
+            towerFloor = towerFloor,
+            towerHighestFloor = towerHighestFloor,
+            towerCompleted = towerCompleted,
+            currentStoryEventIndex = updatedEventIndex,
+        ).let { playerWithStats ->
+            // Inventory Updates (Loot)
+            val filteredDrops = combinedLoot.filter { drop ->
+                val isFamiliar = com.solerforge.lumeria.database.FamiliarDatabase.familiars.any { it.name == drop }
+                if (isFamiliar) return@filter false
+                val isGodTier = com.solerforge.lumeria.database.BossLootDatabase.allGodTierItems.contains(drop)
+                if (isGodTier && playerWithStats.inventory.contains(drop)) return@filter false
+                true
+            }
+
+            val updatedInventory = (playerWithStats.inventory + filteredDrops)
+
+            // Titles & Achievements
+            val updatedUnlockedTitles = playerWithStats.unlockedTitles.toMutableList()
+            var updatedCurrentTitle = playerWithStats.currentTitle
+            
+            val godTierItems = com.solerforge.lumeria.database.BossLootDatabase.allGodTierItems
+            if ((godTierItems.all { it in updatedInventory }) && ("Godwalker" !in updatedUnlockedTitles)) {
+                updatedUnlockedTitles.add("Godwalker")
+                updatedCurrentTitle = "Godwalker"
+            }
+
+            if ((playerWithStats.level >= 100) && ("Immortal Legend" !in updatedUnlockedTitles)) {
+                updatedUnlockedTitles.add("Immortal Legend")
+                updatedCurrentTitle = "Immortal Legend"
+            }
+
+            playerWithStats.copy(
+                inventory = updatedInventory,
+                unlockedTitles = updatedUnlockedTitles.distinct(),
+                currentTitle = updatedCurrentTitle,
+            )
         }
-
-        val updatedInventory = (updatedPlayer.inventory + filteredDrops)
-
-        // Titles & Achievements
-        val updatedUnlockedTitles = updatedPlayer.unlockedTitles.toMutableList()
-        var updatedCurrentTitle = updatedPlayer.currentTitle
-        
-        val godTierItems = com.solerforge.lumeria.database.BossLootDatabase.allGodTierItems
-        if ((godTierItems.all { it in updatedInventory }) && ("Godwalker" !in updatedUnlockedTitles)) {
-            updatedUnlockedTitles.add("Godwalker")
-            updatedCurrentTitle = "Godwalker"
-        }
-
-        if ((updatedPlayer.level >= 100) && ("Immortal Legend" !in updatedUnlockedTitles)) {
-            updatedUnlockedTitles.add("Immortal Legend")
-            updatedCurrentTitle = "Immortal Legend"
-        }
-
-        return updatedPlayer.copy(
-            inventory = updatedInventory,
-            unlockedTitles = updatedUnlockedTitles.distinct(),
-            currentTitle = updatedCurrentTitle,
-        )
     }
 }

@@ -9,7 +9,7 @@ data class Bounty(
     val level: Int,
     val description: String,
     val location: String, // Where they are found
-    val rewardGold: Int,
-    val rewardXp: Int,
+    val rewardGold: Long,
+    val rewardXp: Long,
     val portraitId: Int? = null
 )

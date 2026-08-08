@@ -8,8 +8,8 @@ data class Quest(
     val targetEnemy: String,
     val targetCount: Int,
     val currentCount: Int = 0,
-    val rewardGold: Int,
-    val rewardXp: Int,
+    val rewardGold: Long,
+    val rewardXp: Long,
     val isCompleted: Boolean = false,
     val isClaimed: Boolean = false,
     val requiredLocation: String = "Training Fields"

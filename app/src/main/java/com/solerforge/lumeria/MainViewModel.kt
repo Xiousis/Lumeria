@@ -265,30 +265,29 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
         currentEventIndex++
         
         if (currentEventIndex >= arc.events.size) {
-            processArcCompletion(playerData.value, arc)
+            processArcCompletion(arc)
         }
     }
 
     fun onStoryChoiceSelected(option: com.solerforge.lumeria.models.StoryChoiceOption) {
         val arc = selectedStoryArc ?: return
-        
-        // Apply Rewards
-        if (option.rewardGold > 0 || option.rewardXp > 0) {
-            updatePlayer { current ->
-                current.gainExperience(option.rewardXp).copy(
-                    gold = current.gold + option.rewardGold
-                )
-            }
-        }
+        val nextIndex = option.nextEventIndex ?: (currentEventIndex + 1)
+        val isFinalEvent = nextIndex >= arc.events.size
 
-        if (option.nextEventIndex != null) {
-            currentEventIndex = option.nextEventIndex
+        if (isFinalEvent) {
+            // Handle reward and completion atomically
+            processArcCompletion(arc, option.rewardXp, option.rewardGold)
         } else {
-            currentEventIndex++
-        }
-
-        if (currentEventIndex >= arc.events.size) {
-            processArcCompletion(playerData.value, arc)
+            updatePlayer { current ->
+                var updated = current
+                if (option.rewardGold > 0 || option.rewardXp > 0) {
+                    updated = current.gainExperience(option.rewardXp).copy(
+                        gold = current.gold + option.rewardGold
+                    )
+                }
+                updated.copy(currentStoryEventIndex = nextIndex)
+            }
+            currentEventIndex = nextIndex
         }
     }
 
@@ -377,10 +376,10 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
 
         if ((currentArc != null) && victoryProcessed) {
             selectedStoryArc = currentArc
-            currentEventIndex++
+            currentEventIndex = stateToSave.currentStoryEventIndex
             
             if (currentEventIndex >= currentArc.events.size) {
-                processArcCompletion(stateToSave, currentArc)
+                processArcCompletion(currentArc)
                 return // processArcCompletion handles its own navigation and update
             } else {
                 battleOrchestrator.storyEnemyName = null
@@ -392,25 +391,8 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
         } else if ((currentArena != null) && victoryProcessed) {
             popBackstack() // Return to ArenaSelection
         } else if (towerMode && victoryProcessed) {
-            if (stateToSave.towerFloor >= 100) {
-                stateToSave = stateToSave.copy(
-                    towerCompleted = true,
-                    towerHighestFloor = maxOf(stateToSave.towerHighestFloor, stateToSave.towerFloor)
-                )
-            } else {
-                val nextFloor = stateToSave.towerFloor + 1
-                stateToSave = stateToSave.copy(
-                    towerFloor = nextFloor,
-                    towerHighestFloor = maxOf(stateToSave.towerHighestFloor, stateToSave.towerFloor)
-                )
-            }
             popBackstack() // Return to Tower
         } else if (currentExam != null && victoryProcessed) {
-            val nextLvl = stateToSave.guildLevel + 1
-            stateToSave = stateToSave.copy(
-                guildLevel = nextLvl,
-                guildXp = 0
-            )
             popBackstack() // Return to Guild
         } else {
             if (victoryProcessed && !stateToSave.towerUnlockedMessageSeen && TowerDatabase.isTowerUnlocked(stateToSave.defeatedBosses)) {
@@ -432,7 +414,7 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
         updatePlayer(stateToSave)
     }
 
-    private fun processArcCompletion(newData: PlayerData, arc: StoryArc) {
+    private fun processArcCompletion(arc: StoryArc, extraXp: Long = 0L, extraGold: Long = 0L) {
         analytics.logEvent("arc_completion") {
             param("arc_id", arc.id.toLong())
             param("arc_title", arc.title)
@@ -445,36 +427,47 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
             else -> false
         }
 
-        val updatedArcs = if (isSideArc) newData.completedStoryArcs else (newData.completedStoryArcs + arc.id).distinct()
-        val updatedSideArcs = if (isSideArc) (newData.completedSideStoryArcs + arc.id).distinct() else newData.completedSideStoryArcs
-        
-        val updatedTitles = if (arc.rewardTitle != null) {
-            (newData.unlockedTitles + arc.rewardTitle).distinct()
-        } else newData.unlockedTitles
-        
-        val currentQuests = newData.quests.toMutableList()
-        val questsToFilter = if (newData.isReborn) GameDatabase.allQuests else GameDatabase.allQuests.filter { !it.title.contains("(Legacy)") }
-        val newQuests = questsToFilter.filter {
-            newData.unlockedLocations.contains(it.requiredLocation) &&
-            currentQuests.none { existing -> existing.title == it.title }
-        }
-        currentQuests.addAll(newQuests)
+        updatePlayer { current ->
+            val alreadyCompleted = if (isSideArc) {
+                current.completedSideStoryArcs.contains(arc.id)
+            } else {
+                current.completedStoryArcs.contains(arc.id)
+            }
 
-        val stats = newData.gainExperience(arc.rewardXp)
+            val updatedArcs = if (isSideArc) current.completedStoryArcs else (current.completedStoryArcs + arc.id).distinct()
+            val updatedSideArcs = if (isSideArc) (current.completedSideStoryArcs + arc.id).distinct() else current.completedSideStoryArcs
+            
+            val updatedTitles = if (arc.rewardTitle != null) {
+                (current.unlockedTitles + arc.rewardTitle).distinct()
+            } else current.unlockedTitles
+            
+            val currentQuests = current.quests.toMutableList()
+            val questsToFilter = if (current.isReborn) GameDatabase.allQuests else GameDatabase.allQuests.filter { !it.title.contains("(Legacy)") }
+            val newQuests = questsToFilter.filter {
+                current.unlockedLocations.contains(it.requiredLocation) &&
+                currentQuests.none { existing -> existing.title == it.title }
+            }
+            currentQuests.addAll(newQuests)
 
-        val finalData = stats.copy(
-            gold = stats.gold + arc.rewardGold,
-            completedStoryArcs = updatedArcs,
-            completedSideStoryArcs = updatedSideArcs,
-            unlockedTitles = updatedTitles,
-            currentTitle = arc.rewardTitle ?: stats.currentTitle,
-            quests = currentQuests
-        )
-        updatePlayer(finalData)
-        
-        if (!finalData.towerUnlockedMessageSeen && TowerDatabase.isTowerUnlocked(finalData.defeatedBosses)) {
-            towerUnlockMessage = "The seal on the BATTLE TOWER has been broken! You can now access it in the Adventure tab."
-            updatePlayer(finalData.copy(towerUnlockedMessageSeen = true))
+            val rewardXp = if (alreadyCompleted) 0L else arc.rewardXp
+            val rewardGold = if (alreadyCompleted) 0L else arc.rewardGold
+
+            val stats = current.gainExperience(rewardXp + extraXp)
+
+            val finalized = stats.copy(
+                gold = stats.gold + rewardGold + extraGold,
+                completedStoryArcs = updatedArcs,
+                completedSideStoryArcs = updatedSideArcs,
+                unlockedTitles = updatedTitles,
+                currentTitle = arc.rewardTitle ?: stats.currentTitle,
+                quests = currentQuests,
+                currentStoryEventIndex = 0 // Reset for re-playability if desired
+            )
+            
+            if (!finalized.towerUnlockedMessageSeen && TowerDatabase.isTowerUnlocked(finalized.defeatedBosses)) {
+                towerUnlockMessage = "The seal on the BATTLE TOWER has been broken! You can now access it in the Adventure tab."
+                finalized.copy(towerUnlockedMessageSeen = true)
+            } else finalized
         }
 
         previousLevelForCompletion = playerData.value.level

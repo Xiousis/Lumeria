@@ -103,7 +103,9 @@ object BattleEngine {
         var activeDefenseMultiplier = currentState.defenseBuffMultiplier
         var activeEvasionBonus = currentState.evasionBuffBonus
         
-        var buffTurns = state.buffTurns
+        var attackBuffTurns = state.attackBuffTurns
+        var defenseBuffTurns = state.defenseBuffTurns
+        var evasionBuffTurns = state.evasionBuffTurns
         var critBuffTurns = state.critBuffTurns
         var superBuffTurns = state.superBuffTurns
         var parryActive = false 
@@ -111,17 +113,17 @@ object BattleEngine {
         when (skill.effectType) {
             "Buff" -> {
                 activeDamageMultiplier = 1.25
-                buffTurns = 3
+                attackBuffTurns = 3
                 newLogs.add(LogEntry("Xious uses ${skill.name}! Attack increased!", Color.Green))
             }
             "DefenseBuff" -> {
                 activeDefenseMultiplier = 1.5
-                buffTurns = 3
+                defenseBuffTurns = 3
                 newLogs.add(LogEntry("Xious uses ${skill.name}! Defense increased!", Color.Green))
             }
             "EvasionBuff" -> {
                 activeEvasionBonus = 0.25
-                buffTurns = 3
+                evasionBuffTurns = 3
                 newLogs.add(LogEntry("Xious uses ${skill.name}! Evasion increased!", Color.Green))
             }
             "CritBuff" -> {
@@ -383,10 +385,12 @@ object BattleEngine {
                 unlockedSkills = workingUnlockedSkills,
                 equippedSkills = workingEquippedSkills
             ),
-            damageBuffMultiplier = if (familiarActionTaken && familiar.actionType == FamiliarActionType.Buff) activeDamageMultiplier else (if ((buffTurns > 0) || (superBuffTurns > 0)) activeDamageMultiplier else 1.0),
-            defenseBuffMultiplier = if (buffTurns > 0) activeDefenseMultiplier else 1.0,
-            evasionBuffBonus = if (buffTurns > 0) activeEvasionBonus else 0.0,
-            buffTurns = maxOf(0, buffTurns - 1),
+            damageBuffMultiplier = if (familiarActionTaken && familiar.actionType == FamiliarActionType.Buff) activeDamageMultiplier else (if ((attackBuffTurns > 0) || (superBuffTurns > 0)) activeDamageMultiplier else 1.0),
+            defenseBuffMultiplier = if (defenseBuffTurns > 0) activeDefenseMultiplier else 1.0,
+            evasionBuffBonus = if (evasionBuffTurns > 0) activeEvasionBonus else 0.0,
+            attackBuffTurns = maxOf(0, attackBuffTurns - 1),
+            defenseBuffTurns = maxOf(0, defenseBuffTurns - 1),
+            evasionBuffTurns = maxOf(0, evasionBuffTurns - 1),
             critBuffTurns = maxOf(0, critBuffTurns - 1),
             superBuffTurns = maxOf(0, superBuffTurns - 1),
             parryActive = parryActive,

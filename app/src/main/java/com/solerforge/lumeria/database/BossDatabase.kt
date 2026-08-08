@@ -12,8 +12,8 @@ data class Boss(
     val name: String,
     val hp: Int,
     val level: Int,
-    val rewardXp: Int,
-    val rewardGold: Int,
+    val rewardXp: Long,
+    val rewardGold: Long,
     val defense: Int,
     val moveset: List<BossAttack>,
     val isLegacy: Boolean = false

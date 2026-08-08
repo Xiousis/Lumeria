@@ -287,7 +287,7 @@ fun GamblingHouseScreen(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(16.dp)
                         ) {
-                            IconButton(onClick = { if (currentBet >= 10) currentBet -= 10 }) {
+                            IconButton(onClick = { if (currentBet > 10) currentBet -= 10 }) {
                                 Text("-10", color = Color.White)
                             }
                             Text(
