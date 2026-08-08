@@ -1,0 +1,4 @@
+- [ ] Implement `HpBar` Composable
+- [ ] Add HP Bar to Hero section in `BattleScreen`
+- [ ] Add HP Bar to Enemy section in `BattleScreen`
+- [ ] Verify functionality and appearance in Previews

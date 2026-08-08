@@ -1,0 +1,10 @@
+- [x] Brighten `Color.kt` and add UI-specific constants
+- [x] Update `RpgButton.kt` default styling
+- [x] Brighten `BattleScreen.kt` skill buttons
+- [x] Brighten buttons in `MainMenu.kt`
+- [x] Brighten buttons in `GameMenuScreen.kt`
+- [x] Brighten buttons in `ShopScreen.kt`
+- [x] Brighten buttons in `StatsScreen.kt`
+- [x] Brighten buttons in `InventoryScreen.kt`
+- [x] Brighten buttons in `SkillScreen.kt`
+- [x] Verify with Previews/Build

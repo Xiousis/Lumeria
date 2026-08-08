@@ -1,0 +1,16 @@
+- [x] Move Journal from Story Mode to Main Menu
+    - [x] Add `onJournal` to `MainMenu.kt` and add button
+    - [x] Remove Journal button from `StorySelectionScreen.kt`
+    - [x] Update `MainActivity.kt` navigation for Journal
+- [x] Fix "The Immortal Legend" categorization
+    - [x] Remove from `StoryCodexDatabase.kt`
+    - [x] Add to `AchievementDatabase.kt`
+    - [x] Add unlock logic in `AchievementManager.kt`
+- [x] Refactor New Game / Continue logic
+    - [x] Update `MainMenu.kt` to disable "Continue" if no progress
+    - [x] Update `MainActivity.kt` to route Title -> Main Menu
+    - [x] Ensure "New Game" resets correctly and starts intro
+    - [x] Update `StoryScreen` to route to `GameMenu` after completion
+- [x] Verification
+    - [x] Verify New Game/Continue behavior
+    - [x] Verify Journal accessibility and contents

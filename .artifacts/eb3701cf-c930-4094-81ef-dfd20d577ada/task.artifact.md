@@ -1,0 +1,6 @@
+- [x] Update `Screen` enum to include `GamblingHouse`
+- [x] Update `MainActivity` to handle `GamblingHouse` screen navigation
+- [x] Update `GameMenuScreen` to include the Gambling House in the Market tab
+- [x] Implement `GamblingHouseScreen.kt` with Blackjack logic
+- [x] Verify the implementation (Build successful)
+- [x] Add Frank as the NPC and background in `GamblingHouseScreen.kt`

@@ -1,0 +1,2 @@
+- [x] Replace empty `lumeria_logo.xml` with a placeholder vector drawable
+- [x] Verify fix by rendering Compose Preview (Manual verification in IDE recommended)

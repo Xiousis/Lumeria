@@ -1,0 +1,7 @@
+- [x] Update `GameDatabase.kt` with `HeadGear` and new items
+- [x] Update `PlayerData.kt` with new equipment slots
+- [x] Update `BattleLogic.kt` to include new slots in stats calculations
+- [x] Update `BattleViewModel.kt` to use correct defense formula
+- [x] Update `InventoryScreen.kt` UI for new slots and item categories
+- [x] Update `ShopScreen.kt` to include Head Gear category
+- [ ] Verify changes in-game (Manual Verification)
