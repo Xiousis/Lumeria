@@ -128,7 +128,7 @@ fun AppNavigation(
                                 storyEnemyName = mainViewModel.storyEnemyName,
                                 arenaOpponent = mainViewModel.arenaOpponent,
                                 shadowOpponent = mainViewModel.battleOrchestrator.shadowOpponent,
-                                playerSnapshot = playerData,
+                                playerSnapshot = mainViewModel.grindingPlayerData ?: playerData,
                                 activeBounty = mainViewModel.battleOrchestrator.grindingPlayerData
                                     ?.activeBountyId
                                     ?.let { com.solerforge.lumeria.database.BountyDatabase.getBounty(it) },

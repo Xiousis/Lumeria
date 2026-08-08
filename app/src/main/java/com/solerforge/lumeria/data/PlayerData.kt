@@ -95,7 +95,8 @@ data class PlayerData(
 
     // Leaderboard & PvP
     val pvpWins: Int = 0,
-    val pvpLosses: Int = 0
+    val pvpLosses: Int = 0,
+    val lastSavedAt: Long = 0L
 ) {
     fun getLevelCap(): Int = if (isReborn) 200 else 100
 

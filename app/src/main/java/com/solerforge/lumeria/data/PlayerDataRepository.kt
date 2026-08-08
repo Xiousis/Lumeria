@@ -130,7 +130,10 @@ class PlayerDataRepository(
                 PlayerData()
             }
 
-            val updatedData = transform(currentData).copy(saveVersion = CURRENT_SAVE_VERSION)
+            val updatedData = transform(currentData).copy(
+                saveVersion = CURRENT_SAVE_VERSION,
+                lastSavedAt = System.currentTimeMillis()
+            )
             val updatedJson = json.encodeToString(updatedData)
 
             // Preserve current as backup before overwriting
@@ -167,12 +170,29 @@ class PlayerDataRepository(
     suspend fun syncFromCloud(slot: Int): Boolean {
         val cloudDataJson = cloudSaveManager?.loadFromCloud(slot) ?: return false
         return try {
-            val decoded = json.decodeFromString<PlayerData>(cloudDataJson)
-            val migrated = migrateIfNeeded(decoded)
+            val cloudDecoded = json.decodeFromString<PlayerData>(cloudDataJson)
+            val cloudMigrated = migrateIfNeeded(cloudDecoded)
             
+            // Check local data
+            val localPreferences = context.dataStore.data.first()
+            val localJsonString = localPreferences[Keys.slotKey(slot)]
+            if (localJsonString != null) {
+                val localDecoded = json.decodeFromString<PlayerData>(localJsonString)
+                val localMigrated = migrateIfNeeded(localDecoded)
+                
+                // If local is newer, abort sync or handle accordingly
+                if (localMigrated.lastSavedAt > cloudMigrated.lastSavedAt) {
+                    return false // Local is newer
+                }
+            }
+
             // Save to local
             context.dataStore.edit { preferences ->
-                preferences[Keys.slotKey(slot)] = json.encodeToString(migrated)
+                // Backup current local before overwriting with cloud
+                if (localJsonString != null) {
+                    preferences[Keys.backupKey(slot)] = localJsonString
+                }
+                preferences[Keys.slotKey(slot)] = json.encodeToString(cloudMigrated)
             }
             true
         } catch (e: Exception) {
