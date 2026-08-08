@@ -129,20 +129,13 @@ fun StorySelectionScreen(
                 }
 
                 items(arcs) { arc ->
-                    val completedArcs = when {
-                        playerData.isReborn && selectedTab == "Main" -> playerData.completedStoryArcs.filter { it >= 1000 && it < 2000 }
-                        playerData.isReborn && selectedTab == "Side" -> playerData.completedSideStoryArcs.filter { it >= 2000 }
-                        !playerData.isReborn && selectedTab == "Main" -> playerData.completedStoryArcs.filter { it <= 20 }
-                        !playerData.isReborn && selectedTab == "Side" -> playerData.completedSideStoryArcs.filter { it >= 100 && it < 1000 }
-                        selectedTab == "Secret" -> playerData.completedStoryArcs 
-                        else -> emptyList()
-                    }
-
                     val isCompleted = arc.id in (playerData.completedStoryArcs + playerData.completedSideStoryArcs)
+                    val isResumable = !isCompleted && playerData.activeStoryArcId == arc.id
+                    
                     val isFirstInTab = arc.id == arcs.firstOrNull()?.id
                     val previousArcComplete = isFirstInTab || (arc.id - 1) in (playerData.completedStoryArcs + playerData.completedSideStoryArcs)
                     
-                    val isAvailable = playerData.level >= arc.requiredLevel && previousArcComplete
+                    val isAvailable = (playerData.level >= arc.requiredLevel && previousArcComplete) || isCompleted
                     val isLocked = !isAvailable
 
                     StoryArcRow(
@@ -150,6 +143,7 @@ fun StorySelectionScreen(
                         isCompleted = isCompleted,
                         isAvailable = isAvailable,
                         isLocked = isLocked,
+                        isResumable = isResumable
                     ) {
                         if (isAvailable) onSelectArc(arc)
                     }
@@ -182,15 +176,18 @@ fun StoryArcRow(
     isCompleted: Boolean,
     isAvailable: Boolean,
     isLocked: Boolean,
+    isResumable: Boolean = false,
     onClick: () -> Unit
 ) {
     val backgroundColor = when {
+        isResumable -> Color.Blue.copy(alpha = 0.4f)
         isCompleted -> Color.Green.copy(alpha = 0.2f)
         isAvailable -> Color.Blue.copy(alpha = 0.2f)
         else -> Color.Gray.copy(alpha = 0.2f)
     }
 
     val borderColor = when {
+        isResumable -> Color.Yellow
         isCompleted -> Color.Green
         isAvailable -> Color.Cyan
         else -> Color.DarkGray
@@ -200,7 +197,7 @@ fun StoryArcRow(
         modifier = Modifier
             .fillMaxWidth()
             .background(backgroundColor, RoundedCornerShape(12.dp))
-            .border(1.dp, borderColor, RoundedCornerShape(12.dp))
+            .border(if (isResumable) 2.dp else 1.dp, borderColor, RoundedCornerShape(12.dp))
             .clickable(enabled = !isLocked) { onClick() }
             .padding(16.dp)
     ) {
@@ -218,11 +215,13 @@ fun StoryArcRow(
             
             Text(
                 text = when {
-                    isCompleted -> "[Completed]"
+                    isResumable -> "[Resume]"
+                    isCompleted -> "[Replay]"
                     isAvailable -> "[Available]"
                     else -> "[Locked Lv.${arc.requiredLevel}]"
                 },
                 color = when {
+                    isResumable -> Color.Yellow
                     isCompleted -> Color.Green
                     isAvailable -> Color.Cyan
                     else -> Color.Gray

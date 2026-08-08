@@ -115,7 +115,7 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
         initialValue = com.solerforge.lumeria.data.GameSettings()
     )
 
-    val goldLostOnDeath: Int get() = (playerData.value.gold * 0.15).toInt()
+    val goldLostOnDeath: Long get() = playerData.value.gold * 15L / 100L
     
     val levelsGainedOnCompletion: Int get() = maxOf(0, playerData.value.level - previousLevelForCompletion)
 
@@ -255,7 +255,18 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
     fun updateStoryArc(arc: StoryArc?) {
         selectedStoryArc = arc
         if (arc != null) {
-            currentEventIndex = 0
+            val isReplay = playerData.value.completedStoryArcs.contains(arc.id) || 
+                           playerData.value.completedSideStoryArcs.contains(arc.id)
+            
+            val savedArcId = playerData.value.activeStoryArcId
+            val savedIndex = playerData.value.currentStoryEventIndex
+
+            if (!isReplay && savedArcId == arc.id) {
+                currentEventIndex = savedIndex
+            } else {
+                currentEventIndex = 0
+                updatePlayer { it.copy(activeStoryArcId = arc.id, currentStoryEventIndex = 0) }
+            }
             navigateTo(Screen.StoryDialogue)
         }
     }
@@ -263,6 +274,8 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
     fun advanceStoryEvent() {
         val arc = selectedStoryArc ?: return
         currentEventIndex++
+        
+        updatePlayer { it.copy(currentStoryEventIndex = currentEventIndex) }
         
         if (currentEventIndex >= arc.events.size) {
             processArcCompletion(arc)
@@ -273,14 +286,17 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
         val arc = selectedStoryArc ?: return
         val nextIndex = option.nextEventIndex ?: (currentEventIndex + 1)
         val isFinalEvent = nextIndex >= arc.events.size
+        
+        val isReplay = playerData.value.completedStoryArcs.contains(arc.id) || 
+                       playerData.value.completedSideStoryArcs.contains(arc.id)
 
         if (isFinalEvent) {
             // Handle reward and completion atomically
-            processArcCompletion(arc, option.rewardXp, option.rewardGold)
+            processArcCompletion(arc, if (isReplay) 0L else option.rewardXp, if (isReplay) 0L else option.rewardGold)
         } else {
             updatePlayer { current ->
                 var updated = current
-                if (option.rewardGold > 0 || option.rewardXp > 0) {
+                if (!isReplay && (option.rewardGold > 0 || option.rewardXp > 0)) {
                     updated = current.gainExperience(option.rewardXp).copy(
                         gold = current.gold + option.rewardGold
                     )
@@ -304,7 +320,13 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
     }
 
     fun navigateToBattle(isRift: Boolean, enemyName: String? = null, isBoss: Boolean = false, snapshot: PlayerData? = null, location: String? = null) {
-        battleOrchestrator.startBattle(isRift, enemyName, isBoss, snapshot ?: playerData.value, location)
+        val currentArc = selectedStoryArc
+        val isReplay = if (currentArc != null) {
+            playerData.value.completedStoryArcs.contains(currentArc.id) || 
+            playerData.value.completedSideStoryArcs.contains(currentArc.id)
+        } else false
+
+        battleOrchestrator.startBattle(isRift, enemyName, isBoss, snapshot ?: playerData.value, location, isReplay)
     }
 
     fun onEnterShop() {
@@ -331,8 +353,8 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
         economyManager.completeForgeIntro(playerData.value)
     }
 
-    fun onBattleDeath() {
-        val updated = battleOrchestrator.handleDeath(playerData.value, goldLostOnDeath)
+    fun onBattleDeath(snapshot: PlayerData) {
+        val updated = battleOrchestrator.handleDeath(snapshot, goldLostOnDeath)
         updatePlayer(updated)
     }
 
@@ -461,7 +483,8 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
                 unlockedTitles = updatedTitles,
                 currentTitle = arc.rewardTitle ?: stats.currentTitle,
                 quests = currentQuests,
-                currentStoryEventIndex = 0 // Reset for re-playability if desired
+                activeStoryArcId = null,
+                currentStoryEventIndex = 0 
             )
             
             if (!finalized.towerUnlockedMessageSeen && TowerDatabase.isTowerUnlocked(finalized.defeatedBosses)) {
@@ -606,11 +629,9 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
 
     fun onDeathReturn() {
         val currentData = playerData.value
-        val goldLost = goldLostOnDeath
         val healedPlayer = currentData.copy(
             hp = currentData.maxHp,
             mana = currentData.maxMana,
-            gold = maxOf(0, currentData.gold - goldLost)
         )
         updatePlayer(healedPlayer)
         _backstack.clear()

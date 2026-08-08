@@ -19,15 +19,17 @@ class BattleOrchestrator(
     var arenaOpponent by mutableStateOf<ArenaOpponent?>(null)
     var shadowOpponent by mutableStateOf<PlayerData?>(null)
     var isTowerBattle by mutableStateOf(false)
+    var isStoryReplay by mutableStateOf(false)
     var locationOverride by mutableStateOf<String?>(null)
     var currentGuildExam by mutableStateOf<GuildDatabase.GuildExam?>(null)
     var battleSeed by mutableIntStateOf(0)
     var grindingPlayerData by mutableStateOf<PlayerData?>(null)
 
-    fun startBattle(isRift: Boolean, enemyName: String? = null, isBoss: Boolean = false, snapshot: PlayerData, location: String? = null) {
+    fun startBattle(isRift: Boolean, enemyName: String? = null, isBoss: Boolean = false, snapshot: PlayerData, location: String? = null, isReplay: Boolean = false) {
         isRiftBattle = isRift
         isPvPBattle = false
         shadowOpponent = null
+        isStoryReplay = isReplay
         if (isRift) {
             isBossBattle = (snapshot.riftStep >= 3)
         } else {
@@ -134,7 +136,7 @@ class BattleOrchestrator(
         onNavigateToBattleScreen()
     }
 
-    fun handleDeath(player: PlayerData, goldLost: Int): PlayerData {
+    fun handleDeath(player: PlayerData, goldLost: Long): PlayerData {
         val isInBossFight = isRiftBattle && (player.riftStep >= 3)
         val isPvP = isPvPBattle
 
@@ -146,12 +148,12 @@ class BattleOrchestrator(
                 riftLoot = emptyList(),
                 riftGold = 0,
                 riftXp = 0,
-                gold = maxOf(0, player.gold - goldLost)
+                gold = maxOf(0L, player.gold - goldLost)
             )
         } else if (isRiftBattle) {
             val leveledPlayer = player.gainExperience(player.riftXp).copy(
                 inventory = (player.inventory + player.riftLoot),
-                gold = maxOf(0, player.gold + player.riftGold - goldLost),
+                gold = maxOf(0L, player.gold + player.riftGold - goldLost),
                 deathCount = player.deathCount + 1,
                 voidIncursionLocation = null,
                 riftStep = 0,
@@ -164,7 +166,7 @@ class BattleOrchestrator(
             player.copy(
                 deathCount = player.deathCount + 1,
                 voidIncursionLocation = null,
-                gold = maxOf(0, player.gold - goldLost)
+                gold = maxOf(0L, player.gold - goldLost)
             )
         }.let { data ->
             if (isPvP) data.copy(pvpLosses = data.pvpLosses + 1) else data

@@ -26,7 +26,13 @@ jobs:
     - name: Create google-services.json
       env:
         GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
-      run: printf '%s' "$GOOGLE_SERVICES_JSON" > app/google-services.json
+      run: |
+        if [ -z "$GOOGLE_SERVICES_JSON" ]; then
+          echo "GOOGLE_SERVICES_JSON is empty, using dummy file for CI"
+          echo '{"project_info":{"project_number":"0","project_id":"ci-dummy"},"client":[{"client_info":{"mobilesdk_app_id":"1:0:android:0","android_client_info":{"package_name":"com.solerforge.lumeria"}},"api_key":[{"current_key":"ci-dummy"}]}]}' > app/google-services.json
+        else
+          printf '%s' "$GOOGLE_SERVICES_JSON" > app/google-services.json
+        fi
 
     - name: Build with Gradle
       run: ./gradlew assembleDebug

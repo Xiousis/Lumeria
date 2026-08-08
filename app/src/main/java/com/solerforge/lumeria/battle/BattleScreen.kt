@@ -65,7 +65,7 @@ fun FloatingNumberItem(num: FloatingNumber) {
 fun BattleScreen(
     modifier: Modifier = Modifier,
     viewModel: BattleViewModel,
-    onDeath: () -> Unit,
+    onDeath: (PlayerData) -> Unit,
     onPlayerUpdate: (PlayerData) -> Unit,
     onBattleAgain: (PlayerData) -> Unit,
     onLeave: (PlayerData) -> Unit,
@@ -131,7 +131,7 @@ fun BattleScreen(
     LaunchedEffect(state.isDying) {
         if (state.isDying) {
             delay(1000.milliseconds)
-            onDeath()
+            onDeath(state.currentPlayerSnapshot)
         }
     }
 

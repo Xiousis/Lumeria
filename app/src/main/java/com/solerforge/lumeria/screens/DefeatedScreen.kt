@@ -25,7 +25,7 @@ import com.solerforge.lumeria.utils.CurrencyUtils
 import com.solerforge.lumeria.utils.MusicManager
 
 @Composable
-fun DefeatedScreen(goldLost: Int = 0, onReturnToMenu: () -> Unit) {
+fun DefeatedScreen(goldLost: Long = 0, onReturnToMenu: () -> Unit) {
     val context = LocalContext.current
 
     LaunchedEffect(Unit) {

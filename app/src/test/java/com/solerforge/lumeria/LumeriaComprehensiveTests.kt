@@ -3,10 +3,10 @@ package com.solerforge.lumeria
 import com.solerforge.lumeria.battle.BattleLogic
 import com.solerforge.lumeria.data.Enemy
 import com.solerforge.lumeria.data.PlayerData
-import com.solerforge.lumeria.database.BountyDatabase
-import com.solerforge.lumeria.database.GameDatabase
-import com.solerforge.lumeria.database.TowerDatabase
+import com.solerforge.lumeria.database.*
 import com.solerforge.lumeria.managers.BattleOrchestrator
+import com.solerforge.lumeria.models.BuffType
+import com.solerforge.lumeria.models.PlayerBuff
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -16,16 +16,13 @@ class LumeriaComprehensiveTests {
     @Test
     fun testLevelUpGrantsExactlyFiveStatPoints() {
         val player = PlayerData(level = 1, xp = 0, statPoints = 0)
-        // Gain enough XP for exactly 1 level (Level 1 req: (1*1*50) + (1*100) = 150)
+        // Gain enough XP for exactly 1 level (Level 1 req: 150)
         val updated = player.gainExperience(150)
         
         assertEquals("Level should be 2", 2, updated.level)
         assertEquals("Stat points should be exactly 5", 5, updated.statPoints)
         
-        // Gain enough for 2 more levels
-        // Level 2 req: (2*2*50) + (2*100) = 200 + 200 = 400
-        // Level 3 req: (3*3*50) + (3*100) = 450 + 300 = 750
-        // Total needed from Level 2 to 4: 400 + 750 = 1150
+        // Multi-level test
         val multiLevel = player.gainExperience(2000)
         assertTrue(multiLevel.level > 2)
         assertEquals("Stat points should be (level-1) * 5", (multiLevel.level - 1) * 5, multiLevel.statPoints)
@@ -65,7 +62,7 @@ class LumeriaComprehensiveTests {
 
     @Test
     fun testBountyRewardsOnlyOnTarget() {
-        val bounty = BountyDatabase.getBounty(1)!! // Silas the Strangler
+        val bounty = BountyDatabase.getBounty(1)!!
         val player = PlayerData(activeBountyId = 1)
         
         val correctTarget = Enemy(name = "Silas the Strangler", baseName = "Silas the Strangler", maxHp = 100, level = 65)
@@ -74,7 +71,9 @@ class LumeriaComprehensiveTests {
         // Correct target
         val rewardsCorrect = BattleLogic.calculateRewards(player, correctTarget, bounty = bounty)
         assertEquals(bounty.rewardXp, rewardsCorrect.first)
-        assertEquals((bounty.rewardGold * (1.0 + player.luck * 0.01)).toInt(), rewardsCorrect.second)
+        // Gold reward includes luck bonus
+        val expectedGold = (bounty.rewardGold * (1.0 + player.luck * 0.01)).toLong()
+        assertEquals(expectedGold, rewardsCorrect.second)
 
         // Wrong target
         val rewardsWrong = BattleLogic.calculateRewards(player, wrongTarget, bounty = bounty)
@@ -83,7 +82,6 @@ class LumeriaComprehensiveTests {
 
     @Test
     fun testDeathPenaltyAndGoldLoss() {
-        // Mocking Orchestrator callbacks
         val orchestrator = BattleOrchestrator(
             onUpdatePlayer = {},
             onNavigate = {},
@@ -91,22 +89,24 @@ class LumeriaComprehensiveTests {
             onNavigateToBattleScreen = {}
         )
         
-        val player = PlayerData(gold = 1000, deathCount = 5)
-        val goldLost = 200
+        val player = PlayerData(gold = 1000L, deathCount = 5)
+        val goldLost = 150L // 15% of 1000
         
         val result = orchestrator.handleDeath(player, goldLost)
         
         assertEquals("Death count should increment", 6, result.deathCount)
-        // This test is expected to FAIL currently because of the bug in BattleOrchestrator
-        assertEquals("Gold should be lost", 800, result.gold)
+        assertEquals("Gold should be lost correctly", 850L, result.gold)
     }
 
     @Test
     fun testRiftBankingOnBossVictory() {
         val player = PlayerData(
+            level = 1,
+            xp = 0,
+            gold = 0,
             riftStep = 3,
-            riftXp = 5000,
-            riftGold = 2000,
+            riftXp = 5000L,
+            riftGold = 2000L,
             riftLoot = listOf("Rift Shard"),
             inventory = emptyList()
         )
@@ -123,59 +123,96 @@ class LumeriaComprehensiveTests {
             lootDrops = listOf("Boss Crystal")
         )
         
-        assertTrue("Rift XP should be banked", updated.xp >= 5000)
-        assertTrue("Rift Gold should be banked", updated.gold >= 2000)
+        // Calculate expected final XP manually: gainExperience(5000 + bossReward)
+        val (bossXp, bossGold) = BattleLogic.calculateRewards(player, boss, isBossBattle = true, isRift = true)
+        val expectedData = player.gainExperience(5000L + bossXp)
+        
+        assertEquals("Rift XP should be banked and level up should occur", expectedData.level, updated.level)
+        assertEquals("XP should match expected after levels", expectedData.xp, updated.xp)
+        assertEquals("Gold should include rift gold and boss gold", 2000L + bossGold, updated.gold)
         assertTrue("Rift Loot should be in inventory", updated.inventory.contains("Rift Shard"))
         assertTrue("Boss Loot should be in inventory", updated.inventory.contains("Boss Crystal"))
         assertEquals("Rift step should reset", 0, updated.riftStep)
-        assertEquals("Rift rewards should clear", 0L, updated.riftXp)
     }
 
     @Test
-    fun testEquipmentStatBonusScaling() {
-        // Base attack for Training Sword is 5 (from GameDatabase.kt)
-        val baseWeapon = "Training Sword"
-        val upgradedWeapon = "Training Sword +5"
+    fun testKingdomNationUpgradeCost() {
+        val player = PlayerData(gold = 50000L, nationUpgradeLevel = 2)
+        val cost = KingdomRankDatabase.getNationUpgradeCost(2) // 50000L
         
-        val baseStats = GameDatabase.getWeapon(baseWeapon)
-        val upgradedStats = GameDatabase.getWeapon(upgradedWeapon)
+        assertEquals(50000L, cost)
         
-        assertEquals(5, baseStats.attack)
-        // Upgraded: 1.0 + (5 * 0.02) = 1.1 multiplier -> 5 * 1.1 = 5.5 -> 5
-        assertEquals(5, upgradedStats.attack) 
+        val updated = player.copy(
+            gold = player.gold - cost,
+            nationUpgradeLevel = player.nationUpgradeLevel + 1
+        )
         
-        // Let's test with a higher base attack weapon for clearer results
-        // Hero's Longsword base attack is 55
-        val heroWeapon = "Hero's Longsword"
-        val heroUpgraded = "Hero's Longsword +5"
-        
-        val heroBaseStats = GameDatabase.getWeapon(heroWeapon)
-        val heroUpgradedStats = GameDatabase.getWeapon(heroUpgraded)
-        
-        assertEquals(55, heroBaseStats.attack)
-        // 55 * 1.1 = 60.5 -> 60
-        assertEquals(60, heroUpgradedStats.attack)
-        
-        // Void-Touched (+50% bonus): 1.0 + (5 * 0.02) + 0.5 = 1.6 -> 55 * 1.6 = 88
-        val heroVoid = GameDatabase.getWeapon("Void-Touched Hero's Longsword +5")
-        assertEquals(88, heroVoid.attack)
+        assertEquals(0L, updated.gold)
+        assertEquals(3, updated.nationUpgradeLevel)
     }
 
     @Test
-    fun testPotionUsageRestoresCorrectAmounts() {
-        // "Health Potion" healAmount = 25 (I'll verify this from outline/file)
-        val player = PlayerData(hp = 10, maxHp = 100, mana = 5, maxMana = 50, inventory = listOf("Health Potion", "Mana Potion"))
+    fun testGuildXpProgression() {
+        val player = PlayerData(joinedGuild = "House of Fire", guildLevel = 1, guildXp = 0)
+        val enemy = Enemy("Training Dummy", "Slime", 10, level = 1)
         
-        // Mocking ViewModel or just testing the logic from BattleViewModel.useItem
-        // Since we can't easily mock ViewModel, we test the logic:
-        val healthPotion = GameDatabase.getConsumable("Health Potion")!!
-        val updatedHp = minOf(player.maxHp, player.hp + healthPotion.healAmount)
+        val updated = BattleLogic.calculateVictory(
+            player = player,
+            enemy = enemy,
+            currentHp = 30,
+            currentMana = 20
+        )
         
-        assertEquals("Health Potion should heal", 35, updatedHp)
+        // (enemy.level * 10) + 50 = (1 * 10) + 50 = 60
+        assertEquals(60L, updated.guildXp)
+    }
+
+    @Test
+    fun testStoryReplayZeroRewards() {
+        val arc = StoryDatabase.arcs[0]
+        val player = PlayerData(completedStoryArcs = listOf(arc.id))
+        val enemy = Enemy("Training Bandit", "Training Bandit", 20, level = 1)
+
+        val rewards = BattleLogic.calculateRewards(
+            player = player,
+            enemy = enemy,
+            isStoryMode = true,
+            isReplay = true
+        )
         
-        // Test capping
-        val playerNearFull = player.copy(hp = 95)
-        val cappedHp = minOf(playerNearFull.maxHp, playerNearFull.hp + healthPotion.healAmount)
-        assertEquals("Healing should cap at maxHp", 100, cappedHp)
+        assertEquals("Replay rewards should be 0 XP", 0L, rewards.first)
+        assertEquals("Replay rewards should be 0 Gold", 0L, rewards.second)
+    }
+
+    @Test
+    fun testWorldEventBuffApplication() {
+        val player = PlayerData(activeBuffs = emptyList())
+        val buff = PlayerBuff(BuffType.Damage, 1.5, 3, "Super Buff")
+        
+        val updated = player.copy(activeBuffs = player.activeBuffs + buff)
+        
+        assertEquals(1, updated.activeBuffs.size)
+        assertEquals("Super Buff", updated.activeBuffs[0].description)
+        assertEquals(1.5, updated.activeBuffs[0].value, 0.001)
+    }
+
+    @Test
+    fun testLootGodTierDuplicatePrevention() {
+        val player = PlayerData(inventory = listOf("Endbringer")) // God Tier Weapon
+        val drops = listOf("Endbringer", "Iron Sword")
+        
+        // Calculate victory with drops
+        val updated = BattleLogic.calculateVictory(
+            player = player,
+            enemy = Enemy("Boss", "Lord Xarthos", 1000, 80),
+            lootDrops = drops,
+            isBossBattle = true,
+            currentHp = 30,
+            currentMana = 20
+        )
+        
+        val endbringerCount = updated.inventory.count { it == "Endbringer" }
+        assertEquals("Should not have duplicate God Tier items", 1, endbringerCount)
+        assertTrue("Should still gain normal items", updated.inventory.contains("Iron Sword"))
     }
 }

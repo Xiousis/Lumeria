@@ -5,7 +5,7 @@ import com.solerforge.lumeria.data.PlayerData
 
 class EconomyViewModel : ViewModel() {
 
-    fun deposit(amount: Int, playerData: PlayerData, onUpdatePlayer: (PlayerData) -> Unit) {
+    fun deposit(amount: Long, playerData: PlayerData, onUpdatePlayer: (PlayerData) -> Unit) {
         if (playerData.gold >= amount) {
             val updated = playerData.copy(
                 gold = playerData.gold - amount,
@@ -15,7 +15,7 @@ class EconomyViewModel : ViewModel() {
         }
     }
 
-    fun withdraw(amount: Int, playerData: PlayerData, onUpdatePlayer: (PlayerData) -> Unit) {
+    fun withdraw(amount: Long, playerData: PlayerData, onUpdatePlayer: (PlayerData) -> Unit) {
         if (playerData.bankGold >= amount) {
             val updated = playerData.copy(
                 gold = playerData.gold + amount,

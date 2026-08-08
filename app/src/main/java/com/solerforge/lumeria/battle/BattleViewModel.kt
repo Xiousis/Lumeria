@@ -25,6 +25,7 @@ class BattleViewModel(
     val isTowerBattle: Boolean = false,
     val isRiftBattle: Boolean = false,
     val isPvPBattle: Boolean = false,
+    val isStoryReplay: Boolean = false,
     val shadowOpponent: PlayerData? = null,
     val guildExam: GuildDatabase.GuildExam? = null,
     val currentEventIndex: Int = 0,
@@ -609,12 +610,13 @@ class BattleViewModel(
                 player = currentState.currentPlayerSnapshot, 
                 enemy = currentState.enemy, 
                 isBossBattle = isBossBattle,
-                lootDrops = drops,
+                lootDrops = if (isStoryReplay) emptyList() else drops,
                 isStoryMode = storyEnemyName != null,
                 arenaOpponent = arenaOpponent,
                 activeBounty = activeBounty,
                 isTower = isTowerBattle,
                 isRift = isRiftBattle,
+                isReplay = isStoryReplay,
                 currentHp = currentState.playerHp,
                 currentMana = currentState.playerMana,
                 currentEventIndex = currentEventIndex,
@@ -633,6 +635,7 @@ class BattleViewModel(
                     activeBounty = null,
                     isTower = false,
                     isRift = false, // We treat 2nd enemy as normal reward
+                    isReplay = isStoryReplay,
                     currentHp = updatedPlayerStep1.hp,
                     currentMana = updatedPlayerStep1.mana,
                     currentEventIndex = updatedPlayerStep1.currentStoryEventIndex,
@@ -649,6 +652,7 @@ class BattleViewModel(
                 bounty = activeBounty,
                 isTower = isTowerBattle,
                 isRift = isRiftBattle,
+                isReplay = isStoryReplay,
             )
 
             var finalXp = baseXp1
@@ -664,9 +668,10 @@ class BattleViewModel(
                     arenaOpponent = null,
                     bounty = null,
                     isTower = false,
-                    isRift = false
+                    isRift = false,
+                    isReplay = isStoryReplay,
                 )
-                finalXp += (baseXp2 * 1.0).toInt() // Award 100% XP to match actual calculation
+                finalXp += baseXp2
                 finalGold += baseGold2
             }
 
@@ -740,6 +745,7 @@ class BattleViewModel(
             isTower: Boolean = false,
             isRift: Boolean = false,
             isPvP: Boolean = false,
+            isStoryReplay: Boolean = false,
             shadowOpponent: PlayerData? = null,
             guildExam: GuildDatabase.GuildExam? = null,
             currentEventIndex: Int = 0,
@@ -757,6 +763,7 @@ class BattleViewModel(
                     isTowerBattle = isTower,
                     isRiftBattle = isRift,
                     isPvPBattle = isPvP,
+                    isStoryReplay = isStoryReplay,
                     shadowOpponent = shadowOpponent,
                     guildExam = guildExam,
                     currentEventIndex = currentEventIndex,

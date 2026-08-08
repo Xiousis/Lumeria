@@ -125,6 +125,7 @@ fun AppNavigation(
                                 isPvP = mainViewModel.battleOrchestrator.isPvPBattle,
                                 isTower = mainViewModel.isTowerBattle,
                                 isRift = mainViewModel.isRiftBattle,
+                                isStoryReplay = mainViewModel.battleOrchestrator.isStoryReplay,
                                 storyEnemyName = mainViewModel.storyEnemyName,
                                 arenaOpponent = mainViewModel.arenaOpponent,
                                 shadowOpponent = mainViewModel.battleOrchestrator.shadowOpponent,
@@ -146,8 +147,8 @@ fun AppNavigation(
                             onFlee = { finalData ->
                                 mainViewModel.onBattleFlee(finalData)
                             },
-                            onDeath = {
-                                mainViewModel.onBattleDeath()
+                            onDeath = { snapshot ->
+                                mainViewModel.onBattleDeath(snapshot)
                             },
                             onPlayerUpdate = { newData ->
                                 mainViewModel.onPlayerBattleUpdate(newData)

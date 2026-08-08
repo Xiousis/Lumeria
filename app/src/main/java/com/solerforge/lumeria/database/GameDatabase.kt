@@ -7,7 +7,7 @@ object GameDatabase {
     data class Weapon(
         val name: String,
         val attack: Int,
-        val price: Int,
+        val price: Long,
         val rarity: String = "Common",
         val description: String = "",
         val lore: String = "",
@@ -20,7 +20,7 @@ object GameDatabase {
     data class Armor(
         val name: String,
         val defense: Int,
-        val price: Int,
+        val price: Long,
         val rarity: String = "Common",
         val description: String = "",
         val lore: String = "",
@@ -33,7 +33,7 @@ object GameDatabase {
     data class HeadGear(
         val name: String,
         val defense: Int,
-        val price: Int,
+        val price: Long,
         val rarity: String = "Common",
         val description: String = "",
         val lore: String = "",
@@ -46,7 +46,7 @@ object GameDatabase {
     data class Boots(
         val name: String,
         val agility: Int,
-        val price: Int,
+        val price: Long,
         val rarity: String = "Common",
         val description: String = "",
         val requiredLocation: String = "Training Fields",
@@ -58,7 +58,7 @@ object GameDatabase {
     data class Shield(
         val name: String,
         val defense: Int,
-        val price: Int,
+        val price: Long,
         val rarity: String = "Common",
         val description: String = "",
         val requiredLocation: String = "Training Fields",
@@ -76,7 +76,7 @@ object GameDatabase {
         val intelligence: Int = 0,
         val luck: Int = 0,
         val wisdom: Int = 0,
-        val price: Int,
+        val price: Long,
         val rarity: String = "Common",
         val description: String = "",
         val lore: String = "",
@@ -90,7 +90,7 @@ object GameDatabase {
         val name: String,
         val healAmount: Int,
         val manaAmount: Int = 0,
-        val price: Int,
+        val price: Long,
         val rarity: String = "Common",
         val description: String = "",
         val lore: String = "",
@@ -99,7 +99,7 @@ object GameDatabase {
 
     data class FishingRod(
         val name: String,
-        val price: Int,
+        val price: Long,
         val rarity: String = "Common",
         val description: String = "",
         val reactionBonus: Int = 0, // Reduces reaction window in ms

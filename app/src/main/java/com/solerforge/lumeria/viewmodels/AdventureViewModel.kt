@@ -59,7 +59,7 @@ class AdventureViewModel : ViewModel() {
             }
             is EventOutcome.Penalty -> {
                 updated = playerData.copy(
-                    gold = maxOf(0, playerData.gold - outcome.goldLost),
+                    gold = maxOf(0L, playerData.gold - outcome.goldLost),
                     hp = maxOf(1, playerData.hp - outcome.hpLost)
                 )
             }

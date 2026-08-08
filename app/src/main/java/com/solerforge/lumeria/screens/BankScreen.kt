@@ -28,8 +28,8 @@ import com.solerforge.lumeria.utils.CurrencyUtils
 @Composable
 fun BankScreen(
     playerData: PlayerData,
-    onDeposit: (Int) -> Unit,
-    onWithdraw: (Int) -> Unit,
+    onDeposit: (Long) -> Unit,
+    onWithdraw: (Long) -> Unit,
     onReturn: () -> Unit
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
@@ -126,11 +126,11 @@ fun BankScreen(
 
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 BankActionButton("Deposit 100", playerData.gold >= 100, Modifier.weight(1f)) {
-                    onDeposit(100)
+                    onDeposit(100L)
                     message = "Safe and sound!"
                 }
                 BankActionButton("Deposit 1k", playerData.gold >= 1000, Modifier.weight(1f)) {
-                    onDeposit(1000)
+                    onDeposit(1000L)
                     message = "The vault grows stronger!"
                 }
                 BankActionButton("All", playerData.gold > 0, Modifier.weight(1f)) {
@@ -143,11 +143,11 @@ fun BankScreen(
 
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 BankActionButton("Withdraw 100", playerData.bankGold >= 100, Modifier.weight(1f), Color(0xFF94A3B8)) {
-                    onWithdraw(100)
+                    onWithdraw(100L)
                     message = "Don't spend it all in one place!"
                 }
                 BankActionButton("Withdraw 1k", playerData.bankGold >= 1000, Modifier.weight(1f), Color(0xFF94A3B8)) {
-                    onWithdraw(1000)
+                    onWithdraw(1000L)
                     message = "Be careful out there."
                 }
                 BankActionButton("All", playerData.bankGold > 0, Modifier.weight(1f), Color(0xFF94A3B8)) {

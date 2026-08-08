@@ -336,9 +336,12 @@ object BattleLogic {
         bounty: com.solerforge.lumeria.data.Bounty? = null,
         isTower: Boolean = false,
         isRift: Boolean = false,
-    ): Pair<Int, Int> {
-        var xpGain: Int
-        var goldGain: Int
+        isReplay: Boolean = false,
+    ): Pair<Long, Long> {
+        if (isStoryMode && isReplay) return Pair(0L, 0L)
+
+        var xpGain: Long
+        var goldGain: Long
 
         val isBountyDefeated = bounty != null && enemy.baseName == bounty.targetName
 
@@ -353,28 +356,28 @@ object BattleLogic {
             goldGain = arenaOpponent.rewardGold
         } else if (isBossBattle) {
             val bossData = BossDatabase.resolveBoss(enemy.baseName)
-            xpGain = maxOf(1, bossData?.rewardXp ?: (enemy.level * 100))
-            goldGain = bossData?.rewardGold ?: (enemy.maxHp / 2)
+            xpGain = maxOf(1L, bossData?.rewardXp ?: (enemy.level * 100L))
+            goldGain = bossData?.rewardGold ?: (enemy.maxHp / 2L)
         } else {
             if (isStoryMode) {
-                xpGain = maxOf(1, enemy.rewardXp)
-                goldGain = maxOf(1, enemy.rewardGold)
+                xpGain = maxOf(1L, enemy.rewardXp)
+                goldGain = maxOf(1L, enemy.rewardGold)
             } else {
-                xpGain = (enemy.level * enemy.level * 2) + (enemy.level * 50) + 100
-                goldGain = (enemy.maxHp * 0.8).toInt()
+                xpGain = (enemy.level.toLong() * enemy.level * 2) + (enemy.level * 50) + 100
+                goldGain = (enemy.maxHp * 0.8).toLong()
             }
         }
 
         if (isRift) {
-            xpGain = (xpGain * 1.5).toInt()
-            goldGain = (goldGain * 1.5).toInt()
+            xpGain = (xpGain * 1.5).toLong()
+            goldGain = (goldGain * 1.5).toLong()
         }
 
         // --- KINGDOM LAWS ---
         when (player.activeKingdomLawId) {
-            1 -> goldGain = (goldGain * 0.9).toInt() // Merchant's Subsidy: -10% Battle Gold
-            2 -> xpGain = (xpGain * 1.25).toInt()   // Warrior's Draft: +25% XP
-            5 -> goldGain = (goldGain * 0.8).toInt() // Imperial Tithe: -20% Gold
+            1 -> goldGain = (goldGain * 0.9).toLong() // Merchant's Subsidy: -10% Battle Gold
+            2 -> xpGain = (xpGain * 1.25).toLong()   // Warrior's Draft: +25% XP
+            5 -> goldGain = (goldGain * 0.8).toLong() // Imperial Tithe: -20% Gold
         }
 
         // Apply Level Penalty for XP
@@ -392,13 +395,13 @@ object BattleLogic {
         }
         
         // Luck Bonus to Gold (1% per Luck point)
-        goldGain = (goldGain * (1.0 + (player.luck * 0.01))).toInt()
+        goldGain = (goldGain * (1.0 + (player.luck * 0.01))).toLong()
 
         // Apply World Event Buffs
         player.activeBuffs.forEach { buff ->
             when (buff.type) {
-                BuffType.Experience -> xpGain = (xpGain * buff.value).toInt()
-                BuffType.Gold -> goldGain = (goldGain * buff.value).toInt()
+                BuffType.Experience -> xpGain = (xpGain * buff.value).toLong()
+                BuffType.Gold -> goldGain = (goldGain * buff.value).toLong()
                 else -> {}
             }
         }
@@ -416,12 +419,13 @@ object BattleLogic {
         activeBounty: com.solerforge.lumeria.data.Bounty? = null,
         isTower: Boolean = false,
         isRift: Boolean = false,
+        isReplay: Boolean = false,
         currentHp: Int,
         currentMana: Int,
         currentEventIndex: Int = 0,
         currentGuildExam: com.solerforge.lumeria.database.GuildDatabase.GuildExam? = null,
     ): PlayerData {
-        val (baseXpGain, baseGoldGain) = calculateRewards(player, enemy, isBossBattle, isStoryMode, arenaOpponent, activeBounty, isTower, isRift)
+        val (baseXpGain, baseGoldGain) = calculateRewards(player, enemy, isBossBattle, isStoryMode, arenaOpponent, activeBounty, isTower, isRift, isReplay)
 
         var updatedActiveBountyId = player.activeBountyId
         var updatedCompletedBountyIds = player.completedBountyIds
@@ -487,17 +491,17 @@ object BattleLogic {
 
         // Renown Logic
         var renownGain = when {
-            isRift -> 750
-            (activeBounty != null) && (enemy.baseName == activeBounty.targetName) -> 250
-            isTower -> 40
-            arenaOpponent != null -> 60
-            isBossBattle -> 150
-            isStoryMode -> 50
-            else -> 15
+            isRift -> 750L
+            (activeBounty != null) && (enemy.baseName == activeBounty.targetName) -> 250L
+            isTower -> 40L
+            arenaOpponent != null -> 60L
+            isBossBattle -> 150L
+            isStoryMode -> 50L
+            else -> 15L
         }
 
         if (updatedPlayer.activeKingdomLawId == 5) {
-            renownGain = (renownGain * 1.5).toInt() // Imperial Tithe: +50% Renown
+            renownGain = (renownGain * 1.5).toLong() // Imperial Tithe: +50% Renown
         }
 
         // Arena Completion Tracking
@@ -513,8 +517,8 @@ object BattleLogic {
         if (updatedPlayer.joinedGuild != null) {
             val needed = com.solerforge.lumeria.database.GuildDatabase.getGuildXpForNextLevel(updatedGuildLevel)
             if (updatedGuildLevel < 10) {
-                updatedGuildXp += (enemy.level * 10) + 50
-                if (updatedGuildXp > needed) updatedGuildXp = needed
+                updatedGuildXp += (enemy.level * 10L) + 50L
+                if (updatedGuildXp > needed) updatedGuildXp = needed.toLong()
             }
         }
         
@@ -531,10 +535,10 @@ object BattleLogic {
             val fName = updatedPlayer.equippedFamiliar
             val currentExp = workingFamiliarExp[fName] ?: 0
             val currentLvl = workingFamiliarLevels[fName] ?: 1
-            val famXpGain = (enemy.level * 5) + 20
-            val newExp = currentExp + famXpGain
-            val needed = com.solerforge.lumeria.database.FamiliarDatabase.getExpForNextLevel(currentLvl)
-            if (newExp >= (needed.toLong())) {
+            val famXpGain = (enemy.level * 5L) + 20L
+            val newExp = currentExp.toLong() + famXpGain
+            val needed = com.solerforge.lumeria.database.FamiliarDatabase.getExpForNextLevel(currentLvl).toLong()
+            if (newExp >= needed) {
                 workingFamiliarLevels[fName] = currentLvl + 1
                 workingFamiliarExp[fName] = (newExp - needed).toInt()
             } else {

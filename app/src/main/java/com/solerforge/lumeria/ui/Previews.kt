@@ -211,7 +211,7 @@ fun GamblingHousePreview() {
 @Composable
 fun DefeatedPreview() {
     TEXTBASEDRPGMAGICTheme {
-        DefeatedScreen(goldLost = 150) {}
+        DefeatedScreen(goldLost = 150L) {}
     }
 }
 
@@ -226,10 +226,11 @@ fun BattlePreview() {
     TEXTBASEDRPGMAGICTheme {
         BattleScreen(
             viewModel = mockViewModel,
-            onDeath = {},
+            onDeath = { _ -> },
             onPlayerUpdate = { _ -> },
             onBattleAgain = { _ -> },
-            onLeave = { _ -> }
+            onLeave = { _ -> },
+            onFlee = { _ -> }
         )
     }
 }

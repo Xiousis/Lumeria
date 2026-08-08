@@ -18,9 +18,9 @@ enum class BuffType {
 @Serializable
 sealed class EventOutcome {
     @Serializable
-    data class Reward(val gold: Int = 0, val xp: Int = 0, val message: String) : EventOutcome()
+    data class Reward(val gold: Long = 0L, val xp: Long = 0L, val message: String) : EventOutcome()
     @Serializable
-    data class Penalty(val goldLost: Int = 0, val hpLost: Int = 0, val message: String) : EventOutcome()
+    data class Penalty(val goldLost: Long = 0L, val hpLost: Int = 0, val message: String) : EventOutcome()
     @Serializable
     data class Buff(val buff: PlayerBuff, val message: String) : EventOutcome()
     @Serializable
