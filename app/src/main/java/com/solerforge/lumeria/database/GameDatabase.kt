@@ -702,15 +702,16 @@ object GameDatabase {
 
     fun getClassBaseStats(className: String): List<Int> {
         return when (className) {
-            "Mage", "Necromancer" -> listOf(5, 5, 5, 15, 5, 5, 10) // str, vit, def, int, agi, luck, wis
-            "Samurai" -> listOf(8, 5, 5, 5, 15, 10, 5)
-            "Paladin" -> listOf(10, 12, 15, 5, 5, 5, 5)
-            "Assassin" -> listOf(8, 5, 5, 5, 15, 15, 5)
-            "Monk" -> listOf(10, 15, 5, 5, 5, 5, 12)
-            "Archer" -> listOf(12, 5, 5, 5, 12, 10, 5)
-            "Bard" -> listOf(5, 5, 5, 5, 10, 15, 15)
-            "Berserker" -> listOf(20, 15, 2, 5, 5, 5, 5)
-            else -> listOf(12, 10, 8, 5, 5, 5, 5) // Warrior
+            "Mage" -> listOf(4, 6, 5, 20, 8, 5, 12) // str, vit, def, int, agi, luck, wis
+            "Necromancer" -> listOf(5, 12, 6, 17, 6, 6, 8)
+            "Samurai" -> listOf(15, 8, 8, 4, 14, 8, 3)
+            "Paladin" -> listOf(10, 14, 18, 2, 4, 2, 10)
+            "Assassin" -> listOf(8, 6, 4, 5, 18, 17, 2)
+            "Monk" -> listOf(14, 18, 8, 2, 10, 2, 6)
+            "Archer" -> listOf(13, 8, 6, 4, 17, 9, 3)
+            "Bard" -> listOf(6, 10, 7, 7, 10, 10, 10)
+            "Berserker" -> listOf(24, 20, 2, 2, 8, 2, 2)
+            else -> listOf(14, 12, 10, 4, 8, 6, 6) // Warrior
         }
     }
 }

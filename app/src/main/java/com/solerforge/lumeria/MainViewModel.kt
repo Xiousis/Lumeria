@@ -535,11 +535,19 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
         )
         
         val baseStats = GameDatabase.getClassBaseStats(className)
+        val statsAppliedData = newData.copy(
+            strength = baseStats[0],
+            vitality = baseStats[1],
+            defense = baseStats[2],
+            intelligence = baseStats[3],
+            agility = baseStats[4],
+            luck = baseStats[5],
+            wisdom = baseStats[6]
+        )
 
         // Initial class bonuses
         val finalizedData = when (className) {
-            "Mage" -> newData.copy(
-                strength = baseStats[0], vitality = baseStats[1], defense = baseStats[2], intelligence = baseStats[3], agility = baseStats[4], luck = baseStats[5], wisdom = baseStats[6],
+            "Mage" -> statsAppliedData.copy(
                 unlockedSkills = listOf("None", "Magic Bolt", "Mana Shield", "Heal"),
                 equippedSkills = listOf("Magic Bolt", "Mana Shield", "Heal"),
                 inventory = listOf("Apprentice Staff", "Mage Robes", "Canvas Shoes", "Mana Potion"),
@@ -547,8 +555,7 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
                 equippedArmor = "Mage Robes",
                 equippedBoots = "Canvas Shoes"
             )
-            "Samurai" -> newData.copy(
-                strength = baseStats[0], vitality = baseStats[1], defense = baseStats[2], intelligence = baseStats[3], agility = baseStats[4], luck = baseStats[5], wisdom = baseStats[6],
+            "Samurai" -> statsAppliedData.copy(
                 unlockedSkills = listOf("None", "Slash", "Quick Draw", "Parry"),
                 equippedSkills = listOf("Slash", "Quick Draw", "Parry"),
                 inventory = listOf("Training Katana", "Shinobi Garb", "Sandals"),
@@ -556,8 +563,7 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
                 equippedArmor = "Shinobi Garb",
                 equippedBoots = "Sandals"
             )
-            "Paladin" -> newData.copy(
-                strength = baseStats[0], vitality = baseStats[1], defense = baseStats[2], intelligence = baseStats[3], agility = baseStats[4], luck = baseStats[5], wisdom = baseStats[6],
+            "Paladin" -> statsAppliedData.copy(
                 unlockedSkills = listOf("None", "Guard", "Shield Bash", "Heal"),
                 equippedSkills = listOf("Guard", "Shield Bash", "Heal"),
                 inventory = listOf("Knight Blade", "Knight Armor", "Knight Shield", "Leather Boots"),
@@ -566,8 +572,7 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
                 equippedShield = "Knight Shield",
                 equippedBoots = "Leather Boots"
             )
-            "Assassin" -> newData.copy(
-                strength = baseStats[0], vitality = baseStats[1], defense = baseStats[2], intelligence = baseStats[3], agility = baseStats[4], luck = baseStats[5], wisdom = baseStats[6],
+            "Assassin" -> statsAppliedData.copy(
                 unlockedSkills = listOf("None", "Slash", "Quick Draw", "Smoke Bomb"),
                 equippedSkills = listOf("Slash", "Quick Draw", "Smoke Bomb"),
                 inventory = listOf("Squire Dagger", "Scout Armor", "Scout Boots"),
@@ -575,8 +580,7 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
                 equippedArmor = "Scout Armor",
                 equippedBoots = "Scout Boots"
             )
-            "Monk" -> newData.copy(
-                strength = baseStats[0], vitality = baseStats[1], defense = baseStats[2], intelligence = baseStats[3], agility = baseStats[4], luck = baseStats[5], wisdom = baseStats[6],
+            "Monk" -> statsAppliedData.copy(
                 unlockedSkills = listOf("None", "Heavy Strike", "Guard", "Heal"),
                 equippedSkills = listOf("Heavy Strike", "Guard", "Heal"),
                 inventory = listOf("None", "Padded Tunic", "Canvas Shoes"),
@@ -584,8 +588,7 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
                 equippedArmor = "Padded Tunic",
                 equippedBoots = "Canvas Shoes"
             )
-            "Archer" -> newData.copy(
-                strength = baseStats[0], vitality = baseStats[1], defense = baseStats[2], intelligence = baseStats[3], agility = baseStats[4], luck = baseStats[5], wisdom = baseStats[6],
+            "Archer" -> statsAppliedData.copy(
                 unlockedSkills = listOf("None", "Slash", "Quick Draw", "Heavy Strike"),
                 equippedSkills = listOf("Slash", "Quick Draw", "Heavy Strike"),
                 inventory = listOf("Nomad Bow", "Rugged Vest", "Leather Boots"),
@@ -593,8 +596,7 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
                 equippedArmor = "Rugged Vest",
                 equippedBoots = "Leather Boots"
             )
-            "Necromancer" -> newData.copy(
-                strength = baseStats[0], vitality = baseStats[1], defense = baseStats[2], intelligence = baseStats[3], agility = baseStats[4], luck = baseStats[5], wisdom = baseStats[6],
+            "Necromancer" -> statsAppliedData.copy(
                 unlockedSkills = listOf("None", "Magic Bolt", "Bleeding Slash"),
                 equippedSkills = listOf("Magic Bolt", "Bleeding Slash"),
                 inventory = listOf("Traveler's Staff", "Mage Robes", "Canvas Shoes"),
@@ -602,8 +604,7 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
                 equippedArmor = "Mage Robes",
                 equippedBoots = "Canvas Shoes"
             )
-            "Bard" -> newData.copy(
-                strength = baseStats[0], vitality = baseStats[1], defense = baseStats[2], intelligence = baseStats[3], agility = baseStats[4], luck = baseStats[5], wisdom = baseStats[6],
+            "Bard" -> statsAppliedData.copy(
                 unlockedSkills = listOf("None", "Heal", "Lion's Roar"),
                 equippedSkills = listOf("Heal", "Lion's Roar"),
                 inventory = listOf("Wanderer's Gladius", "Explorer Jacket", "Cloud Sprints"),
@@ -611,8 +612,7 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
                 equippedArmor = "Explorer Jacket",
                 equippedBoots = "Cloud Sprints"
             )
-            "Berserker" -> newData.copy(
-                strength = baseStats[0], vitality = baseStats[1], defense = baseStats[2], intelligence = baseStats[3], agility = baseStats[4], luck = baseStats[5], wisdom = baseStats[6],
+            "Berserker" -> statsAppliedData.copy(
                 unlockedSkills = listOf("None", "Heavy Strike", "Whirlwind Slash"),
                 equippedSkills = listOf("Heavy Strike", "Whirlwind Slash"),
                 inventory = listOf("Orc Cleaver", "Rugged Vest", "Leather Boots"),
@@ -620,8 +620,7 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
                 equippedArmor = "Rugged Vest",
                 equippedBoots = "Leather Boots"
             )
-            else -> newData.copy( // Warrior
-                strength = baseStats[0], vitality = baseStats[1], defense = baseStats[2], intelligence = baseStats[3], agility = baseStats[4], luck = baseStats[5], wisdom = baseStats[6],
+            else -> statsAppliedData.copy( // Warrior
                 unlockedSkills = listOf("None", "Slash", "Heavy Strike", "Guard"),
                 equippedSkills = listOf("Slash", "Heavy Strike", "Guard"),
                 inventory = listOf("Iron Sword", "Leather Armor", "Leather Boots"),
