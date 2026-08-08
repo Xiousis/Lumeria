@@ -100,20 +100,16 @@ object BattleEngine {
         }
 
         // 4. APPLY BUFFS / STANCES
-        var damageBuffMultiplier = currentState.damageBuffMultiplier
+        var activeDamageMultiplier = currentState.damageBuffMultiplier
         
-        // Passive Damage Buffs from Food/Events are handled in BattleLogic to avoid double application
-        // BUT the user says they are being applied twice. 
-        // Engine reads it here. Logic reads it too. I will remove it from Logic.
-
         var buffTurns = state.buffTurns
         var critBuffTurns = state.critBuffTurns
         var superBuffTurns = state.superBuffTurns
-        var parryActive = false // Already reset above, but local variable for this turn's action
+        var parryActive = false 
 
         when (skill.effectType) {
             "Buff" -> {
-                damageBuffMultiplier = 1.25
+                activeDamageMultiplier = 1.25
                 buffTurns = 3
                 newLogs.add(LogEntry("Xious uses ${skill.name}! Attack increased!", Color.Green))
             }
@@ -122,7 +118,7 @@ object BattleEngine {
                 newLogs.add(LogEntry("Xious uses ${skill.name}! Critical chance increased!", Color.Green))
             }
             "SuperBuff" -> {
-                damageBuffMultiplier = 1.5
+                activeDamageMultiplier = 1.5
                 superBuffTurns = 5
                 newLogs.add(LogEntry("Xious uses ${skill.name}! Entering a state of high power!", Color.Green))
             }
@@ -130,6 +126,12 @@ object BattleEngine {
                 parryActive = true
                 newLogs.add(LogEntry("Xious assumes a parry stance!", Color.Green))
             }
+        }
+
+        // Combine Active Multiplier with Passive Multipliers for the turn execution
+        var totalTurnDamageMultiplier = activeDamageMultiplier
+        state.currentPlayerSnapshot.activeBuffs.filter { it.type == BuffType.Damage }.forEach {
+            totalTurnDamageMultiplier *= it.value
         }
 
         val bonusCrit = if (critBuffTurns > 0) 0.35 else 0.0
@@ -146,7 +148,7 @@ object BattleEngine {
             currentEnemyHp = if (currentState.enemyHp > 0) currentState.enemyHp else currentState.enemy2Hp,
             enemy = if (currentState.enemyHp > 0) currentState.enemy else currentState.enemy2 ?: currentState.enemy,
             targetDefense = bossDef,
-            playerDamageBuff = damageBuffMultiplier,
+            playerDamageBuff = totalTurnDamageMultiplier,
             bonusCritChance = bonusCrit,
             previousSkillName = currentState.lastSkillName,
         )
@@ -167,7 +169,7 @@ object BattleEngine {
                 currentEnemyHp = state.enemy2Hp,
                 enemy = state.enemy2,
                 targetDefense = 0, // Mobs don't have defense yet in simple logic
-                playerDamageBuff = damageBuffMultiplier,
+                playerDamageBuff = totalTurnDamageMultiplier,
                 bonusCritChance = bonusCrit,
                 previousSkillName = state.lastSkillName,
             )
@@ -349,7 +351,7 @@ object BattleEngine {
                     newLogs.add(LogEntry("${familiar.name} restored $power Mana!", Color.Cyan))
                 }
                 FamiliarActionType.Buff -> {
-                    damageBuffMultiplier *= 1.25
+                    activeDamageMultiplier *= 1.25
                     newLogs.add(LogEntry("${familiar.name} boosted your attack!", Color.Yellow))
                 }
                 FamiliarActionType.Debuff -> {
@@ -370,7 +372,7 @@ object BattleEngine {
                 unlockedSkills = workingUnlockedSkills,
                 equippedSkills = workingEquippedSkills
             ),
-            damageBuffMultiplier = if (familiarActionTaken && familiar.actionType == FamiliarActionType.Buff) damageBuffMultiplier else (if ((buffTurns > 0) || (superBuffTurns > 0)) damageBuffMultiplier else 1.0),
+            damageBuffMultiplier = if (familiarActionTaken && familiar.actionType == FamiliarActionType.Buff) activeDamageMultiplier else (if ((buffTurns > 0) || (superBuffTurns > 0)) activeDamageMultiplier else 1.0),
             buffTurns = maxOf(0, buffTurns - 1),
             critBuffTurns = maxOf(0, critBuffTurns - 1),
             superBuffTurns = maxOf(0, superBuffTurns - 1),
@@ -403,14 +405,18 @@ object BattleEngine {
     ): Pair<BattleUiState, List<LogEntry>> {
         val newLogs = mutableListOf<LogEntry>()
         
-        // 1. Start of Turn Housekeeping (Decrement enemy cooldowns)
+        // 1. Start of Turn Housekeeping (Decrement enemy cooldowns and buffs)
         val workingCooldowns = state.enemySkillCooldowns.toMutableMap()
         workingCooldowns.keys.forEach { name ->
             val cd = workingCooldowns[name] ?: 0
             if (cd > 0) workingCooldowns[name] = cd - 1
         }
         
-        var currentState = state.copy(enemySkillCooldowns = workingCooldowns)
+        var currentState = state.copy(
+            enemySkillCooldowns = workingCooldowns,
+            bossEnrageTurns = maxOf(0, state.bossEnrageTurns - 1),
+            bossShieldTurns = maxOf(0, state.bossShieldTurns - 1)
+        )
 
         // --- PASSIVE STATUS DAMAGE (Burn, Poison, Bleed) ---
         val (passiveState, passiveLogs) = applyPassiveDamage(currentState)
@@ -662,7 +668,7 @@ object BattleEngine {
 
     private fun processBossAction(state: BattleUiState): Pair<BattleUiState, List<LogEntry>> {
         val newLogs = mutableListOf<LogEntry>()
-        val bossData = if (state.isStoryMode) StoryBossDatabase.getBoss(state.enemy.baseName) else BossDatabase.getBoss(state.enemy.baseName)
+        val bossData = if (state.isStoryBoss) StoryBossDatabase.getBoss(state.enemy.baseName) else BossDatabase.getBoss(state.enemy.baseName)
         val hpPercent = (state.enemyHp.toFloat() / state.enemy.maxHp)
 
         var phase2Triggered = state.phase2Triggered
@@ -736,7 +742,8 @@ object BattleEngine {
         if (player.joinedGuild == "House of Wind") dodgeChance += 0.02
         dodgeChance = dodgeChance.coerceIn(0.0, 0.90)
         
-        val isDodge = Math.random() < dodgeChance
+        val isSelfTarget = attack.effectType == "Heal" || attack.effectType == "Buff"
+        val isDodge = if (isSelfTarget) false else Math.random() < dodgeChance
         
         if (isDodge) {
             newLogs.add(LogEntry("Xious dodged the ${state.enemy.name}'s attack!", Color.Cyan))
@@ -751,6 +758,7 @@ object BattleEngine {
         var playerStunnedTurns = state.playerStunnedTurns
         var playerDefenseDebuffTurns = state.playerDefenseDebuffTurns
         var currentEnrageTurns = enrageTurns
+        var currentShieldTurns = shieldTurns
 
         // 3. DAMAGE CALCULATION
         val armorDef = GameDatabase.getArmor(state.currentPlayerSnapshot.equippedArmor).defense
@@ -854,6 +862,11 @@ object BattleEngine {
                 newLogs.add(LogEntry("${state.enemy.name} is enraged! (+25% DMG)", Color.Yellow))
                 playerHp = maxOf(0, playerHp - baseDmg)
             }
+            "Shield" -> {
+                currentShieldTurns = 3
+                newLogs.add(LogEntry("${state.enemy.name} raises a reflective barrier!", Color.Cyan))
+                playerHp = maxOf(0, playerHp - baseDmg)
+            }
             else -> {
                 playerHp = maxOf(0, playerHp - baseDmg)
             }
@@ -873,7 +886,7 @@ object BattleEngine {
                 phase2Triggered = phase2,
                 phase3Triggered = phase3,
                 bossEnrageTurns = currentEnrageTurns,
-                bossShieldTurns = shieldTurns,
+                bossShieldTurns = currentShieldTurns,
                 playerStunnedTurns = playerStunnedTurns,
                 playerDefenseDebuffTurns = playerDefenseDebuffTurns,
                 secondWindUsed = secondWindUsed

@@ -1,8 +1,0 @@
-- `[x]` Update `WorldLocation.kt` with `requiredLevel`
-- `[x]` Update `WorldDatabase.kt` with levels and remove arc IDs
-- `[x]` Update `MainViewModel.kt` logic (remove arc-unlock, fix battle snapshot)
-- `[x]` Update `BattleViewModel.kt` to pass world boss rewards
-- `[x]` Update `WorldMapScreen.kt` unlocking logic
-- `[x]` Update `BattleViewModel.kt` normal enemy level and HP scaling
-- `[x]` Update `BattleLogic.kt` XP and Gold rewards
-- `[x]` Verify build and gameplay

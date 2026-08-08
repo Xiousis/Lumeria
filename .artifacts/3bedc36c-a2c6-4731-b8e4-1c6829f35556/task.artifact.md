@@ -1,8 +1,0 @@
-- [x] Update RPG Color Palette and Theme
-- [x] Enhance Typography for RPG Feel
-- [x] Add Animations to ManaBar
-- [x] Create Reusable RpgButton Component
-- [x] Polish GameMenuScreen with Animations and Custom Buttons
-- [x] Polish BattleScreen (Animated Overlays & Shake Effects)
-- [x] Integrate Haptic Feedback in Battle
-- [x] Final Verification

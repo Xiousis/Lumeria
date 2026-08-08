@@ -314,7 +314,7 @@ fun SettingsScreen(
             )
 
             Text(
-                text = stringResource(R.string.settings_version_format, "1.0.0"),
+                text = stringResource(R.string.settings_version_format, com.solerforge.lumeria.BuildConfig.VERSION_NAME),
                 style = MaterialTheme.typography.labelSmall,
                 color = Color.White.copy(alpha = 0.5f),
                 modifier = Modifier.padding(bottom = 8.dp)

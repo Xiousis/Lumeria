@@ -88,6 +88,7 @@ data class BattleUiState(
     val isProcessing: Boolean = false,
     val isFleeable: Boolean = true,
     val isStoryMode: Boolean = false,
+    val isStoryBoss: Boolean = false,
     val isBossBattle: Boolean = false,
     val isRiftBattle: Boolean = false,
     val isArenaBattle: Boolean = false,

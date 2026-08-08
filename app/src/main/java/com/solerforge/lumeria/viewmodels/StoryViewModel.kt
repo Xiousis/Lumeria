@@ -56,11 +56,8 @@ class StoryViewModel(
         
         // Apply Rewards
         if (option.rewardGold > 0 || option.rewardXp > 0) {
-            val stats = XiousStats(current.level, current.xp, current.getLevelCap()).gainXp(option.rewardXp)
-            current = current.copy(
-                gold = current.gold + option.rewardGold,
-                level = stats.level,
-                xp = stats.xp
+            current = current.gainExperience(option.rewardXp).copy(
+                gold = current.gold + option.rewardGold
             )
             onUpdatePlayer(current)
         }

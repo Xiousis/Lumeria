@@ -28,19 +28,11 @@ data class ChatMessage(val sender: String, val message: String, val color: Color
 @Composable
 fun WorldChatScreen(
     playerData: PlayerData,
+    viewModel: com.solerforge.lumeria.viewmodels.WorldChatViewModel = androidx.lifecycle.viewmodel.compose.viewModel(),
     onReturn: () -> Unit
 ) {
     var textState by remember { mutableStateOf("") }
-    val chatMessages = remember {
-        mutableStateListOf(
-            ChatMessage("King Alaric", "Welcome to the Heroes' Circle, ${playerData.playerName}. May your new journey be legendary.", Color.Yellow),
-            ChatMessage("Ignis", "A new spark appears. Let's see if you can keep that fire burning.", Color(0xFFEF4444)),
-            ChatMessage("Marina", "The tides have brought you back to us. Welcome home, hero.", Color(0xFF3B82F6)),
-            ChatMessage("Zephyr", "I see you. The wind always carries the scent of potential.", Color(0xFF10B981)),
-            ChatMessage("Billy", "A fresh start, eh? I've got plenty of gear for a rising star like you!", Color.Cyan),
-            ChatMessage("Shadow Stalker", "They say those who are reborn see the world differently. What do you see?", Color.Magenta)
-        )
-    }
+    val chatMessages = viewModel.messages
 
     Box(modifier = Modifier.fillMaxSize()) {
         Image(
@@ -123,7 +115,7 @@ fun WorldChatScreen(
                 IconButton(
                     onClick = {
                         if (textState.isNotBlank()) {
-                            chatMessages.add(ChatMessage(playerData.playerName, textState, Color.Cyan, true))
+                            viewModel.sendMessage(playerData.playerName, textState)
                             textState = ""
                         }
                     },

@@ -13,7 +13,7 @@ class BattleLogicTest {
     @Test
     fun testMultiHitLogic() {
         val player = PlayerData(level = 10, agility = 20)
-        val enemy = Enemy("Training Dummy", 1000, level = 1)
+        val enemy = Enemy("Training Dummy", "Training Dummy", 1000, level = 1)
         val whirlwind = Skill("Whirlwind Slash", "...", 0, 0, 1, "Attack", 1.5, "MultiHit")
         
         val result = BattleLogic.processTurn(
@@ -31,7 +31,7 @@ class BattleLogicTest {
     @Test
     fun testLevelUpRestore() {
         val player = PlayerData(level = 1, xp = 0, hp = 5, mana = 5)
-        val enemy = Enemy("Slime", 10, level = 1, rewardXp = 500) // Guaranteed level up
+        val enemy = Enemy("Slime", "Slime", 10, level = 1, rewardXp = 500) // Guaranteed level up
         
         val updatedPlayer = BattleLogic.calculateVictory(
             player = player,
@@ -50,7 +50,7 @@ class BattleLogicTest {
     @Test
     fun testZeroMultiplierSkill() {
         val player = PlayerData(level = 10)
-        val enemy = Enemy("Dummy", 100, level = 1)
+        val enemy = Enemy("Dummy", "Dummy", 100, level = 1)
         val noneSkill = Skill("None", "...", 0, 0, 1, "Support", 0.0)
         
         val result = BattleLogic.processTurn(
@@ -80,7 +80,7 @@ class BattleLogicTest {
     @Test
     fun testXpPenalty() {
         val playerHighLevel = PlayerData(level = 30)
-        val enemyLowLevel = Enemy("Slime", 10, level = 1)
+        val enemyLowLevel = Enemy("Slime", "Slime", 10, level = 1)
         
         val (xpGain, _) = BattleLogic.calculateRewards(playerHighLevel, enemyLowLevel)
         assertEquals("XP should be reduced to 1 for > 20 level difference", 1, xpGain)
@@ -96,7 +96,7 @@ class BattleLogicTest {
     fun testLevelingGrantsStatPoints() {
         val player = PlayerData(level = 1, xp = 0, statPoints = 0)
         // Using a high level regular enemy to ensure high XP gain
-        val enemy = Enemy("Strong Mob", 100, level = 30) 
+        val enemy = Enemy("Strong Mob", "Strong Mob", 100, level = 30) 
         
         val updated = BattleLogic.calculateVictory(
             player = player,
@@ -115,7 +115,7 @@ class BattleLogicTest {
     @Test
     fun testGoldCannotBeNegative() {
         val player = PlayerData(gold = 100, luck = 0) // Set luck 0 for predictable result
-        val enemy = Enemy("Poor Thief", 10, level = 1)
+        val enemy = Enemy("Poor Thief", "Poor Thief", 10, level = 1)
         
         val (_, goldGain) = BattleLogic.calculateRewards(player, enemy)
         assertTrue("Gold gain should be non-negative", goldGain >= 0)
@@ -128,8 +128,8 @@ class BattleLogicTest {
     fun testTowerFloorBoundary() {
         val player = PlayerData(towerFloor = 1, luck = 0) // Set luck 0
         // Check if tower rewards are higher
-        val enemyNormal = Enemy("Slime", 10, level = 1)
-        val enemyTower = Enemy("Tower Slime", 10, level = 1, rewardXp = 500, rewardGold = 100)
+        val enemyNormal = Enemy("Slime", "Slime", 10, level = 1)
+        val enemyTower = Enemy("Tower Slime", "Tower Slime", 10, level = 1, rewardXp = 500, rewardGold = 100)
         
         val (xpNormal, _) = BattleLogic.calculateRewards(player, enemyNormal)
         val (xpTower, goldTower) = BattleLogic.calculateRewards(player, enemyTower, isTower = true)

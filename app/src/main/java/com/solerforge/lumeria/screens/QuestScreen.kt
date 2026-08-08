@@ -129,18 +129,14 @@ fun QuestScreen(
                             QuestRow(quest) {
                                 if (quest.isCompleted) {
                                     // Logic for claiming reward
-                                    val stats = XiousStats(level = playerData.level, xp = playerData.xp, maxLevel = playerData.getLevelCap()).gainXp(0)
                                     val updatedQuests = playerData.quests.map {
                                         if (it.title == quest.title) it.copy(isClaimed = true) else it
                                     }
-                                    val questCompletePlayer = playerData.copy(
-                                        level = stats.level,
-                                        xp = stats.xp,
+                                    
+                                    val questCompletePlayer = playerData.gainExperience(quest.rewardXp).copy(
                                         gold = playerData.gold + quest.rewardGold,
                                         quests = updatedQuests
                                     )
-                                    val newMaxHp = questCompletePlayer.calculateMaxHp()
-                                    val newMaxMana = questCompletePlayer.copy(hp=newMaxHp).calculateMaxMana()
                                     
                                     val currentQuestsInLog = updatedQuests.toMutableList()
                                     val newQuestsAvailable = GameDatabase.allQuests.filter { questItem ->
@@ -152,10 +148,6 @@ fun QuestScreen(
 
                                     onPlayerUpdate(
                                         questCompletePlayer.copy(
-                                            hp = newMaxHp,
-                                            maxHp = newMaxHp,
-                                            mana = newMaxMana,
-                                            maxMana = newMaxMana,
                                             quests = currentQuestsInLog
                                         )
                                     )

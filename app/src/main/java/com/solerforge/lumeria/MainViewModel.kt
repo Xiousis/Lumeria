@@ -263,6 +263,19 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
 
     fun updateStoryArc(arc: StoryArc?) {
         selectedStoryArc = arc
+        if (arc != null) {
+            currentEventIndex = 0
+            navigateTo(Screen.StoryDialogue)
+        }
+    }
+
+    fun advanceStoryEvent() {
+        val arc = selectedStoryArc ?: return
+        currentEventIndex++
+        
+        if (currentEventIndex >= arc.events.size) {
+            processArcCompletion(playerData.value, arc)
+        }
     }
 
     fun updateStoryEventIndex(index: Int) {
@@ -356,11 +369,18 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
         } else if ((currentArena != null) && victoryProcessed) {
             popBackstack() // Return to ArenaSelection
         } else if (towerMode && victoryProcessed) {
-            val nextFloor = stateToSave.towerFloor + 1
-            stateToSave = stateToSave.copy(
-                towerFloor = nextFloor,
-                towerHighestFloor = maxOf(stateToSave.towerHighestFloor, stateToSave.towerFloor)
-            )
+            if (stateToSave.towerFloor >= 100) {
+                stateToSave = stateToSave.copy(
+                    towerCompleted = true,
+                    towerHighestFloor = maxOf(stateToSave.towerHighestFloor, stateToSave.towerFloor)
+                )
+            } else {
+                val nextFloor = stateToSave.towerFloor + 1
+                stateToSave = stateToSave.copy(
+                    towerFloor = nextFloor,
+                    towerHighestFloor = maxOf(stateToSave.towerHighestFloor, stateToSave.towerFloor)
+                )
+            }
             popBackstack() // Return to Tower
         } else if (currentExam != null && victoryProcessed) {
             val nextLvl = stateToSave.guildLevel + 1
@@ -417,27 +437,14 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
         }
         currentQuests.addAll(newQuests)
 
-        val stats = com.solerforge.lumeria.models.XiousStats(newData.level, newData.xp, newData.getLevelCap()).gainXp(arc.rewardXp)
-        val levelsGained = stats.level - newData.level
+        val stats = newData.gainExperience(arc.rewardXp)
 
-        val leveledPlayer = newData.copy(
-            level = stats.level,
-            xp = stats.xp,
-        )
-        
-        val newMaxHp = leveledPlayer.calculateMaxHp()
-        val newMaxMana = leveledPlayer.calculateMaxMana()
-
-        val finalData = leveledPlayer.copy(
-            maxHp = newMaxHp,
-            maxMana = newMaxMana,
-            hp = if (levelsGained > 0) newMaxHp else leveledPlayer.hp,
-            mana = if (levelsGained > 0) newMaxMana else leveledPlayer.mana,
-            gold = leveledPlayer.gold + arc.rewardGold,
+        val finalData = stats.copy(
+            gold = stats.gold + arc.rewardGold,
             completedStoryArcs = updatedArcs,
             completedSideStoryArcs = updatedSideArcs,
             unlockedTitles = updatedTitles,
-            currentTitle = arc.rewardTitle ?: leveledPlayer.currentTitle,
+            currentTitle = arc.rewardTitle ?: stats.currentTitle,
             quests = currentQuests
         )
         updatePlayer(finalData)
@@ -473,8 +480,7 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
         // Initial class bonuses
         val finalizedData = when (className) {
             "Mage" -> newData.copy(
-                intelligence = 15, wisdom = 10, mana = 50, maxMana = 50,
-                hp = 25, maxHp = 25,
+                intelligence = 15, wisdom = 10,
                 unlockedSkills = listOf("None", "Magic Bolt", "Mana Shield", "Heal"),
                 equippedSkills = listOf("Magic Bolt", "Mana Shield", "Heal"),
                 inventory = listOf("Apprentice Staff", "Mage Robes", "Canvas Shoes", "Mana Potion"),
@@ -529,7 +535,7 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
                 equippedBoots = "Leather Boots"
             )
             "Necromancer" -> newData.copy(
-                intelligence = 15, mana = 60, maxMana = 60, wisdom = 10,
+                intelligence = 15, wisdom = 10,
                 unlockedSkills = listOf("None", "Magic Bolt", "Bleeding Slash"),
                 equippedSkills = listOf("Magic Bolt", "Bleeding Slash"),
                 inventory = listOf("Traveler's Staff", "Mage Robes", "Canvas Shoes"),
@@ -563,6 +569,15 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
                 equippedWeapon = "Iron Sword",
                 equippedArmor = "Leather Armor",
                 equippedBoots = "Leather Boots"
+            )
+        }.let { data ->
+            val maxHp = data.calculateMaxHp()
+            val maxMana = data.calculateMaxMana()
+            data.copy(
+                hp = maxHp,
+                maxHp = maxHp,
+                mana = maxMana,
+                maxMana = maxMana
             )
         }
 
@@ -611,28 +626,28 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
     }
 
     fun onFishCaught(fish: com.solerforge.lumeria.database.Fish) {
-        val current = playerData.value
-        var updatedXp = current.fishingXp + 25 
-        var updatedLevel = current.fishingLevel
-        
-        val needed = FishDatabase.getXpForNextLevel(updatedLevel)
-        if (updatedXp >= needed) {
-            updatedXp -= needed
-            updatedLevel++
-        }
-        
-        updatePlayer(
+        updatePlayer { current ->
+            var updatedXp = current.fishingXp + 25 
+            var updatedLevel = current.fishingLevel
+            
+            val needed = FishDatabase.getXpForNextLevel(updatedLevel)
+            if (updatedXp >= needed) {
+                updatedXp -= needed
+                updatedLevel++
+            }
+            
             current.copy(
-                inventory = (current.inventory + fish.name).distinct(),
+                inventory = current.inventory + fish.name,
                 fishingXp = updatedXp,
                 fishingLevel = updatedLevel,
                 totalFishCaught = current.totalFishCaught + 1,
-            ),
-        )
+            )
+        }
     }
 
     fun onBossBattle(locationName: String) {
-        battleOrchestrator.startBossBattle(locationName, playerData.value)
+        battleOrchestrator.locationOverride = locationName
+        battleOrchestrator.startBossBattle(locationName, grindingPlayerData ?: playerData.value)
     }
 
     fun onWorldEventComplete() {

@@ -155,7 +155,7 @@ object StoryBossDatabase {
             defense = 800,
             moveset = listOf(
                 BossAttack("Arcane Nova", 2.5, "An explosion of pure magic.", "IgnoreArmor"),
-                BossAttack("Mana Shield", 0.0, "Creates a barrier of Mana.", "Buff", cooldown = 4),
+                BossAttack("Mana Shield", 0.0, "Creates a barrier of Mana.", "Shield", cooldown = 4),
                 BossAttack("Spell Drain", 1.8, "Steals life to fuel spells.", "Lifesteal", cooldown = 3)
             )
         ),
@@ -326,7 +326,7 @@ object StoryBossDatabase {
                 BossAttack("Starlight Erosion", 6.0, "Erodes the very essence of your soul.", "Normal"),
                 BossAttack("Void Storm", 2.0, "A flurry of multi-hitting void energy.", "MultiHit", cooldown = 2),
                 BossAttack("Gravity Well", 1.5, "Crushes you under infinite weight.", "Stun", cooldown = 3),
-                BossAttack("Entropy Shield", 0.0, "Protects itself with absolute chaos.", "Buff", cooldown = 5)
+                BossAttack("Entropy Shield", 0.0, "Protects itself with absolute chaos.", "Shield", cooldown = 5)
             )
         ),
         Boss(

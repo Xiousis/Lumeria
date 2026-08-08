@@ -16,7 +16,7 @@ object ArenaEnemyDatabase {
     val opponents = listOf(
         // --- BRONZE RANK ---
         ArenaOpponent(
-            enemy = Enemy("Shield Squire", 150, 3, isHumanoid = true),
+            enemy = Enemy("Shield Squire", "Shield Squire", 150, 3, isHumanoid = true),
             rank = "Bronze",
             description = "Hides behind a heavy wooden board.",
             rewardGold = 100,
@@ -28,7 +28,7 @@ object ArenaEnemyDatabase {
             )
         ),
         ArenaOpponent(
-            enemy = Enemy("Initiate Knight", 250, 5, isHumanoid = true),
+            enemy = Enemy("Initiate Knight", "Initiate Knight", 250, 5, isHumanoid = true),
             rank = "Bronze",
             description = "A young recruit testing their steel.",
             rewardGold = 250,
@@ -39,7 +39,7 @@ object ArenaEnemyDatabase {
             )
         ),
         ArenaOpponent(
-            enemy = Enemy("Wild Brawler", 600, 8, isHumanoid = true),
+            enemy = Enemy("Wild Brawler", "Wild Brawler", 600, 8, isHumanoid = true),
             rank = "Bronze",
             description = "Fights with nothing but his bare fists.",
             rewardGold = 450,
@@ -51,7 +51,7 @@ object ArenaEnemyDatabase {
             )
         ),
         ArenaOpponent(
-            enemy = Enemy("Apprentice Mage", 400, 10, isHumanoid = true),
+            enemy = Enemy("Apprentice Mage", "Apprentice Mage", 400, 10, isHumanoid = true),
             rank = "Bronze",
             description = "Still learning how to control his sparks.",
             rewardGold = 600,
@@ -62,7 +62,7 @@ object ArenaEnemyDatabase {
             )
         ),
         ArenaOpponent(
-            enemy = Enemy("Drunken Monk", 1200, 12, isHumanoid = true),
+            enemy = Enemy("Drunken Monk", "Drunken Monk", 1200, 12, isHumanoid = true),
             rank = "Bronze",
             description = "Their movements are unpredictable and fluid.",
             rewardGold = 800,
@@ -76,7 +76,7 @@ object ArenaEnemyDatabase {
 
         // --- SILVER RANK ---
         ArenaOpponent(
-            enemy = Enemy("Wandering Samurai", 3500, 20, isHumanoid = true, 
+            enemy = Enemy("Wandering Samurai", "Wandering Samurai", 3500, 20, isHumanoid = true, 
                 elementalResistances = mapOf(ElementType.Physical to 0.8)),
             rank = "Silver",
             description = "A master of the quick-draw technique.",
@@ -89,7 +89,7 @@ object ArenaEnemyDatabase {
             )
         ),
         ArenaOpponent(
-            enemy = Enemy("Veteran Guard", 5000, 25, isHumanoid = true),
+            enemy = Enemy("Veteran Guard", "Veteran Guard", 5000, 25, isHumanoid = true),
             rank = "Silver",
             description = "Has survived a hundred skirmishes.",
             rewardGold = 4500,
@@ -101,7 +101,7 @@ object ArenaEnemyDatabase {
             )
         ),
         ArenaOpponent(
-            enemy = Enemy("Arena Wizard", 8000, 30, isHumanoid = true,
+            enemy = Enemy("Arena Wizard", "Arena Wizard", 8000, 30, isHumanoid = true,
                 elementalResistances = mapOf(ElementType.Fire to 0.5, ElementType.Ice to 0.5)),
             rank = "Silver",
             description = "Specializes in elemental crowd control.",
@@ -114,7 +114,7 @@ object ArenaEnemyDatabase {
             )
         ),
         ArenaOpponent(
-            enemy = Enemy("Shadow Assassin", 10000, 35, isHumanoid = true),
+            enemy = Enemy("Shadow Assassin", "Shadow Assassin", 10000, 35, isHumanoid = true),
             rank = "Silver",
             description = "Moves faster than the eye can follow.",
             rewardGold = 12000,
@@ -126,7 +126,7 @@ object ArenaEnemyDatabase {
             )
         ),
         ArenaOpponent(
-            enemy = Enemy("Desert Nomad", 15000, 40, isHumanoid = true,
+            enemy = Enemy("Desert Nomad", "Desert Nomad", 15000, 40, isHumanoid = true,
                 elementalResistances = mapOf(ElementType.Fire to 0.7)),
             rank = "Silver",
             description = "Quick and deadly with a curved scimitar.",
@@ -139,7 +139,7 @@ object ArenaEnemyDatabase {
             )
         ),
         ArenaOpponent(
-            enemy = Enemy("Elemental Archer", 22000, 45, isHumanoid = true),
+            enemy = Enemy("Elemental Archer", "Elemental Archer", 22000, 45, isHumanoid = true),
             rank = "Silver",
             description = "Fires arrows infused with raw magic.",
             rewardGold = 25000,
@@ -153,7 +153,7 @@ object ArenaEnemyDatabase {
 
         // --- GOLD RANK ---
         ArenaOpponent(
-            enemy = Enemy("Mountain Man", 35000, 50, isHumanoid = true),
+            enemy = Enemy("Mountain Man", "Mountain Man", 35000, 50, isHumanoid = true),
             rank = "Gold",
             description = "Tougher than the rocks he calls home.",
             rewardGold = 35000,
@@ -164,7 +164,7 @@ object ArenaEnemyDatabase {
             )
         ),
         ArenaOpponent(
-            enemy = Enemy("Paladin of Light", 48000, 55, isHumanoid = true,
+            enemy = Enemy("Paladin of Light", "Paladin of Light", 48000, 55, isHumanoid = true,
                 elementalResistances = mapOf(ElementType.Holy to 0.2)),
             rank = "Gold",
             description = "A holy warrior with iron-clad faith.",
@@ -177,7 +177,7 @@ object ArenaEnemyDatabase {
             )
         ),
         ArenaOpponent(
-            enemy = Enemy("Berserker", 65000, 60, isHumanoid = true,
+            enemy = Enemy("Berserker", "Berserker", 65000, 60, isHumanoid = true,
                 elementalResistances = mapOf(ElementType.Physical to 0.9)),
             rank = "Gold",
             description = "Fights with reckless abandon and pure rage.",
@@ -190,7 +190,7 @@ object ArenaEnemyDatabase {
             )
         ),
         ArenaOpponent(
-            enemy = Enemy("Dark Sorcerer", 85000, 65, isHumanoid = true,
+            enemy = Enemy("Dark Sorcerer", "Dark Sorcerer", 85000, 65, isHumanoid = true,
                 elementalResistances = mapOf(ElementType.Dark to 0.5)),
             rank = "Gold",
             description = "Wields forbidden magic from the abyss.",
@@ -203,7 +203,7 @@ object ArenaEnemyDatabase {
             )
         ),
         ArenaOpponent(
-            enemy = Enemy("Elite Spellsword", 110000, 70, isHumanoid = true,
+            enemy = Enemy("Elite Spellsword", "Elite Spellsword", 110000, 70, isHumanoid = true,
                 elementalResistances = mapOf(ElementType.Holy to 0.5, ElementType.Dark to 0.5)),
             rank = "Gold",
             description = "A perfect blend of magic and martial prowess.",
@@ -216,7 +216,7 @@ object ArenaEnemyDatabase {
             )
         ),
         ArenaOpponent(
-            enemy = Enemy("Crag Golem", 150000, 75, isHumanoid = false,
+            enemy = Enemy("Crag Golem", "Crag Golem", 150000, 75, isHumanoid = false,
                 elementalResistances = mapOf(ElementType.Physical to 0.5)),
             rank = "Gold",
             description = "A living pile of enchanted stone.",
@@ -231,7 +231,7 @@ object ArenaEnemyDatabase {
 
         // --- PLATINUM RANK ---
         ArenaOpponent(
-            enemy = Enemy("Grandmaster Monk", 250000, 80, isHumanoid = true),
+            enemy = Enemy("Grandmaster Monk", "Grandmaster Monk", 250000, 80, isHumanoid = true),
             rank = "Platinum",
             description = "Has achieved perfect harmony with the void.",
             rewardGold = 300000,
@@ -243,7 +243,7 @@ object ArenaEnemyDatabase {
             )
         ),
         ArenaOpponent(
-            enemy = Enemy("Imperial General", 350000, 85, isHumanoid = true),
+            enemy = Enemy("Imperial General", "Imperial General", 350000, 85, isHumanoid = true),
             rank = "Platinum",
             description = "A brilliant strategist and master swordsman.",
             rewardGold = 500000,
@@ -255,7 +255,7 @@ object ArenaEnemyDatabase {
             )
         ),
         ArenaOpponent(
-            enemy = Enemy("Royal Duelist", 550000, 90, isHumanoid = true,
+            enemy = Enemy("Royal Duelist", "Royal Duelist", 550000, 90, isHumanoid = true,
                 elementalResistances = mapOf(ElementType.Lightning to 0.5)),
             rank = "Platinum",
             description = "A swift fencer from the capital's high court.",
@@ -268,7 +268,7 @@ object ArenaEnemyDatabase {
             )
         ),
         ArenaOpponent(
-            enemy = Enemy("Void Cultist", 750000, 94, isHumanoid = true),
+            enemy = Enemy("Void Cultist", "Void Cultist", 750000, 94, isHumanoid = true),
             rank = "Platinum",
             description = "Draws power from the collapsing void.",
             rewardGold = 1200000,
@@ -280,7 +280,7 @@ object ArenaEnemyDatabase {
             )
         ),
         ArenaOpponent(
-            enemy = Enemy("Dragon Knight", 950000, 98, isHumanoid = true,
+            enemy = Enemy("Dragon Knight", "Dragon Knight", 950000, 98, isHumanoid = true,
                 elementalResistances = mapOf(ElementType.Fire to 0.3)),
             rank = "Platinum",
             description = "Wields a lance of pure dragon-fire.",
@@ -295,7 +295,7 @@ object ArenaEnemyDatabase {
 
         // --- MASTER RANK ---
         ArenaOpponent(
-            enemy = Enemy("Shogun of Shadows", 1200000, 100, isHumanoid = true,
+            enemy = Enemy("Shogun of Shadows", "Shogun of Shadows", 1200000, 100, isHumanoid = true,
                 elementalResistances = mapOf(ElementType.Physical to 0.5, ElementType.Dark to 0.2)),
             rank = "Master",
             description = "The ultimate test of a warrior's resolve.",
@@ -308,7 +308,7 @@ object ArenaEnemyDatabase {
             )
         ),
         ArenaOpponent(
-            enemy = Enemy("Grand Arbiter", 1800000, 100, isHumanoid = true,
+            enemy = Enemy("Grand Arbiter", "Grand Arbiter", 1800000, 100, isHumanoid = true,
                 elementalResistances = mapOf(ElementType.Holy to 0.1, ElementType.Dark to 0.1)),
             rank = "Master",
             description = "Judges all who seek true power.",
@@ -321,7 +321,7 @@ object ArenaEnemyDatabase {
             )
         ),
         ArenaOpponent(
-            enemy = Enemy("Lord of the Void", 2500000, 100, isHumanoid = false),
+            enemy = Enemy("Lord of the Void", "Lord of the Void", 2500000, 100, isHumanoid = false),
             rank = "Master",
             description = "A being of pure, destructive energy.",
             rewardGold = 7500000,
@@ -333,7 +333,7 @@ object ArenaEnemyDatabase {
             )
         ),
         ArenaOpponent(
-            enemy = Enemy("Eternal Champion", 5000000, 100, isHumanoid = true),
+            enemy = Enemy("Eternal Champion", "Eternal Champion", 5000000, 100, isHumanoid = true),
             rank = "Master",
             description = "The legend who never knew defeat.",
             rewardGold = 15000000,

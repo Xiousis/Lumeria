@@ -53,14 +53,9 @@ class AdventureViewModel : ViewModel() {
 
         when (outcome) {
             is EventOutcome.Reward -> {
-                updated = playerData.copy(
-                    gold = playerData.gold + outcome.gold,
-                    xp = playerData.xp + outcome.xp
+                updated = playerData.gainExperience(outcome.xp).copy(
+                    gold = playerData.gold + outcome.gold
                 )
-                if (outcome.xp > 0) {
-                     val stats = XiousStats(playerData.level, playerData.xp, playerData.getLevelCap()).gainXp(outcome.xp)
-                     updated = updated.copy(level = stats.level, xp = stats.xp)
-                }
             }
             is EventOutcome.Penalty -> {
                 updated = playerData.copy(

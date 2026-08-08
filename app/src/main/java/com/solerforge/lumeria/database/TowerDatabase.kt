@@ -17,6 +17,7 @@ object TowerDatabase {
             val name = bossNames.getOrElse((floor / 10) - 1) { "Tower Titan" }
             Enemy(
                 name = "Elite: $name",
+                baseName = name,
                 maxHp = (level * 500) + 50000,
                 level = level,
                 rewardXp = floor * 10000,
@@ -26,8 +27,10 @@ object TowerDatabase {
         } else {
             // REGULAR FLOOR
             val names = listOf("Tower Phantom", "Gargoyle", "Stone Soldier", "Arcane Wisp", "Dark Knight")
+            val name = names.random()
             Enemy(
-                name = names.random(),
+                name = name,
+                baseName = name,
                 maxHp = (level * 150) + 10000,
                 level = level,
                 rewardXp = level * 100,

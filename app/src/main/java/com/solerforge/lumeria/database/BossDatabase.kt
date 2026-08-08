@@ -15,7 +15,8 @@ data class Boss(
     val rewardXp: Int,
     val rewardGold: Int,
     val defense: Int,
-    val moveset: List<BossAttack>
+    val moveset: List<BossAttack>,
+    val isLegacy: Boolean = false
 )
 
 object BossDatabase {
@@ -57,7 +58,7 @@ object BossDatabase {
             defense = 50,
             moveset = listOf(
                 BossAttack("Crystal Shards", 0.6, "Fires razor-sharp crystals 3 times.", "MultiHit", cooldown = 0),
-                BossAttack("Reflective Barrier", 0.0, "Blocks 50% of incoming damage.", "Buff", cooldown = 4),
+                BossAttack("Reflective Barrier", 0.0, "Blocks 50% of incoming damage.", "Shield", cooldown = 4),
                 BossAttack("Prismatic Beam", 2.5, "A massive beam that ignores armor.", "IgnoreArmor", cooldown = 3)
             )
         ),
@@ -120,7 +121,8 @@ object BossDatabase {
             moveset = listOf(
                 BossAttack("Stellar Flare", 3.0, "Burns with the power of stars."),
                 BossAttack("Supernova", 8.0, "A massive explosion.", "IgnoreArmor", cooldown = 6)
-            )
+            ),
+            isLegacy = true
         ),
         Boss(
             name = "The Ancient Oak",
@@ -128,7 +130,8 @@ object BossDatabase {
             moveset = listOf(
                 BossAttack("Root Crush", 2.5, "Crushes from beneath."),
                 BossAttack("Nature's Blessing", 0.0, "Heals using the earth.", "Heal", cooldown = 4)
-            )
+            ),
+            isLegacy = true
         ),
         Boss(
             name = "Prismatic Queen",
@@ -136,15 +139,17 @@ object BossDatabase {
             moveset = listOf(
                 BossAttack("Refracted Beam", 4.0, "Light bounces and hits harder."),
                 BossAttack("Crystal Cage", 1.0, "Stuns the target in crystal.", "Stun", cooldown = 5)
-            )
+            ),
+            isLegacy = true
         ),
         Boss(
             name = "The Iron Titan",
             hp = 800000, level = 80, rewardXp = 1000000, rewardGold = 0, defense = 1200,
             moveset = listOf(
                 BossAttack("Heavy Anvil", 5.0, "A massive weight falls."),
-                BossAttack("Iron Will", 0.0, "Hardens for massive defense.", "Buff", cooldown = 5)
-            )
+                BossAttack("Iron Will", 0.0, "Hardens for massive defense.", "Shield", cooldown = 5)
+            ),
+            isLegacy = true
         ),
         Boss(
             name = "Fen Horror",
@@ -152,7 +157,8 @@ object BossDatabase {
             moveset = listOf(
                 BossAttack("Swamp Gulp", 3.0, "Bites and heals.", "Lifesteal"),
                 BossAttack("Toxic Mist", 1.0, "Reduces player defense.", "DefenseDown", cooldown = 3)
-            )
+            ),
+            isLegacy = true
         ),
         Boss(
             name = "Solaris Drake",
@@ -160,7 +166,8 @@ object BossDatabase {
             moveset = listOf(
                 BossAttack("Solar Breath", 6.0, "Melts everything."),
                 BossAttack("Incinerate", 10.0, "Ultimate fire attack.", "IgnoreArmor", cooldown = 7)
-            )
+            ),
+            isLegacy = true
         ),
         Boss(
             name = "Abyssal Magister",
@@ -168,7 +175,8 @@ object BossDatabase {
             moveset = listOf(
                 BossAttack("Void Sphere", 5.0, "A ball of pure nothingness."),
                 BossAttack("Reality Tear", 12.0, "Tears space apart.", "IgnoreArmor", cooldown = 6)
-            )
+            ),
+            isLegacy = true
         ),
         Boss(
             name = "Grand Zephyr",
@@ -176,7 +184,8 @@ object BossDatabase {
             moveset = listOf(
                 BossAttack("Gale Blade", 4.0, "Sharp wind cuts deep."),
                 BossAttack("Hurricane", 1.5, "Hits 5 times in a storm.", "MultiHit", cooldown = 4)
-            )
+            ),
+            isLegacy = true
         ),
         Boss(
             name = "The Deep One",
@@ -184,7 +193,8 @@ object BossDatabase {
             moveset = listOf(
                 BossAttack("Abyssal Pressure", 7.0, "The weight of the ocean."),
                 BossAttack("Drown", 0.0, "Stuns the hero.", "Stun", cooldown = 5)
-            )
+            ),
+            isLegacy = true
         ),
         Boss(
             name = "Chronos",
@@ -192,7 +202,8 @@ object BossDatabase {
             moveset = listOf(
                 BossAttack("Time Warp", 5.0, "Strikes before you can move."),
                 BossAttack("Rewind", 0.0, "Heals back to previous state.", "Heal", cooldown = 8)
-            )
+            ),
+            isLegacy = true
         ),
         Boss(
             name = "The Fate Binder",
@@ -200,7 +211,8 @@ object BossDatabase {
             moveset = listOf(
                 BossAttack("Destiny's Call", 10.0, "Unavoidable damage."),
                 BossAttack("Thread Cut", 20.0, "Attempts to end the life.", "IgnoreArmor", cooldown = 10)
-            )
+            ),
+            isLegacy = true
         ),
         Boss(
             name = "The Genesis Creator",
@@ -208,7 +220,8 @@ object BossDatabase {
             moveset = listOf(
                 BossAttack("The First Thought", 15.0, "Damage from the beginning."),
                 BossAttack("Final Erasure", 100.0, "Erasure from existence.", "IgnoreArmor", cooldown = 15)
-            )
+            ),
+            isLegacy = true
         )
     )
 

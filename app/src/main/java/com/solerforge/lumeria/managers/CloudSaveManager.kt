@@ -85,4 +85,26 @@ class CloudSaveManager(private val activity: Activity) {
             null
         }
     }
+
+    /**
+     * Deletes the cloud save for a specific slot.
+     */
+    suspend fun deleteFromCloud(slot: Int): Boolean {
+        if (!isAuthenticated()) return false
+        val snapshotName = "Lumeria_Slot_$slot"
+
+        return try {
+            val result = snapshotsClient.open(snapshotName, false, SnapshotsClient.RESOLUTION_POLICY_MOST_RECENTLY_MODIFIED).await()
+            val snapshot = result.data
+            
+            snapshot?.let {
+                snapshotsClient.delete(it.metadata).await()
+                Log.d(TAG, "Cloud Save deleted for slot $slot")
+                true
+            } ?: false
+        } catch (e: Exception) {
+            Log.e(TAG, "Cloud Delete failed for slot $slot", e)
+            false
+        }
+    }
 }

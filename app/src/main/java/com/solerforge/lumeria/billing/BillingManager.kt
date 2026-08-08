@@ -42,7 +42,9 @@ class BillingManager(private val context: Context) : PurchasesUpdatedListener {
                 if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
                     Log.d(TAG, "Billing Client connected")
                     _isReady.value = true
+                    retryCount = 0
                     queryProductDetails()
+                    queryPurchases()
                 } else {
                     Log.e(TAG, "Billing Setup failed: ${billingResult.debugMessage}")
                 }
@@ -51,9 +53,17 @@ class BillingManager(private val context: Context) : PurchasesUpdatedListener {
             override fun onBillingServiceDisconnected() {
                 Log.w(TAG, "Billing Service disconnected. Retrying...")
                 _isReady.value = false
-                // Implement retry logic if needed
+                retryConnection()
             }
         })
+    }
+
+    private var retryCount = 0
+    private fun retryConnection() {
+        if (retryCount < 3) {
+            retryCount++
+            startConnection()
+        }
     }
 
     private fun queryProductDetails() {
@@ -119,9 +129,28 @@ class BillingManager(private val context: Context) : PurchasesUpdatedListener {
         billingClient.consumeAsync(consumeParams) { billingResult, _ ->
             if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
                 Log.d(TAG, "Purchase consumed successfully")
-                // You could trigger a success callback here
+                // Success callback could be triggered here
             } else {
                 Log.e(TAG, "Failed to consume purchase: ${billingResult.debugMessage}")
+            }
+        }
+    }
+
+    /**
+     * Queries for outstanding purchases that haven't been consumed yet.
+     */
+    private fun queryPurchases() {
+        val params = QueryPurchasesParams.newBuilder()
+            .setProductType(BillingClient.ProductType.INAPP)
+            .build()
+
+        billingClient.queryPurchasesAsync(params) { billingResult, purchases ->
+            if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
+                for (purchase in purchases) {
+                    if (purchase.purchaseState == Purchase.PurchaseState.PURCHASED) {
+                        handlePurchase(purchase)
+                    }
+                }
             }
         }
     }

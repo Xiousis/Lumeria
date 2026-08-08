@@ -183,6 +183,12 @@ class PlayerDataRepository(
     suspend fun clearPlayerData(slot: Int) {
         context.dataStore.edit { preferences ->
             preferences.remove(Keys.slotKey(slot))
+            preferences.remove(Keys.backupKey(slot))
+        }
+        // Also clear cloud if enabled
+        val settings = settingsFlow.first()
+        if (settings.cloudSaveEnabled) {
+            cloudSaveManager?.deleteFromCloud(slot)
         }
     }
 

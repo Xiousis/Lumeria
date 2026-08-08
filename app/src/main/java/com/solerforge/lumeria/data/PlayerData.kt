@@ -55,6 +55,7 @@ data class PlayerData(
     val activeBuffs: List<com.solerforge.lumeria.models.PlayerBuff> = emptyList(),
     val towerFloor: Int = 1,
     val towerHighestFloor: Int = 0,
+    val towerCompleted: Boolean = false,
     val fishingLevel: Int = 1,
     val fishingXp: Int = 0,
     val equippedRod: String = "None",
@@ -97,6 +98,53 @@ data class PlayerData(
     val pvpLosses: Int = 0
 ) {
     fun getLevelCap(): Int = if (isReborn) 200 else 100
+
+    fun gainExperience(amount: Int): PlayerData {
+        val oldLevel = this.level
+        val stats = com.solerforge.lumeria.models.XiousStats(level, xp, getLevelCap()).gainXp(amount)
+        val levelsGained = stats.level - oldLevel
+        
+        var currentData = this.copy(
+            level = stats.level,
+            xp = stats.xp,
+            statPoints = statPoints + (levelsGained * 5)
+        )
+        
+        val newMaxHp = currentData.calculateMaxHp()
+        val newMaxMana = currentData.calculateMaxMana()
+        
+        currentData = currentData.copy(
+            maxHp = newMaxHp,
+            maxMana = newMaxMana
+        )
+        
+        if (levelsGained > 0) {
+            currentData = currentData.copy(
+                hp = newMaxHp,
+                mana = newMaxMana
+            )
+        }
+        
+        // Automatic Skill Unlocks
+        val newlyUnlockedSkills = com.solerforge.lumeria.database.SkillDatabase.skills
+            .asSequence()
+            .filter { skill ->
+                val classMatches = skill.requiredClasses.isEmpty() || skill.requiredClasses.contains(playerClass)
+                (skill.unlockLevel <= stats.level) && 
+                (!unlockedSkills.contains(skill.name)) &&
+                classMatches
+            }
+            .map { it.name }
+            .toList()
+            
+        if (newlyUnlockedSkills.isNotEmpty()) {
+            currentData = currentData.copy(
+                unlockedSkills = (unlockedSkills + newlyUnlockedSkills).distinct()
+            )
+        }
+        
+        return currentData
+    }
 
     fun calculateMaxHp(): Int {
         val traitBonusHp = unlockedTraits.sumOf { TraitDatabase.getTrait(it)?.hpBonus ?: 0 }

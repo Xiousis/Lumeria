@@ -47,6 +47,7 @@ class BattleOrchestrator(
     fun startBossBattle(locationName: String, player: PlayerData) {
         val newData = player.copy(currentLocation = locationName)
         grindingPlayerData = newData 
+        locationOverride = locationName
         onUpdatePlayer(newData)
         isBossBattle = true
         isTowerBattle = false
@@ -151,11 +152,7 @@ class BattleOrchestrator(
                 riftXp = 0
             )
         } else if (isRiftBattle) {
-            val stats = com.solerforge.lumeria.models.XiousStats(player.level, player.xp, player.getLevelCap()).gainXp(player.riftXp)
-            val leveledPlayer = player.copy(
-                level = stats.level,
-                xp = stats.xp,
-                statPoints = player.statPoints + (maxOf(0, stats.level - player.level) * 5),
+            val leveledPlayer = player.gainExperience(player.riftXp).copy(
                 inventory = (player.inventory + player.riftLoot),
                 gold = player.gold + player.riftGold,
                 deathCount = player.deathCount + 1,
@@ -165,14 +162,7 @@ class BattleOrchestrator(
                 riftGold = 0,
                 riftXp = 0
             )
-            val newMaxHp = leveledPlayer.calculateMaxHp()
-            val newMaxMana = leveledPlayer.calculateMaxMana()
-            leveledPlayer.copy(
-                maxHp = newMaxHp,
-                maxMana = newMaxMana,
-                hp = if (stats.level > player.level) newMaxHp else player.hp,
-                mana = if (stats.level > player.level) newMaxMana else player.mana
-            )
+            leveledPlayer
         } else {
             player.copy(
                 deathCount = player.deathCount + 1,
@@ -201,11 +191,7 @@ class BattleOrchestrator(
 
         var finalPlayerData = newData
         if (wasRift) {
-            val stats = com.solerforge.lumeria.models.XiousStats(newData.level, newData.xp, newData.getLevelCap()).gainXp(newData.riftXp)
-            val leveledPlayer = newData.copy(
-                level = stats.level,
-                xp = stats.xp,
-                statPoints = newData.statPoints + (maxOf(0, stats.level - newData.level) * 5),
+            val leveledPlayer = newData.gainExperience(newData.riftXp).copy(
                 inventory = (newData.inventory + newData.riftLoot),
                 gold = newData.gold + newData.riftGold,
                 riftLoot = emptyList(),
@@ -214,14 +200,7 @@ class BattleOrchestrator(
                 riftStep = 0,
                 voidIncursionLocation = null
             )
-            val newMaxHp = leveledPlayer.calculateMaxHp()
-            val newMaxMana = leveledPlayer.calculateMaxMana()
-            finalPlayerData = leveledPlayer.copy(
-                maxHp = newMaxHp,
-                maxMana = newMaxMana,
-                hp = if (stats.level > newData.level) newMaxHp else leveledPlayer.hp,
-                mana = if (stats.level > newData.level) newMaxMana else leveledPlayer.mana
-            )
+            finalPlayerData = leveledPlayer
         }
 
         isRiftBattle = false

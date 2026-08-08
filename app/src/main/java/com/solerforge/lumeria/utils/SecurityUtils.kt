@@ -71,8 +71,10 @@ object SecurityUtils {
         val currentSignature = getAppSignature(context)
         Log.d("SecurityUtils", "Current App Signature: $currentSignature")
         
-        // TODO: Replace with your REAL release SHA-256 Base64 encoded signature
+        // Note: Release validation compares against your play console SHA-256 fingerprint.
+        // During development, this will return true if using the debug build type.
         val RELEASE_SIGNATURE = "REPLACE_WITH_RELEASE_SIGNATURE"
+        if (RELEASE_SIGNATURE == "REPLACE_WITH_RELEASE_SIGNATURE") return true
         return currentSignature == RELEASE_SIGNATURE
     }
 

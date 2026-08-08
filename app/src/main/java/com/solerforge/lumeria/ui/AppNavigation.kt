@@ -120,13 +120,20 @@ fun AppNavigation(
 
                     Screen.Battle -> {
                         val battleViewModel: BattleViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
+                            key = "battle_${mainViewModel.battleSeed}",
                             factory = BattleViewModel.provideFactory(
                                 isBoss = mainViewModel.isBossBattle,
                                 isPvP = mainViewModel.battleOrchestrator.isPvPBattle,
+                                isTower = mainViewModel.isTowerBattle,
+                                isRift = mainViewModel.isRiftBattle,
                                 storyEnemyName = mainViewModel.storyEnemyName,
                                 arenaOpponent = mainViewModel.arenaOpponent,
                                 shadowOpponent = mainViewModel.battleOrchestrator.shadowOpponent,
                                 playerSnapshot = playerData,
+                                activeBounty = mainViewModel.battleOrchestrator.grindingPlayerData
+                                    ?.activeBountyId
+                                    ?.let { com.solerforge.lumeria.database.BountyDatabase.getBounty(it) },
+                                guildExam = mainViewModel.currentGuildExam,
                                 locationName = mainViewModel.locationOverride
                             )
                         )
@@ -180,7 +187,15 @@ fun AppNavigation(
                     Screen.WorldMap -> WorldMapScreen(
                         playerData = playerData,
                         onTravel = { locationName -> 
-                            mainViewModel.navigateToBattle(isRift = false, enemyName = null, isBoss = false, snapshot = playerData, location = locationName)
+                            adventureViewModel.travel(
+                                locationName = locationName,
+                                playerData = playerData,
+                                onUpdatePlayer = { mainViewModel.updatePlayer(it) },
+                                onNavigateToBattle = { isRift, data ->
+                                    mainViewModel.navigateToBattle(isRift = isRift, enemyName = null, isBoss = false, snapshot = data, location = locationName)
+                                },
+                                onNavigateToEvent = { mainViewModel.navigateTo(Screen.WorldEvent) }
+                            )
                         },
                         onBossBattle = { locationName ->
                             mainViewModel.onBossBattle(locationName)
@@ -216,7 +231,7 @@ fun AppNavigation(
                             StoryDialogueScreen(
                                 arc = arc,
                                 eventIndex = mainViewModel.currentEventIndex,
-                                onNext = { mainViewModel.popBackstack() },
+                                onNext = { mainViewModel.advanceStoryEvent() },
                                 onChoiceSelected = { option -> 
                                     storyViewModel.onChoiceSelected(
                                         option = option,
@@ -345,7 +360,14 @@ fun AppNavigation(
                                 event = event,
                                 outcomeMessage = adventureViewModel.eventOutcomeMessage,
                                 onOptionSelected = { outcome -> 
-                                    adventureViewModel.processEventOutcome(outcome, playerData, { mainViewModel.updatePlayer(it) }, { /* error callback */ })
+                                    adventureViewModel.processEventOutcome(
+                                        outcome = outcome, 
+                                        playerData = playerData, 
+                                        onUpdatePlayer = { mainViewModel.updatePlayer(it) }, 
+                                        onNavigateToBattle = { enemyName ->
+                                            mainViewModel.navigateToBattle(isRift = false, enemyName = enemyName, isBoss = false, snapshot = playerData)
+                                        }
+                                    )
                                 },
                                 onContinue = { 
                                     adventureViewModel.completeEvent()

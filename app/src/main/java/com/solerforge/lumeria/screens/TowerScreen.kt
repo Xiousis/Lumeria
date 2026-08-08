@@ -78,7 +78,7 @@ fun TowerScreen(
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text("CURRENT ASCENSION", color = Color.LightGray, style = MaterialTheme.typography.labelMedium)
                     Text(
-                        text = "FLOOR ${playerData.towerFloor}",
+                        text = if (playerData.towerCompleted) "ASCENDED" else "FLOOR ${playerData.towerFloor}",
                         style = MaterialTheme.typography.displayMedium,
                         color = Color.White,
                         fontWeight = FontWeight.Black
@@ -89,37 +89,63 @@ fun TowerScreen(
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(containerColor = Color.Black.copy(alpha = 0.5f)),
-                border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.1f))
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    val nextEnemy = TowerDatabase.getTowerEnemy(playerData.towerFloor)
-                    Text("GUARDIAN OF THE SEAL", color = Color.Cyan, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelMedium)
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                        Text(nextEnemy.name, color = Color.White, style = MaterialTheme.typography.titleMedium)
-                        Text("Lv. ${nextEnemy.level}", color = Color.Yellow, style = MaterialTheme.typography.titleMedium)
+            if (!playerData.towerCompleted) {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = Color.Black.copy(alpha = 0.5f)),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.1f))
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        val nextEnemy = TowerDatabase.getTowerEnemy(playerData.towerFloor)
+                        Text("GUARDIAN OF THE SEAL", color = Color.Cyan, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelMedium)
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text(nextEnemy.name, color = Color.White, style = MaterialTheme.typography.titleMedium)
+                            Text("Lv. ${nextEnemy.level}", color = Color.Yellow, style = MaterialTheme.typography.titleMedium)
+                        }
+                        Text(
+                            text = if (playerData.towerFloor % 10 == 0) "⚠ LEGENDARY BOSS FLOOR ⚠" else "Standard Floor",
+                            color = if (playerData.towerFloor % 10 == 0) Color.Red else Color.Gray,
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(top = 4.dp)
+                        )
                     }
+                }
+            } else {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(Color.Black.copy(alpha = 0.4f), RoundedCornerShape(12.dp))
+                        .padding(16.dp),
+                    contentAlignment = Alignment.Center
+                ) {
                     Text(
-                        text = if (playerData.towerFloor % 10 == 0) "⚠ LEGENDARY BOSS FLOOR ⚠" else "Standard Floor",
-                        color = if (playerData.towerFloor % 10 == 0) Color.Red else Color.Gray,
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(top = 4.dp)
+                        text = "You have conquered all 100 floors of the Tower of Trials. You are a true legend of Lumeria.",
+                        color = Color.Green,
+                        style = MaterialTheme.typography.bodyLarge,
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
                     )
                 }
             }
 
             Spacer(modifier = Modifier.weight(1f))
 
-            RpgButton(
-                text = "Begin Floor ${playerData.towerFloor} Trial",
-                onClick = onEnterFloor,
-                modifier = Modifier.fillMaxWidth().height(60.dp),
-                containerColor = if (playerData.towerFloor % 10 == 0) Color(0xFFB91C1C) else Color(0xFF4338CA)
-            )
+            if (!playerData.towerCompleted) {
+                RpgButton(
+                    text = "Begin Floor ${playerData.towerFloor} Trial",
+                    onClick = onEnterFloor,
+                    modifier = Modifier.fillMaxWidth().height(60.dp),
+                    containerColor = if (playerData.towerFloor % 10 == 0) Color(0xFFB91C1C) else Color(0xFF4338CA)
+                )
+            } else {
+                Text(
+                    text = "CONQUEROR", 
+                    color = Color.Yellow, 
+                    fontWeight = FontWeight.Black, 
+                    style = MaterialTheme.typography.headlineMedium
+                )
+            }
 
             Spacer(modifier = Modifier.height(16.dp))
 

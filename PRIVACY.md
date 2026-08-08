@@ -14,17 +14,20 @@ Lumeria is designed to prioritize your privacy. Most of your game data is stored
 ### Data Collected by Third Parties
 We use Google services to improve the game experience and handle transactions:
 - **Firebase Analytics:** Collects anonymous usage data (e.g., which buttons are clicked, how long a session lasts) to help us balance the game.
+- **Firebase Firestore:** Stores public player data for Leaderboards and Shadow battles (Player Name, Level, Class, PvP stats, and combat stats). This data is visible to other players.
 - **Firebase Crashlytics:** Collects technical data about app crashes (stack traces, device model) so we can fix bugs.
 - **Google Play Billing:** Handles in-app purchases (donations). We do not see or store your credit card or payment information; this is handled entirely by Google.
 
 ## 2. How We Use Information
 We use the collected data solely for:
 - Improving game stability and performance.
+- Powering global Leaderboards and Shadow battles.
 - Analyzing game balance (e.g., if a boss is too hard).
 - Fulfilling in-app purchase requests.
 
 ## 3. Data Retention & Deletion
 - **Local Data:** You can delete all local save data at any time by clearing the app's storage/data in your Android System Settings or by uninstalling the app.
+- **Online Data:** Cloud saves, Leaderboard entries, and Shadow data are stored while you have an active account or until you request deletion. Public names/stats are removed upon deletion request.
 - **Analytics Data:** Anonymous data collected by Firebase is kept for a limited period (up to 26 months).
 - **Deletion Requests:** If you wish to request the deletion of any anonymous identifiers associated with your device, please contact us at `jose.soler821@gmail.com` with your Device ID (found in the Game Settings).
 

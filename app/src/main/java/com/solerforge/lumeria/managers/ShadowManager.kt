@@ -26,6 +26,7 @@ object ShadowManager {
             "intelligence" to playerData.intelligence,
             "pvpWins" to playerData.pvpWins,
             "pvpLosses" to playerData.pvpLosses,
+            "randomSort" to Math.random(),
             "lastUpdated" to System.currentTimeMillis()
         )
 
@@ -39,12 +40,25 @@ object ShadowManager {
 
     suspend fun fetchRandomShadows(count: Int = 3): List<PlayerData> {
         return try {
+            val randomVal = Math.random()
             val result = db.collection(SHADOWS_COLLECTION)
+                .whereGreaterThanOrEqualTo("randomSort", randomVal)
                 .limit(count.toLong())
                 .get()
                 .await()
+            
+            // If we don't have enough documents "above" the random value, fetch from the start
+            val docs = if (result.size() < count) {
+                db.collection(SHADOWS_COLLECTION)
+                    .limit(count.toLong())
+                    .get()
+                    .await()
+                    .documents
+            } else {
+                result.documents
+            }
 
-            result.documents.map { doc ->
+            docs.map { doc ->
                 PlayerData(
                     playerName = doc.getString("name") ?: "Mysterious Wanderer",
                     level = doc.getLong("level")?.toInt() ?: 1,

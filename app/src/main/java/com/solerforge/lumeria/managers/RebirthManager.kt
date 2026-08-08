@@ -15,8 +15,9 @@ object RebirthManager {
     )
 
     fun getRequirements(playerData: PlayerData): List<RebirthRequirement> {
-        val worldBossesCount = BossDatabase.bosses.size
-        val defeatedWorldBosses = playerData.defeatedBosses.intersect(BossDatabase.bosses.map { it.name }.toSet()).size
+        val targetBosses = if (playerData.isReborn) BossDatabase.bosses else BossDatabase.bosses.filter { !it.isLegacy }
+        val worldBossesCount = targetBosses.size
+        val defeatedWorldBosses = playerData.defeatedBosses.intersect(targetBosses.map { it.name }.toSet()).size
         
         val arenaOpponentsCount = ArenaEnemyDatabase.opponents.size
         val defeatedArenaOpponents = playerData.completedArenaOpponents.size

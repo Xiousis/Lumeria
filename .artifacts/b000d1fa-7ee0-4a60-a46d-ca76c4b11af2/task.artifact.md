@@ -1,8 +1,0 @@
-- [x] Create `RarityUtils.kt` for centralized rarity visuals
-- [x] Refactor `ShopScreen.kt` (Location-based unlocking & Rarity visuals)
-- [x] Refactor `QuestScreen.kt` (Location-based unlocking)
-- [x] Update `BattleScreen.kt` (Loot rarity visuals)
-- [x] Update `InventoryItemRow.kt`, `SellItemRow.kt`, `ShopItemRow.kt` (New colors & Star)
-- [x] Update `ElderRitualScreen.kt` (Trait rarity visuals)
-- [x] Update `StatsScreen.kt` (Permanent traits rarity visuals)
-- [x] Verify unlocking and visual consistency

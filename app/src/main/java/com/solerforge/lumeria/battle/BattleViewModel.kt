@@ -198,6 +198,7 @@ class BattleViewModel(
             ),
             isFleeable = (storyEnemyName == null) && (!isBossBattle) && (arenaOpponent == null) && (!isPvPBattle) && (!isTowerBattle) && (!isRiftBattle) && (guildExam == null), // Disable flee for story/boss/arena/ambush/pvp/tower/rift/exams
             isStoryMode = (storyEnemyName != null) || isBossBattle || (arenaOpponent != null) || isTowerBattle || isPvPBattle,
+            isStoryBoss = (storyEnemyName != null) && isBossBattle,
             isBossBattle = isBossBattle,
             isRiftBattle = isRiftBattle,
             isArenaBattle = arenaOpponent != null || isPvPBattle,
@@ -647,7 +648,7 @@ class BattleViewModel(
                     isTower = false,
                     isRift = false
                 )
-                finalXp += (baseXp2 * 0.7).toInt() // Slightly reduced xp for second mob
+                finalXp += (baseXp2 * 1.0).toInt() // Award 100% XP to match actual calculation
                 finalGold += baseGold2
             }
 
