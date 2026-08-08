@@ -60,7 +60,7 @@ fun WorldChatScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "WORLD CHAT [HEROES]",
+                    text = "Heroes' Circle [HEROES]",
                     style = MaterialTheme.typography.headlineSmall,
                     color = Color.Cyan,
                     fontWeight = FontWeight.Black

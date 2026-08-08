@@ -176,7 +176,7 @@ class BattleViewModel(
         var enemy2LogoId = 0
         
         // --- RANDOM DOUBLE ENCOUNTER (20% chance) ---
-        val canDouble = (!isBossBattle) && (storyEnemyName == null) && (arenaOpponent == null) && (!isTowerBattle) && (!isRiftBattle) && (guildExam == null)
+        val canDouble = (!isBossBattle) && (storyEnemyName == null) && (arenaOpponent == null) && (!isTowerBattle) && (!isRiftBattle) && (guildExam == null) && (!isPvPBattle) && (shadowOpponent == null)
         if (canDouble && (Math.random() < 0.20)) {
             val name2 = location.enemies.random()
             val level2 = (location.minLevel..location.maxLevel).random()
@@ -233,9 +233,22 @@ class BattleViewModel(
             
             // --- 1. PLAYER TURN ---
             val initialState = state.value
-            val (playerTurnState, playerLogs) = BattleEngine.processPlayerTurn(
+            val turnResult = BattleEngine.processPlayerTurn(
                 initialState, skillName, storyEnemyName, isBossBattle,
             )
+            
+            val playerTurnState = turnResult.state
+            val playerLogs = turnResult.logs
+
+            if (!turnResult.turnConsumed) {
+                _state.update { 
+                    playerTurnState.copy(
+                        battleLog = (it.battleLog + playerLogs).takeLast(20),
+                        isProcessing = false,
+                    )
+                }
+                return@launch
+            }
 
             // Trigger Floating Numbers based on HP changes
             val dmg1 = initialState.enemyHp - playerTurnState.enemyHp

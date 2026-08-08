@@ -566,7 +566,7 @@ fun ShopScreen(
                                             Text(buyAmount.toString(), color = Color.White, modifier = Modifier.padding(horizontal = 8.dp))
                                             TextButton(onClick = { if (shopSnapshot.gold >= (price * (buyAmount + 1))) consumableAmounts[item.name] = buyAmount + 1 }) { Text("+", color = Color.Cyan) }
                                             Spacer(modifier = Modifier.width(16.dp))
-                                            TextButton(onClick = { consumableAmounts[item.name] = (shopSnapshot.gold / price).coerceIn(1, 99) }) { Text("MAX", color = Color.Yellow, style = MaterialTheme.typography.labelSmall) }
+                                            TextButton(onClick = { consumableAmounts[item.name] = (shopSnapshot.gold / price).coerceIn(1L, 99L).toInt() }) { Text("MAX", color = Color.Yellow, style = MaterialTheme.typography.labelSmall) }
                                         }
                                     }
                                 }

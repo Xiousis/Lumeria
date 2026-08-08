@@ -97,7 +97,8 @@ object SecurityUtils {
             signatures?.firstOrNull()?.let {
                 val md = MessageDigest.getInstance("SHA-256")
                 md.update(it.toByteArray())
-                Base64.encodeToString(md.digest(), Base64.NO_WRAP)
+                val digest = md.digest()
+                digest.joinToString("") { "%02x".format(it) }.uppercase()
             }
         } catch (e: Exception) {
             null

@@ -19,7 +19,7 @@ import com.solerforge.lumeria.utils.RarityUtils
 fun SellItemRow(
     name: String,
     stat: String,
-    sellPrice: Int,
+    sellPrice: Long,
     rarity: String,
     onSell: () -> Unit
 ) {

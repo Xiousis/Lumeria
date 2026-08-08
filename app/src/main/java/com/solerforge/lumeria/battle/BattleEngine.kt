@@ -6,6 +6,12 @@ import com.solerforge.lumeria.models.*
 
 object BattleEngine {
 
+    data class PlayerTurnResult(
+        val state: BattleUiState,
+        val logs: List<LogEntry>,
+        val turnConsumed: Boolean
+    )
+
     /**
      * Processes a single player turn.
      * Returns the updated state and a list of new logs.
@@ -15,7 +21,7 @@ object BattleEngine {
         skillName: String,
         storyEnemyName: String?,
         isBossBattle: Boolean,
-    ): Pair<BattleUiState, List<LogEntry>> {
+    ): PlayerTurnResult {
         val skill = SkillDatabase.getSkill(skillName)
         val newLogs = mutableListOf<LogEntry>()
 
@@ -23,7 +29,7 @@ object BattleEngine {
         val remainingCooldown = state.skillCooldowns[skill.name] ?: 0
         if (remainingCooldown > 0 && skill.name != "None") {
             newLogs.add(LogEntry("${skill.name} is still cooling down!", Color.Red))
-            return Pair(state.copy(isProcessing = false), newLogs)
+            return PlayerTurnResult(state.copy(isProcessing = false), newLogs, false)
         }
         
         // 1. START OF TURN HOUSEKEEPING (Decrement all active cooldowns and debuffs)
@@ -75,12 +81,12 @@ object BattleEngine {
         // Mana Validation After Regen
         if (nextManaWithRegen < skill.manaCost && skill.name != "None") {
             newLogs.add(LogEntry("Not enough Mana for ${skill.name}!", Color.Red))
-            return Pair(state.copy(
+            return PlayerTurnResult(state.copy(
                 isProcessing = false,
                 playerMana = nextManaWithRegen,
                 playerHp = nextHpWithRegen,
                 skillCooldowns = workingCooldowns
-            ), newLogs)
+            ), newLogs, false)
         }
 
         var currentState = state.copy(
@@ -94,7 +100,7 @@ object BattleEngine {
         // 2. CHECK STUN
         if (state.playerStunnedTurns > 0) {
             newLogs.add(LogEntry("Xious is stunned and cannot move!", Color.Red))
-            return Pair(currentState.copy(playerStunnedTurns = state.playerStunnedTurns - 1), newLogs)
+            return PlayerTurnResult(currentState.copy(playerStunnedTurns = state.playerStunnedTurns - 1), newLogs, true)
         }
 
         // 3. DEFENSE CALCULATION
@@ -421,7 +427,7 @@ object BattleEngine {
         newLogs.addAll(chatLogs)
         newLogs.addAll(enemy2Logs)
 
-        return Pair(currentState, newLogs)
+        return PlayerTurnResult(currentState, newLogs, true)
     }
 
     fun processEnemyTurn(

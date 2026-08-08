@@ -614,7 +614,7 @@ fun InventoryScreen(
                         // TROPHIES
                         val ownedTrophies = currentItems.filter { (name, _) ->
                             val base = GameDatabase.getBaseName(name)
-                            GameDatabase.armors.any { it.name == base && it.defense == 0 && it.price == 0 && it.isBossDrop }
+                            GameDatabase.armors.any { it.name == base && it.defense == 0 && it.price == 0L && it.isBossDrop }
                         }
 
                         if (ownedTrophies.isNotEmpty()) {

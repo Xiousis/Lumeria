@@ -26,7 +26,12 @@ android {
         if (localPropertiesFile.exists()) {
             localProperties.load(localPropertiesFile.inputStream())
         }
-        val saveSignKey = localProperties.getProperty("save.sign.key") ?: "default_key_fallback"
+        val saveSignKey = localProperties.getProperty("save.sign.key") ?: System.getenv("SAVE_SIGN_KEY") ?: "debug_key_fallback"
+        
+        if (saveSignKey == "debug_key_fallback" && gradle.startParameter.taskNames.any { it.contains("Release") }) {
+            throw GradleException("save.sign.key must be set in local.properties or SAVE_SIGN_KEY environment variable for release builds.")
+        }
+
         buildConfigField("String", "SAVE_SIGN_KEY", "\"$saveSignKey\"")
     }
 

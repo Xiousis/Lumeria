@@ -299,7 +299,7 @@ fun PlayerTab(
         Spacer(modifier = Modifier.height(8.dp))
 
         if (playerData.isReborn) {
-            MenuCard("WORLD CHAT", "Communicate with fellow heroes and Legends.", onWorldChat, highlight = true)
+            MenuCard("HEROES' CIRCLE", "Communicate with fellow heroes and Legends.", onWorldChat, highlight = true)
             MenuCard("HALL OF LEGENDS", "View global player rankings and PvP records.", onLeaderboard, highlight = true)
         }
         

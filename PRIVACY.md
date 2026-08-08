@@ -8,7 +8,7 @@ This Privacy Policy describes how Lumeria ("the Game", "we", "us") handles your 
 Lumeria is designed to prioritize your privacy. Most of your game data is stored locally on your device.
 
 ### Local Data (Stored on your device)
-- **Save Data:** Your progress (level, gold, inventory, etc.) is stored locally on your device. If Cloud Save is enabled in your settings, your save data is also stored using Google Play Games Services. Your data never leaves your device unless you manually use the "Export Save" feature or enable Cloud Save.
+- **Save Data:** Your progress (level, gold, inventory, etc.) is stored locally on your device. Most save data remains local; certain multiplayer/online features upload the categories described below. If Cloud Save is enabled in your settings, your save data is also stored using Google Play Games Services. 
 - **Settings:** Your music/SFX preferences and haptic feedback settings are stored locally.
 
 ### Data Collected by Third Parties
@@ -34,9 +34,9 @@ We use the collected data solely for:
 ## 4. Third-Party Licenses
 Lumeria is built using open-source software. You can view the full list of licenses within the "Open Source Licenses" section in the game settings.
 
-## 4. Children's Privacy
+## 5. Children's Privacy
 Lumeria does not knowingly collect personally identifiable information from children. If you believe your child has provided us with personal information, please contact us.
 
-## 5. Contact Us
+## 6. Contact Us
 If you have questions about this policy, you can reach us via our Official Discord or at:
 `jose.soler821@gmail.com`
