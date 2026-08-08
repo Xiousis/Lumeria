@@ -6,8 +6,6 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.activity.compose.BackHandler
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.*
@@ -55,14 +53,6 @@ class MainActivity : ComponentActivity() {
         val mainViewModel: MainViewModel by viewModels { MainViewModelFactory(repository) }
         
         // Feature ViewModels
-        val storyViewModel: StoryViewModel by viewModels { 
-            object : ViewModelProvider.Factory {
-                override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                    @Suppress("UNCHECKED_CAST")
-                    return StoryViewModel(repository, mainViewModel.activeSlot) as T
-                }
-            }
-        }
         val kingdomViewModel: KingdomViewModel by viewModels()
         val economyViewModel: EconomyViewModel by viewModels()
         val adventureViewModel: AdventureViewModel by viewModels()
@@ -92,7 +82,6 @@ class MainActivity : ComponentActivity() {
 
                     AppNavigation(
                         mainViewModel = mainViewModel,
-                        storyViewModel = storyViewModel,
                         kingdomViewModel = kingdomViewModel,
                         economyViewModel = economyViewModel,
                         adventureViewModel = adventureViewModel,

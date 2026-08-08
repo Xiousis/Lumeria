@@ -91,8 +91,7 @@ object BattleEngine {
 
         // 3. DEFENSE CALCULATION
         var bossDef = if (isBossBattle) {
-            if (storyEnemyName != null) StoryBossDatabase.getBoss(state.enemy.baseName).defense
-            else BossDatabase.getBoss(state.enemy.baseName).defense
+            BossDatabase.resolveBoss(state.enemy.baseName)?.defense ?: 0
         } else 0
         
         if (state.bossShieldTurns > 0) {

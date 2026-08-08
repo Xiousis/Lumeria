@@ -22,9 +22,9 @@ object RebirthManager {
         val arenaOpponentsCount = ArenaEnemyDatabase.opponents.size
         val defeatedArenaOpponents = playerData.completedArenaOpponents.size
 
-        val storyArcsCount = StoryDatabase.arcs.size
-        // Assuming IDs 1-20 are the main story arcs
-        val completedStoryArcs = playerData.completedStoryArcs.filter { it in 1..20 }.size
+        val mainStoryArcs = StoryDatabase.arcs.filter { it.id in 1..20 }
+        val storyArcsCount = mainStoryArcs.size
+        val completedStoryArcs = playerData.completedStoryArcs.count { id -> mainStoryArcs.any { it.id == id } }
 
         return listOf(
             RebirthRequirement(

@@ -30,7 +30,6 @@ import com.solerforge.lumeria.database.GuildDatabase
 @Composable
 fun AppNavigation(
     mainViewModel: MainViewModel,
-    storyViewModel: StoryViewModel,
     kingdomViewModel: KingdomViewModel,
     economyViewModel: EconomyViewModel,
     adventureViewModel: AdventureViewModel,
@@ -233,21 +232,13 @@ fun AppNavigation(
                                 eventIndex = mainViewModel.currentEventIndex,
                                 onNext = { mainViewModel.advanceStoryEvent() },
                                 onChoiceSelected = { option -> 
-                                    storyViewModel.onChoiceSelected(
-                                        option = option,
-                                        playerData = playerData,
-                                        onUpdatePlayer = { mainViewModel.updatePlayer(it) },
-                                        onNavigateToCompletion = { mainViewModel.navigateTo(Screen.ArcCompletion) }
-                                    )
-                                    mainViewModel.updateStoryEventIndex(storyViewModel.currentEventIndex)
+                                    mainViewModel.onStoryChoiceSelected(option)
                                 },
                                 onBattleStart = { enemyName, isBoss -> 
-                                    storyViewModel.setStoryBattle(enemyName, isBoss)
                                     mainViewModel.updateStoryEnemyName(enemyName)
                                     mainViewModel.navigateToBattle(isRift = false, enemyName = enemyName, isBoss = isBoss, snapshot = playerData, location = arc.locationName)
                                 },
                                 onReturn = { 
-                                    storyViewModel.resetStory()
                                     mainViewModel.resetStorySelection() 
                                 }
                             )

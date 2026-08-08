@@ -228,4 +228,9 @@ object BossDatabase {
     fun getBoss(name: String): Boss {
         return bosses.find { it.name == name } ?: error("Unknown boss: $name")
     }
+
+    fun resolveBoss(name: String): Boss? {
+        return StoryBossDatabase.bosses.find { it.name == name }
+            ?: bosses.find { it.name == name }
+    }
 }

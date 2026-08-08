@@ -278,6 +278,29 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
         }
     }
 
+    fun onStoryChoiceSelected(option: com.solerforge.lumeria.models.StoryChoiceOption) {
+        val arc = selectedStoryArc ?: return
+        
+        // Apply Rewards
+        if (option.rewardGold > 0 || option.rewardXp > 0) {
+            updatePlayer { current ->
+                current.gainExperience(option.rewardXp).copy(
+                    gold = current.gold + option.rewardGold
+                )
+            }
+        }
+
+        if (option.nextEventIndex != null) {
+            currentEventIndex = option.nextEventIndex
+        } else {
+            currentEventIndex++
+        }
+
+        if (currentEventIndex >= arc.events.size) {
+            processArcCompletion(playerData.value, arc)
+        }
+    }
+
     fun updateStoryEventIndex(index: Int) {
         currentEventIndex = index
     }
@@ -333,11 +356,12 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
     }
 
     fun onBattleLeave(newData: PlayerData, victoryProcessed: Boolean) {
-        val finalData = battleOrchestrator.handleLeave(newData)
         val currentArc = selectedStoryArc
         val currentArena = battleOrchestrator.arenaOpponent
         val currentExam = battleOrchestrator.currentGuildExam
         val towerMode = battleOrchestrator.isTowerBattle
+
+        val finalData = battleOrchestrator.handleLeave(newData)
         
         if (victoryProcessed) {
             val bossDefeated = finalData.defeatedBosses.size > playerData.value.defeatedBosses.size
@@ -356,6 +380,8 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
 
         if ((currentArc != null) && victoryProcessed) {
             selectedStoryArc = currentArc
+            currentEventIndex++
+            
             if (currentEventIndex >= currentArc.events.size) {
                 processArcCompletion(stateToSave, currentArc)
                 return // processArcCompletion handles its own navigation and update
@@ -474,7 +500,7 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
             introSeen = true,
             currentLocation = "Training Fields",
             unlockedLocations = listOf("Training Fields"),
-            saveVersion = 2
+            saveVersion = 3
         )
         
         // Initial class bonuses

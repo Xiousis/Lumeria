@@ -350,11 +350,7 @@ object BattleLogic {
             xpGain = arenaOpponent.rewardXp
             goldGain = arenaOpponent.rewardGold
         } else if (isBossBattle) {
-            val bossData = if (isStoryMode) {
-                com.solerforge.lumeria.database.StoryBossDatabase.getBoss(enemy.baseName)
-            } else {
-                BossDatabase.getBoss(enemy.baseName)
-            }
+            val bossData = BossDatabase.resolveBoss(enemy.baseName) ?: error("Boss ${enemy.baseName} not found")
             xpGain = maxOf(1, bossData.rewardXp)
             goldGain = bossData.rewardGold
         } else {

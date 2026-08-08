@@ -69,8 +69,7 @@ class BattleViewModel(
             }
             else -> playerData.currentLocation
         }
-        val location = WorldDatabase.locations.find { it.name == locationName }
-            ?: WorldDatabase.locations[0]
+        val location = WorldDatabase.getLocation(locationName)
 
         val enemy = when {
             shadowOpponent != null -> Enemy(
@@ -89,7 +88,7 @@ class BattleViewModel(
             }
             arenaOpponent != null -> arenaOpponent.enemy.copy(baseName = arenaOpponent.enemy.name, materialDrop = GameDatabase.getRequiredMaterial("Grand Arena"))
             (storyEnemyName != null) && isBossBattle -> {
-                val b = StoryBossDatabase.getBoss(storyEnemyName)
+                val b = BossDatabase.resolveBoss(storyEnemyName) ?: error("Story Boss $storyEnemyName not found")
                 val isHuman = b.name.contains("Captain", ignoreCase = true) || b.name.contains("King", ignoreCase = true) || b.name.contains("Lord", ignoreCase = true)
                 Enemy(b.name, b.name, b.hp, b.level, isHumanoid = isHuman, rewardXp = b.rewardXp, rewardGold = b.rewardGold)
             }
@@ -112,7 +111,7 @@ class BattleViewModel(
                         materialDrop = "Spirit of the Founder"
                     )
                 } else {
-                    val b = BossDatabase.getBoss(bossName)
+                    val b = BossDatabase.resolveBoss(bossName) ?: error("Boss $bossName not found")
                     val isHuman = b.name.contains("Captain", ignoreCase = true) || b.name.contains("King", ignoreCase = true) || b.name.contains("Lord", ignoreCase = true)
                     var finalHp = b.hp
                     var finalLevel = b.level

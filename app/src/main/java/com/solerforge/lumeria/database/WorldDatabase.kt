@@ -267,4 +267,9 @@ object WorldDatabase {
             isLegacyOnly = true
         )
     )
+
+    fun getLocation(name: String): WorldLocation {
+        return (locations + legacyLocations).find { it.name == name }
+            ?: error("Unknown location: $name")
+    }
 }
