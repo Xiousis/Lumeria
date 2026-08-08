@@ -43,16 +43,7 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
         onUpdatePlayer = { updatePlayer(it) },
         onNavigate = { navigateTo(it) },
         onPopBackstack = { popBackstack() },
-        onNavigateToBattleScreen = { navigateTo(Screen.Battle) },
-        onPvPOutcome = { isWin -> 
-            val current = playerData.value
-            val updated = if (isWin) {
-                current.copy(pvpWins = current.pvpWins + 1)
-            } else {
-                current.copy(pvpLosses = current.pvpLosses + 1)
-            }
-            updatePlayer(updated)
-        }
+        onNavigateToBattleScreen = { navigateTo(Screen.Battle) }
     )
 
     val economyManager = EconomyManager(
@@ -353,6 +344,12 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
 
     fun onBattleAgain(newData: PlayerData) {
         battleOrchestrator.handleBattleAgain(newData)
+    }
+
+    fun onBattleFlee(newData: PlayerData) {
+        val finalData = battleOrchestrator.handleLeave(newData)
+        updatePlayer(finalData)
+        popBackstack()
     }
 
     fun onBattleLeave(newData: PlayerData, victoryProcessed: Boolean) {

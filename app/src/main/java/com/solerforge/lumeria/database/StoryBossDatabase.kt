@@ -408,6 +408,18 @@ object StoryBossDatabase {
                 BossAttack("Black Hole Singularity", 5.0, "Consumes your very essence.", "Lifesteal", cooldown = 4),
                 BossAttack("The Big Bang", 25.0, "The absolute end. Total annihilation.", "IgnoreArmor", cooldown = 8)
             )
+        ),
+        Boss(
+            name = "Corrupted Warden",
+            hp = 12000,
+            level = 38,
+            rewardXp = 8000,
+            rewardGold = 5000,
+            defense = 100,
+            moveset = listOf(
+                BossAttack("Soul Lash", 2.2, "A whip made of dark energy.", "Normal"),
+                BossAttack("Chain Grasp", 1.0, "Pulls you closer to stun.", "Stun", cooldown = 3)
+            )
         )
     )
 

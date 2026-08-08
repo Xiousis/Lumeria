@@ -71,6 +71,8 @@ data class BattleUiState(
     val skillCooldowns: Map<String, Int> = emptyMap(),
     val lastSkillName: String? = null,
     val damageBuffMultiplier: Double = 1.0,
+    val defenseBuffMultiplier: Double = 1.0,
+    val evasionBuffBonus: Double = 0.0,
     val buffTurns: Int = 0,
     val critBuffTurns: Int = 0,
     val superBuffTurns: Int = 0,

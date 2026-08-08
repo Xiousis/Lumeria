@@ -69,6 +69,7 @@ fun BattleScreen(
     onPlayerUpdate: (PlayerData) -> Unit,
     onBattleAgain: (PlayerData) -> Unit,
     onLeave: (PlayerData) -> Unit,
+    onFlee: (PlayerData) -> Unit,
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
     val state by viewModel.state.collectAsState()
@@ -494,7 +495,7 @@ fun BattleScreen(
                         modifier = Modifier.weight(1f).height(48.dp),
                         enabled = !isVictory && !isStunned && state.isFleeable && !state.isProcessing,
                         colors = ButtonDefaults.buttonColors(containerColor = Color.DarkGray),
-                        onClick = { onLeave(playerData) },
+                        onClick = { onFlee(playerData.copy(hp = state.playerHp, mana = state.playerMana)) },
                     ) {
                         Text(stringResource(R.string.battle_action_run))
                     }

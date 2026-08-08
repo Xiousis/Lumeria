@@ -35,4 +35,25 @@ object StoryEnemyDatabase {
     fun getEnemy(name: String): Enemy {
         return enemies[name] ?: Enemy(name, name, 100, 1, rewardXp = 25, rewardGold = 15)
     }
+
+    fun resolveEnemy(name: String, location: com.solerforge.lumeria.data.WorldLocation? = null): Enemy {
+        enemies[name]?.let { return it }
+        
+        // Dynamic fallback for common world enemies if seen in story
+        val level = location?.let { (it.minLevel..it.maxLevel).random() } ?: 1
+        val hp = (level * 25) + 30
+        val isHuman = name.contains("Goblin", ignoreCase = true) || name.contains("Orc", ignoreCase = true) || 
+                      name.contains("Knight", ignoreCase = true) || name.contains("Guard", ignoreCase = true)
+                      
+        return Enemy(
+            name = name,
+            baseName = name,
+            maxHp = hp,
+            level = level,
+            rewardXp = (level * level * 2) + 50,
+            rewardGold = (hp * 0.5).toInt(),
+            isHumanoid = isHuman,
+            materialDrop = location?.let { GameDatabase.getRequiredMaterial(it.name) }
+        )
+    }
 }

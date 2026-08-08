@@ -269,7 +269,16 @@ object WorldDatabase {
     )
 
     fun getLocation(name: String): WorldLocation {
+        val virtualLocations = mapOf(
+            "Grand Arena" to WorldLocation("Grand Arena", "The ultimate stage for warriors.", "Lv 1-100", 1, 100, emptyList(), "", x=0f, y=0f, requiredLevel = 1),
+            "Tower of Trials" to WorldLocation("Tower of Trials", "A test of infinite ascension.", "Lv 80-200", 80, 200, emptyList(), "", x=0f, y=0f, requiredLevel = 80),
+            "Fire Exam" to WorldLocation("Fire Exam", "Trial of the House of Fire.", "Lv 1-100", 1, 100, emptyList(), "", x=0f, y=0f, requiredLevel = 1),
+            "Water Exam" to WorldLocation("Water Exam", "Trial of the House of Water.", "Lv 1-100", 1, 100, emptyList(), "", x=0f, y=0f, requiredLevel = 1),
+            "Wind Exam" to WorldLocation("Wind Exam", "Trial of the House of Wind.", "Lv 1-100", 1, 100, emptyList(), "", x=0f, y=0f, requiredLevel = 1),
+            "The Eternal Realm" to WorldLocation("The Eternal Realm", "A place beyond time.", "Lv 100", 100, 100, emptyList(), "", x=0f, y=0f, requiredLevel = 100)
+        )
         return (locations + legacyLocations).find { it.name == name }
+            ?: virtualLocations[name]
             ?: error("Unknown location: $name")
     }
 }

@@ -670,7 +670,25 @@ object GameDatabase {
     }
 
     fun getOffHand(name: String): OffHand {
-        return offHands.find { it.name == name } ?: offHands[0]
+        val baseName = getBaseName(name)
+        val levelStr = name.substringAfterLast(" +", "")
+        val level = levelStr.toIntOrNull() ?: 0
+        val base = offHands.find { it.name == baseName } ?: offHands[0]
+        
+        var multiplier = 1.0 + (level * 0.02)
+        if (name.contains("Void-Touched")) multiplier += 0.5
+        if (name.contains("Eternal")) multiplier += 0.8
+        
+        return base.copy(
+            name = name,
+            strength = (base.strength * multiplier).toInt(),
+            defense = (base.defense * multiplier).toInt(),
+            vitality = (base.vitality * multiplier).toInt(),
+            agility = (base.agility * multiplier).toInt(),
+            intelligence = (base.intelligence * multiplier).toInt(),
+            luck = (base.luck * multiplier).toInt(),
+            wisdom = (base.wisdom * multiplier).toInt()
+        )
     }
 
     fun getConsumable(name: String): Consumable? {

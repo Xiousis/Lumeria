@@ -100,6 +100,8 @@ object BattleEngine {
 
         // 4. APPLY BUFFS / STANCES
         var activeDamageMultiplier = currentState.damageBuffMultiplier
+        var activeDefenseMultiplier = currentState.defenseBuffMultiplier
+        var activeEvasionBonus = currentState.evasionBuffBonus
         
         var buffTurns = state.buffTurns
         var critBuffTurns = state.critBuffTurns
@@ -111,6 +113,16 @@ object BattleEngine {
                 activeDamageMultiplier = 1.25
                 buffTurns = 3
                 newLogs.add(LogEntry("Xious uses ${skill.name}! Attack increased!", Color.Green))
+            }
+            "DefenseBuff" -> {
+                activeDefenseMultiplier = 1.5
+                buffTurns = 3
+                newLogs.add(LogEntry("Xious uses ${skill.name}! Defense increased!", Color.Green))
+            }
+            "EvasionBuff" -> {
+                activeEvasionBonus = 0.25
+                buffTurns = 3
+                newLogs.add(LogEntry("Xious uses ${skill.name}! Evasion increased!", Color.Green))
             }
             "CritBuff" -> {
                 critBuffTurns = 3
@@ -372,6 +384,8 @@ object BattleEngine {
                 equippedSkills = workingEquippedSkills
             ),
             damageBuffMultiplier = if (familiarActionTaken && familiar.actionType == FamiliarActionType.Buff) activeDamageMultiplier else (if ((buffTurns > 0) || (superBuffTurns > 0)) activeDamageMultiplier else 1.0),
+            defenseBuffMultiplier = if (buffTurns > 0) activeDefenseMultiplier else 1.0,
+            evasionBuffBonus = if (buffTurns > 0) activeEvasionBonus else 0.0,
             buffTurns = maxOf(0, buffTurns - 1),
             critBuffTurns = maxOf(0, critBuffTurns - 1),
             superBuffTurns = maxOf(0, superBuffTurns - 1),
@@ -579,7 +593,7 @@ object BattleEngine {
         
         // Improved dodge calculation
         val player = state.currentPlayerSnapshot
-        var dodgeChance = (player.agility * 0.005) + (player.luck * 0.002)
+        var dodgeChance = (player.agility * 0.005) + (player.luck * 0.002) + state.evasionBuffBonus
         if (player.unlockedTraits.contains("Eyes of the Creator")) dodgeChance += 0.50
         if (player.joinedGuild == "House of Wind") dodgeChance += 0.02
         dodgeChance = dodgeChance.coerceIn(0.0, 0.90)
@@ -608,6 +622,9 @@ object BattleEngine {
         state.currentPlayerSnapshot.activeBuffs.find { it.type == com.solerforge.lumeria.models.BuffType.Defense }?.let {
             totalDef = (totalDef * it.value).toInt()
         }
+        
+        // Apply Active Skill Defense Buff
+        totalDef = (totalDef * state.defenseBuffMultiplier).toInt()
 
         val effectiveDef = if (state.playerDefenseDebuffTurns > 0) (totalDef * 0.8).toInt() else totalDef
         
@@ -667,7 +684,12 @@ object BattleEngine {
 
     private fun processBossAction(state: BattleUiState): Pair<BattleUiState, List<LogEntry>> {
         val newLogs = mutableListOf<LogEntry>()
-        val bossData = if (state.isStoryBoss) StoryBossDatabase.getBoss(state.enemy.baseName) else BossDatabase.getBoss(state.enemy.baseName)
+        val bossData = BossDatabase.resolveBoss(state.enemy.baseName)
+        
+        if (bossData == null) {
+            return processNormalEnemyAction(state)
+        }
+        
         val hpPercent = (state.enemyHp.toFloat() / state.enemy.maxHp)
 
         var phase2Triggered = state.phase2Triggered
@@ -736,7 +758,7 @@ object BattleEngine {
     ): Pair<BattleUiState, List<LogEntry>> {
         // Improved dodge calculation
         val player = state.currentPlayerSnapshot
-        var dodgeChance = (player.agility * 0.005) + (player.luck * 0.002)
+        var dodgeChance = (player.agility * 0.005) + (player.luck * 0.002) + state.evasionBuffBonus
         if (player.unlockedTraits.contains("Eyes of the Creator")) dodgeChance += 0.50
         if (player.joinedGuild == "House of Wind") dodgeChance += 0.02
         dodgeChance = dodgeChance.coerceIn(0.0, 0.90)
@@ -774,6 +796,9 @@ object BattleEngine {
         state.currentPlayerSnapshot.activeBuffs.find { it.type == com.solerforge.lumeria.models.BuffType.Defense }?.let {
             totalDef = (totalDef * it.value).toInt()
         }
+
+        // Apply Active Skill Defense Buff
+        totalDef = (totalDef * state.defenseBuffMultiplier).toInt()
 
         val effectiveDef = if (playerDefenseDebuffTurns > 0) (totalDef * 0.8).toInt() else totalDef
         

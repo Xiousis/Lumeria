@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import com.solerforge.lumeria.models.Screen
 import com.solerforge.lumeria.data.PlayerDataRepository
 import com.solerforge.lumeria.ui.AppNavigation
 import com.solerforge.lumeria.theme.TEXTBASEDRPGMAGICTheme
@@ -77,7 +78,9 @@ class MainActivity : ComponentActivity() {
                     contentWindowInsets = WindowInsets(0, 0, 0, 0),
                 ) { innerPadding ->
                     BackHandler(enabled = mainViewModel.backstack.size > 1) {
-                        mainViewModel.popBackstack()
+                        if (mainViewModel.currentScreen != Screen.Battle) {
+                            mainViewModel.popBackstack()
+                        }
                     }
 
                     AppNavigation(

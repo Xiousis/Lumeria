@@ -11,7 +11,6 @@ class BattleOrchestrator(
     private val onNavigate: (Screen) -> Unit,
     private val onPopBackstack: () -> Unit,
     private val onNavigateToBattleScreen: () -> Unit,
-    private val onPvPOutcome: (Boolean) -> Unit = {}
 ) {
     var isRiftBattle by mutableStateOf(false)
     var isBossBattle by mutableStateOf(false)
@@ -112,7 +111,7 @@ class BattleOrchestrator(
 
     private fun checkSpawnVoidIncursion(current: PlayerData) {
         if ((current.voidIncursionLocation == null) && (Math.random() < 0.15)) {
-            val potentialLocations = WorldDatabase.locations.filter { 
+            val potentialLocations = (if (current.isReborn) WorldDatabase.legacyLocations else WorldDatabase.locations).filter { 
                 it.name != current.currentLocation && 
                 (current.level >= it.requiredLevel || current.unlockedLocations.contains(it.name)) 
             }
@@ -137,10 +136,7 @@ class BattleOrchestrator(
 
     fun handleDeath(player: PlayerData, goldLost: Int): PlayerData {
         val isInBossFight = isRiftBattle && (player.riftStep >= 3)
-        
-        if (isPvPBattle) {
-            onPvPOutcome(false)
-        }
+        val isPvP = isPvPBattle
 
         val result = if (isInBossFight) {
             player.copy(
@@ -168,6 +164,8 @@ class BattleOrchestrator(
                 deathCount = player.deathCount + 1,
                 voidIncursionLocation = null,
             )
+        }.let { data ->
+            if (isPvP) data.copy(pvpLosses = data.pvpLosses + 1) else data
         }
         
         grindingPlayerData = null
@@ -184,10 +182,7 @@ class BattleOrchestrator(
     fun handleLeave(newData: PlayerData): PlayerData {
         grindingPlayerData = null
         val wasRift = isRiftBattle
-        
-        if (isPvPBattle) {
-            onPvPOutcome(true)
-        }
+        val isPvP = isPvPBattle
 
         var finalPlayerData = newData
         if (wasRift) {
@@ -201,6 +196,10 @@ class BattleOrchestrator(
                 voidIncursionLocation = null
             )
             finalPlayerData = leveledPlayer
+        }
+
+        if (isPvP) {
+            finalPlayerData = finalPlayerData.copy(pvpWins = finalPlayerData.pvpWins + 1)
         }
 
         isRiftBattle = false

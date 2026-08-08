@@ -142,6 +142,9 @@ fun AppNavigation(
                             onLeave = { finalData -> 
                                 mainViewModel.onBattleLeave(finalData, true) 
                             },
+                            onFlee = { finalData ->
+                                mainViewModel.onBattleFlee(finalData)
+                            },
                             onDeath = {
                                 mainViewModel.onBattleDeath()
                             },

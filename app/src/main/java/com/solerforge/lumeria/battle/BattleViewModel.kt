@@ -106,8 +106,8 @@ class BattleViewModel(
                 Enemy(b.name, b.name, b.hp, b.level, isHumanoid = isHuman, rewardXp = b.rewardXp, rewardGold = b.rewardGold)
             }
             storyEnemyName != null -> {
-                val e = StoryEnemyDatabase.getEnemy(storyEnemyName)
-                e.copy(baseName = e.name, materialDrop = GameDatabase.getRequiredMaterial(location.name))
+                val e = StoryEnemyDatabase.resolveEnemy(storyEnemyName, location)
+                e.copy(materialDrop = GameDatabase.getRequiredMaterial(location.name))
             }
             isBossBattle -> {
                 val bossName = location.boss

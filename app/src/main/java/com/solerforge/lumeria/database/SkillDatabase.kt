@@ -17,9 +17,9 @@ object SkillDatabase {
         // --- CLASS STARTING SKILLS ---
         Skill("Quick Draw", "A lightning-fast strike before the enemy reacts.", 4, 0, 1, "Attack", 1.8, requiredClasses = listOf("Samurai", "Assassin", "Archer")),
         Skill("Parry", "Deflect an incoming attack and reduce damage.", 0, 2, 1, "Support", effectType = "Parry", requiredClasses = listOf("Warrior", "Samurai", "Paladin")),
-        Skill("Mana Shield", "Uses mana to absorb incoming damage.", 0, 4, 1, "Buff", effectType = "Buff", requiredClasses = listOf("Mage")),
-        Skill("Smoke Bomb", "Increases your chance to dodge.", 8, 5, 1, "Buff", effectType = "Buff", requiredClasses = listOf("Assassin")),
-        Skill("Guard", "Hunker down to increase your defense.", 0, 3, 1, "Buff", effectType = "Buff", requiredClasses = listOf("Warrior", "Paladin", "Monk")),
+        Skill("Mana Shield", "Uses mana to absorb incoming damage.", 0, 4, 1, "Buff", effectType = "DefenseBuff", requiredClasses = listOf("Mage")),
+        Skill("Smoke Bomb", "Increases your chance to dodge.", 8, 5, 1, "Buff", effectType = "EvasionBuff", requiredClasses = listOf("Assassin")),
+        Skill("Guard", "Hunker down to increase your defense.", 0, 3, 1, "Buff", effectType = "DefenseBuff", requiredClasses = listOf("Warrior", "Paladin", "Monk")),
         
         // --- EVOLVED SKILLS (Only acquired via evolution at Mastery Level 3) ---
         Skill("Omnislash", "Master level flurry. Faster and sharper.", 2, 0, 99, "Attack", 1.5, "MultiHit", requiredClasses = listOf("Warrior", "Samurai", "Assassin", "Paladin")),
