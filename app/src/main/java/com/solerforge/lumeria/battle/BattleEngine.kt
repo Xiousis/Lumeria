@@ -22,7 +22,7 @@ object BattleEngine {
         storyEnemyName: String?,
         isBossBattle: Boolean,
     ): PlayerTurnResult {
-        val skill = SkillDatabase.getSkill(skillName)
+        val skill = SkillDatabase.resolveSkill(skillName) ?: SkillDatabase.skills[0]
         val newLogs = mutableListOf<LogEntry>()
 
         // 0. COOLDOWN VALIDATION
@@ -490,13 +490,8 @@ object BattleEngine {
                 newLogs.add(LogEntry("${state.enemy2.name} is stunned!", Color.Yellow))
                 currentState = currentState.copy(enemy2StunnedTurns = state.enemy2StunnedTurns - 1)
             } else {
-                // Improved dodge calculation
-                val player = currentState.currentPlayerSnapshot
-                var dodgeChance = (player.agility * 0.005) + (player.luck * 0.002)
-                if (player.unlockedTraits.contains("Eyes of the Creator")) dodgeChance += 0.50
-                if (player.joinedGuild == "House of Wind") dodgeChance += 0.02
-                dodgeChance = dodgeChance.coerceIn(0.0, 0.90)
-                
+                // Centralized dodge calculation
+                val dodgeChance = BattleLogic.calculateDodgeChance(currentState.currentPlayerSnapshot, currentState.evasionBuffBonus)
                 val isDodge = Math.random() < dodgeChance
                 
                 if (isDodge) {
@@ -617,13 +612,8 @@ object BattleEngine {
     private fun processNormalEnemyAction(state: BattleUiState): Pair<BattleUiState, List<LogEntry>> {
         val newLogs = mutableListOf<LogEntry>()
         
-        // Improved dodge calculation
-        val player = state.currentPlayerSnapshot
-        var dodgeChance = (player.agility * 0.005) + (player.luck * 0.002) + state.evasionBuffBonus
-        if (player.unlockedTraits.contains("Eyes of the Creator")) dodgeChance += 0.50
-        if (player.joinedGuild == "House of Wind") dodgeChance += 0.02
-        dodgeChance = dodgeChance.coerceIn(0.0, 0.90)
-        
+        // Centralized dodge calculation
+        val dodgeChance = BattleLogic.calculateDodgeChance(state.currentPlayerSnapshot, state.evasionBuffBonus)
         val isDodge = Math.random() < dodgeChance
         
         if (isDodge) {
@@ -760,12 +750,9 @@ object BattleEngine {
         enrageTurns: Int = 0,
         shieldTurns: Int = 0
     ): Pair<BattleUiState, List<LogEntry>> {
-        // Improved dodge calculation
+        // Centralized dodge calculation
         val player = state.currentPlayerSnapshot
-        var dodgeChance = (player.agility * 0.005) + (player.luck * 0.002) + state.evasionBuffBonus
-        if (player.unlockedTraits.contains("Eyes of the Creator")) dodgeChance += 0.50
-        if (player.joinedGuild == "House of Wind") dodgeChance += 0.02
-        dodgeChance = dodgeChance.coerceIn(0.0, 0.90)
+        val dodgeChance = BattleLogic.calculateDodgeChance(player, state.evasionBuffBonus)
         
         val selfTargetEffects = setOf("Heal", "Buff", "DamageBuff", "DefenseBuff", "EvasionBuff", "Shield")
         val isSelfTarget = attack.effectType in selfTargetEffects

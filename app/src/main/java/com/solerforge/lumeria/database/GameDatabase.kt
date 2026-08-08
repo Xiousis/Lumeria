@@ -699,4 +699,18 @@ object GameDatabase {
         val baseName = getBaseName(name)
         return fishingRods.find { it.name == baseName } ?: FishingRod("None", 0, description = "No rod equipped.", reactionBonus = 0)
     }
+
+    fun getClassBaseStats(className: String): List<Int> {
+        return when (className) {
+            "Mage", "Necromancer" -> listOf(5, 5, 5, 15, 5, 5, 10) // str, vit, def, int, agi, luck, wis
+            "Samurai" -> listOf(8, 5, 5, 5, 15, 10, 5)
+            "Paladin" -> listOf(10, 12, 15, 5, 5, 5, 5)
+            "Assassin" -> listOf(8, 5, 5, 5, 15, 15, 5)
+            "Monk" -> listOf(10, 15, 5, 5, 5, 5, 12)
+            "Archer" -> listOf(12, 5, 5, 5, 12, 10, 5)
+            "Bard" -> listOf(5, 5, 5, 5, 10, 15, 15)
+            "Berserker" -> listOf(20, 15, 2, 5, 5, 5, 5)
+            else -> listOf(12, 10, 8, 5, 5, 5, 5) // Warrior
+        }
+    }
 }

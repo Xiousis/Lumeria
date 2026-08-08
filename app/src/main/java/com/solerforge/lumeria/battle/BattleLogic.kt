@@ -71,6 +71,13 @@ object BattleLogic {
         return maxOf(1, finalDmg - (effectiveArmor / 2))
     }
 
+    fun calculateDodgeChance(player: PlayerData, evasionBonus: Double): Double {
+        var dodgeChance = (player.agility * 0.005) + (player.luck * 0.002) + evasionBonus
+        if (player.unlockedTraits.contains("Eyes of the Creator")) dodgeChance += 0.50
+        if (player.joinedGuild == "House of Wind") dodgeChance += 0.02
+        return dodgeChance.coerceIn(0.0, 0.90)
+    }
+
     fun getSkillDamage(player: PlayerData, skill: Skill): Int {
         val weaponBonus = GameDatabase.getWeapon(player.equippedWeapon).attack
         

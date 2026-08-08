@@ -78,29 +78,34 @@ class PlayerDataRepository(
         return Base64.encodeToString(hash, Base64.NO_WRAP)
     }
 
-    fun getPlayerDataFlow(slot: Int): Flow<PlayerData?> {
+    data class SaveResult(
+        val data: PlayerData,
+        val status: SaveStatus
+    )
+
+    fun getPlayerDataFlow(slot: Int): Flow<SaveResult> {
         return context.dataStore.data.map { preferences ->
             val jsonString = preferences[Keys.slotKey(slot)]
             if (jsonString != null) {
                 try {
                     val decoded = json.decodeFromString<PlayerData>(jsonString)
-                    migrateIfNeeded(decoded)
+                    SaveResult(migrateIfNeeded(decoded), SaveStatus.Loaded)
                 } catch (e: Exception) {
                     // Try to restore from backup if primary is corrupt
                     val backupJson = preferences[Keys.backupKey(slot)]
                     if (backupJson != null) {
                         try {
                             val decodedBackup = json.decodeFromString<PlayerData>(backupJson)
-                            migrateIfNeeded(decodedBackup)
+                            SaveResult(migrateIfNeeded(decodedBackup), SaveStatus.RecoveredFromBackup)
                         } catch (backupEx: Exception) {
-                            null
+                            SaveResult(PlayerData(), SaveStatus.Corrupt)
                         }
                     } else {
-                        null
+                        SaveResult(PlayerData(), SaveStatus.Corrupt)
                     }
                 }
             } else {
-                null
+                SaveResult(PlayerData(), SaveStatus.Empty)
             }
         }
     }

@@ -98,10 +98,16 @@ fun GamblingHouseScreen(
         val initialPlayerValue = calculateHandValue(playerHand)
         if (initialPlayerValue == 21) {
             val payout = (currentBet * 1.5).toInt()
-            onPlayerUpdate(playerData.copy(gold = playerData.gold + payout, gamblingWins = playerData.gamblingWins + 1))
+            onPlayerUpdate(playerData.copy(
+                gold = playerData.gold + payout, 
+                gamblingWins = playerData.gamblingWins + 1,
+                pendingWager = 0
+            ))
             frankDialogue = "BLACKJACK! Unbelievable luck! You win ${payout} gold!"
             status = GamblingStatus.ENDED
         } else {
+            // --- BET ESCROW: Deduct immediately ---
+            onPlayerUpdate(playerData.copy(gold = playerData.gold - currentBet, pendingWager = currentBet))
             status = GamblingStatus.PLAYER_TURN
             frankDialogue = "Cards are on the table. What's your move?"
         }
@@ -111,7 +117,8 @@ fun GamblingHouseScreen(
         playerHand = playerHand + deck.removeAt(0)
         if (calculateHandValue(playerHand) > 21) {
             frankDialogue = "Bust! Better luck next time. You lose $currentBet gold."
-            onPlayerUpdate(playerData.copy(gold = playerData.gold - currentBet))
+            // Bet already deducted, just clear pending
+            onPlayerUpdate(playerData.copy(pendingWager = 0))
             status = GamblingStatus.ENDED
         } else {
             frankDialogue = "Another one? Feeling lucky?"
@@ -137,15 +144,28 @@ fun GamblingHouseScreen(
             
             if (finalDealerValue > 21) {
                 frankDialogue = "I busted! You win $currentBet gold!"
-                onPlayerUpdate(playerData.copy(gold = playerData.gold + currentBet, gamblingWins = playerData.gamblingWins + 1))
+                // Return wager + winnings
+                onPlayerUpdate(playerData.copy(
+                    gold = playerData.gold + (currentBet * 2), 
+                    gamblingWins = playerData.gamblingWins + 1,
+                    pendingWager = 0
+                ))
             } else if (finalDealerValue > finalPlayerValue) {
                 frankDialogue = "Looks like I take this one. $currentBet gold is mine."
-                onPlayerUpdate(playerData.copy(gold = playerData.gold - currentBet))
+                // Bet already deducted
+                onPlayerUpdate(playerData.copy(pendingWager = 0))
             } else if (finalDealerValue < finalPlayerValue) {
                 frankDialogue = "You beat me! Take your $currentBet gold."
-                onPlayerUpdate(playerData.copy(gold = playerData.gold + currentBet, gamblingWins = playerData.gamblingWins + 1))
+                // Return wager + winnings
+                onPlayerUpdate(playerData.copy(
+                    gold = playerData.gold + (currentBet * 2), 
+                    gamblingWins = playerData.gamblingWins + 1,
+                    pendingWager = 0
+                ))
             } else {
                 frankDialogue = "A tie! A push! Your bet is safe."
+                // Return wager
+                onPlayerUpdate(playerData.copy(gold = playerData.gold + currentBet, pendingWager = 0))
             }
             status = GamblingStatus.ENDED
         }

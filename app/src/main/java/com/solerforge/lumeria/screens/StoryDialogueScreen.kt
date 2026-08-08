@@ -15,6 +15,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
@@ -45,6 +46,13 @@ fun StoryDialogueScreen(
     onBattleStart: (String, Boolean) -> Unit,
     onReturn: () -> Unit
 ) {
+    if (eventIndex >= arc.events.size) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator(color = Color.Cyan)
+        }
+        return
+    }
+
     val currentEvent = arc.events[eventIndex]
     var outcomeMessage by remember(eventIndex) { mutableStateOf<String?>(null) }
 

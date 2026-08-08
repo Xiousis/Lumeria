@@ -86,9 +86,9 @@ class BattleViewModel(
             guildExam != null -> Enemy(guildExam.enemyName, guildExam.enemyName, guildExam.hp, guildExam.level, isHumanoid = true, materialDrop = GameDatabase.getRequiredMaterial("Grand Arena"))
             isTowerBattle -> {
                 val e = TowerDatabase.getTowerEnemy(playerData.towerFloor)
-                e.copy(baseName = e.name, materialDrop = GameDatabase.getRequiredMaterial("Tower of Trials"))
+                e.copy(materialDrop = GameDatabase.getRequiredMaterial("Tower of Trials"))
             }
-            arenaOpponent != null -> arenaOpponent.enemy.copy(baseName = arenaOpponent.enemy.name, materialDrop = GameDatabase.getRequiredMaterial("Grand Arena"))
+            arenaOpponent != null -> arenaOpponent.enemy.copy(materialDrop = GameDatabase.getRequiredMaterial("Grand Arena"))
             storyEnemyName == "The Echo of Xious" -> {
                 val legacy = playerData.legacyHeroStats ?: playerData
                 Enemy(

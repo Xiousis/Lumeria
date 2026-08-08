@@ -5,14 +5,19 @@ import com.solerforge.lumeria.database.TraitDatabase
 import kotlinx.serialization.Serializable
 
 @Serializable
+enum class SaveStatus {
+    Empty, Loaded, RecoveredFromBackup, Corrupt
+}
+
+@Serializable
 data class PlayerData(
     val level: Int = 1,
     val xp: Long = 0,
     val gold: Long = 0,
-    val hp: Int = 30,
-    val maxHp: Int = 30,
-    val mana: Int = 20,
-    val maxMana: Int = 20,
+    val hp: Int = 80,
+    val maxHp: Int = 80,
+    val mana: Int = 45,
+    val maxMana: Int = 45,
     val strength: Int = 5,
     val vitality: Int = 5,
     val defense: Int = 5,
@@ -70,6 +75,7 @@ data class PlayerData(
     val blacksmithUpgrades: Int = 0,
     val worldEventsEncountered: Int = 0,
     val respecCount: Int = 0,
+    val pendingWager: Int = 0,
     val visitedBilly: Boolean = false,
     val visitedInn: Boolean = false,
     val visitedForge: Boolean = false,
@@ -169,17 +175,11 @@ data class PlayerData(
     fun respec(): PlayerData {
         val totalInvested = (level - 1) * 5
         
-        // Base stats from class definitions (mirroring onPerformRebirth)
-        val baseStats = when (playerClass) {
-            "Mage", "Necromancer" -> listOf(5, 5, 5, 15, 5, 5, 10) // str, vit, def, int, agi, luck, wis
-            "Samurai" -> listOf(8, 5, 5, 5, 15, 10, 5)
-            "Paladin" -> listOf(10, 12, 15, 5, 5, 5, 5)
-            "Assassin" -> listOf(8, 5, 5, 5, 15, 15, 5)
-            "Monk" -> listOf(10, 15, 5, 5, 5, 5, 12)
-            "Archer" -> listOf(12, 5, 5, 5, 12, 10, 5)
-            "Bard" -> listOf(5, 5, 5, 5, 10, 15, 15)
-            "Berserker" -> listOf(20, 15, 2, 5, 5, 5, 5)
-            else -> listOf(12, 10, 8, 5, 5, 5, 5) // Warrior
+        // Base stats from class definitions
+        val baseStats = if (!isReborn) {
+            listOf(5, 5, 5, 5, 5, 5, 5)
+        } else {
+            GameDatabase.getClassBaseStats(playerClass)
         }
 
         return copy(

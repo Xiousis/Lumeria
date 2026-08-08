@@ -58,7 +58,12 @@ object SkillDatabase {
     )
 
     fun getSkill(name: String): Skill {
-        return skills.find { it.name == name } ?: skills[0]
+        return resolveSkill(name) ?: skills[0]
+    }
+
+    fun resolveSkill(name: String): Skill? {
+        return skills.find { it.name == name } 
+            ?: GuildDatabase.allSkills.find { it.name == name }
     }
 
     fun getSkillWithLevel(name: String, level: Int): Skill {

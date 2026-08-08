@@ -27,31 +27,32 @@ object GuildDatabase {
 
     val waterSkills = listOf(
         GuildSkillRequirement(Skill("Water Bolt", "A concentrated stream of water.", 12, 0, 10, "Attack", 1.1, elementType = ElementType.Ice, requiredClasses = listOf("Mage", "Necromancer")), 1, 1000L),
-        GuildSkillRequirement(Skill("Aqua Shield", "Reduces incoming damage.", 30, 2, 15, "Buff", 0.0, effectType = "Buff", elementType = ElementType.Ice, requiredClasses = listOf("Mage", "Paladin", "Monk")), 2, 3000L),
+        GuildSkillRequirement(Skill("Aqua Shield", "Reduces incoming damage.", 30, 2, 15, "Buff", 0.0, effectType = "DefenseBuff", elementType = ElementType.Ice, requiredClasses = listOf("Mage", "Paladin", "Monk")), 2, 3000L),
         GuildSkillRequirement(Skill("Ice Spike", "Piercing ice from the ground.", 35, 1, 25, "Attack", 1.7, elementType = ElementType.Ice, requiredClasses = listOf("Mage", "Necromancer")), 3, 7500L),
         GuildSkillRequirement(Skill("Healing Rain", "Gentle water that restores HP.", 45, 3, 30, "Support", 1.5, effectType = "Heal", elementType = ElementType.Ice, requiredClasses = listOf("Mage", "Paladin", "Monk", "Bard")), 4, 15000L),
         GuildSkillRequirement(Skill("Blizzard", "Freezing winds and ice.", 80, 5, 50, "Attack", 2.5, effectType = "Freeze", elementType = ElementType.Ice, requiredClasses = listOf("Mage", "Necromancer")), 5, 30000L),
         GuildSkillRequirement(Skill("Tidal Wave", "A massive wave of force.", 100, 4, 60, "Attack", 3.5, elementType = ElementType.Ice, requiredClasses = listOf("Mage", "Necromancer")), 6, 50000L),
         GuildSkillRequirement(Skill("Absolute Zero", "Stops the enemy in their tracks.", 150, 8, 75, "Attack", 4.0, effectType = "Stun", elementType = ElementType.Ice, statusEffect = StatusEffect.Stun, requiredClasses = listOf("Mage", "Necromancer")), 7, 100000L),
-        GuildSkillRequirement(Skill("Mist Cover", "Increases dodge chance.", 60, 4, 40, "Buff", 0.0, effectType = "Buff", elementType = ElementType.Ice, requiredClasses = listOf("Mage", "Assassin", "Bard")), 8, 150000L),
+        GuildSkillRequirement(Skill("Mist Cover", "Increases dodge chance.", 60, 4, 40, "Buff", 0.0, effectType = "EvasionBuff", elementType = ElementType.Ice, requiredClasses = listOf("Mage", "Assassin", "Bard")), 8, 150000L),
         GuildSkillRequirement(Skill("Whirlpool", "Drains enemy mana.", 120, 6, 70, "Attack", 2.0, elementType = ElementType.Ice, requiredClasses = listOf("Mage", "Necromancer")), 9, 300000L),
         GuildSkillRequirement(Skill("Oceanic Wrath", "The power of the deep sea.", 300, 15, 100, "Attack", 7.0, effectType = "LimitBreak", elementType = ElementType.Ice, requiredClasses = listOf("Mage")), 10, 750000L)
     )
 
     val windSkills = listOf(
         GuildSkillRequirement(Skill("Wind Slash", "A sharp gust of air.", 10, 0, 10, "Attack", 1.0, elementType = ElementType.Physical, requiredClasses = listOf("Samurai", "Assassin", "Archer", "Bard")), 1, 1000L),
-        GuildSkillRequirement(Skill("Swift Step", "Increases agility.", 20, 2, 15, "Buff", 0.0, effectType = "Buff", elementType = ElementType.Physical, requiredClasses = listOf("Samurai", "Assassin", "Archer", "Monk", "Bard")), 2, 3000L),
+        GuildSkillRequirement(Skill("Swift Step", "Increases agility.", 20, 2, 15, "Buff", 0.0, effectType = "AgilityBuff", elementType = ElementType.Physical, requiredClasses = listOf("Samurai", "Assassin", "Archer", "Monk", "Bard")), 2, 3000L),
         GuildSkillRequirement(Skill("Tornado", "A spinning vortex of wind.", 50, 4, 30, "Attack", 2.2, effectType = "Stun", elementType = ElementType.Physical, statusEffect = StatusEffect.Stun, requiredClasses = listOf("Samurai", "Assassin", "Archer", "Bard")), 3, 8000L),
         GuildSkillRequirement(Skill("Air Blade", "Multiple strikes with air.", 40, 2, 25, "Attack", 1.8, effectType = "MultiHit", elementType = ElementType.Physical, requiredClasses = listOf("Samurai", "Assassin", "Archer")), 4, 16000L),
         GuildSkillRequirement(Skill("Vacuum Burst", "Sucks in the enemy and explodes.", 70, 5, 45, "Attack", 2.8, elementType = ElementType.Physical, requiredClasses = listOf("Samurai", "Assassin", "Archer")), 5, 35000L),
         GuildSkillRequirement(Skill("Eye of the Storm", "Ultimate focus and speed.", 100, 6, 60, "Buff", 2.0, effectType = "CritBuff", elementType = ElementType.Physical, requiredClasses = listOf("Samurai", "Assassin", "Archer")), 6, 60000L),
         GuildSkillRequirement(Skill("Cyclone Strike", "Heavy wind damage.", 130, 8, 75, "Attack", 4.5, elementType = ElementType.Physical, requiredClasses = listOf("Samurai", "Assassin", "Archer")), 7, 120000L),
-        GuildSkillRequirement(Skill("Feather Weight", "Ignore weight, move first.", 50, 4, 40, "Buff", 0.0, effectType = "Buff", elementType = ElementType.Physical, requiredClasses = listOf("Samurai", "Assassin", "Archer", "Monk")), 8, 200000L),
+        GuildSkillRequirement(Skill("Feather Weight", "Ignore weight, move first.", 50, 4, 40, "Buff", 0.0, effectType = "EvasionBuff", elementType = ElementType.Physical, requiredClasses = listOf("Samurai", "Assassin", "Archer", "Monk")), 8, 200000L),
         GuildSkillRequirement(Skill("Thunderstorm", "Wind and lightning combined.", 180, 10, 85, "Attack", 5.0, elementType = ElementType.Lightning, requiredClasses = listOf("Samurai", "Assassin", "Archer")), 9, 400000L),
         GuildSkillRequirement(Skill("God Wind", "The breath of the wind god.", 400, 20, 100, "Attack", 10.0, effectType = "LimitBreak", elementType = ElementType.Physical, requiredClasses = listOf("Samurai", "Assassin")), 10, 1000000L)
     )
 
-    fun getGuildSkills(guildName: String, playerClass: String): List<GuildSkillRequirement> {
+    val allSkills: List<Skill> = fireSkills.map { it.skill } + waterSkills.map { it.skill } + windSkills.map { it.skill }
+ fun getGuildSkills(guildName: String, playerClass: String): List<GuildSkillRequirement> {
         val allSkills = when (guildName) {
             "House of Fire" -> fireSkills
             "House of Water" -> waterSkills

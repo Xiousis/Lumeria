@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.solerforge.lumeria.data.PlayerData
 import com.solerforge.lumeria.data.PlayerDataRepository
+import com.solerforge.lumeria.data.SaveStatus
 import com.solerforge.lumeria.database.*
 import com.solerforge.lumeria.managers.BattleOrchestrator
 import com.solerforge.lumeria.managers.EconomyManager
@@ -94,20 +95,31 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
     val isLeaderboardLoading = _isLeaderboardLoading.asStateFlow()
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val playerData = snapshotFlow { activeSlot }
+    private val saveResult = snapshotFlow { activeSlot }
         .flatMapLatest { slot ->
             repository.getPlayerDataFlow(slot)
         }
-        .map { it ?: PlayerData() }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
-            initialValue = PlayerData(),
+            initialValue = PlayerDataRepository.SaveResult(PlayerData(), SaveStatus.Empty),
         )
 
-    val slot1Data = repository.getPlayerDataFlow(1).stateIn(viewModelScope, SharingStarted.Eagerly, null)
-    val slot2Data = repository.getPlayerDataFlow(2).stateIn(viewModelScope, SharingStarted.Eagerly, null)
-    val slot3Data = repository.getPlayerDataFlow(3).stateIn(viewModelScope, SharingStarted.Eagerly, null)
+    val playerData = saveResult.map { it.data }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = PlayerData(),
+    )
+
+    val saveStatus = saveResult.map { it.status }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = SaveStatus.Empty,
+    )
+
+    val slot1Data = repository.getPlayerDataFlow(1).stateIn(viewModelScope, SharingStarted.Eagerly, PlayerDataRepository.SaveResult(PlayerData(), SaveStatus.Empty))
+    val slot2Data = repository.getPlayerDataFlow(2).stateIn(viewModelScope, SharingStarted.Eagerly, PlayerDataRepository.SaveResult(PlayerData(), SaveStatus.Empty))
+    val slot3Data = repository.getPlayerDataFlow(3).stateIn(viewModelScope, SharingStarted.Eagerly, PlayerDataRepository.SaveResult(PlayerData(), SaveStatus.Empty))
 
     val settings = repository.settingsFlow.stateIn(
         scope = viewModelScope,
@@ -272,6 +284,10 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
 
             if (!isReplay && savedArcId == arc.id) {
                 currentEventIndex = savedIndex
+                if (currentEventIndex >= arc.events.size) {
+                    processArcCompletion(arc)
+                    return
+                }
             } else {
                 currentEventIndex = 0
                 updatePlayer { it.copy(activeStoryArcId = arc.id, currentStoryEventIndex = 0) }
@@ -518,10 +534,12 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
             saveVersion = 3
         )
         
+        val baseStats = GameDatabase.getClassBaseStats(className)
+
         // Initial class bonuses
         val finalizedData = when (className) {
             "Mage" -> newData.copy(
-                intelligence = 15, wisdom = 10,
+                strength = baseStats[0], vitality = baseStats[1], defense = baseStats[2], intelligence = baseStats[3], agility = baseStats[4], luck = baseStats[5], wisdom = baseStats[6],
                 unlockedSkills = listOf("None", "Magic Bolt", "Mana Shield", "Heal"),
                 equippedSkills = listOf("Magic Bolt", "Mana Shield", "Heal"),
                 inventory = listOf("Apprentice Staff", "Mage Robes", "Canvas Shoes", "Mana Potion"),
@@ -530,7 +548,7 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
                 equippedBoots = "Canvas Shoes"
             )
             "Samurai" -> newData.copy(
-                agility = 15, luck = 10, strength = 8,
+                strength = baseStats[0], vitality = baseStats[1], defense = baseStats[2], intelligence = baseStats[3], agility = baseStats[4], luck = baseStats[5], wisdom = baseStats[6],
                 unlockedSkills = listOf("None", "Slash", "Quick Draw", "Parry"),
                 equippedSkills = listOf("Slash", "Quick Draw", "Parry"),
                 inventory = listOf("Training Katana", "Shinobi Garb", "Sandals"),
@@ -539,7 +557,7 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
                 equippedBoots = "Sandals"
             )
             "Paladin" -> newData.copy(
-                defense = 15, vitality = 12, strength = 10,
+                strength = baseStats[0], vitality = baseStats[1], defense = baseStats[2], intelligence = baseStats[3], agility = baseStats[4], luck = baseStats[5], wisdom = baseStats[6],
                 unlockedSkills = listOf("None", "Guard", "Shield Bash", "Heal"),
                 equippedSkills = listOf("Guard", "Shield Bash", "Heal"),
                 inventory = listOf("Knight Blade", "Knight Armor", "Knight Shield", "Leather Boots"),
@@ -549,7 +567,7 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
                 equippedBoots = "Leather Boots"
             )
             "Assassin" -> newData.copy(
-                luck = 15, agility = 15, strength = 8,
+                strength = baseStats[0], vitality = baseStats[1], defense = baseStats[2], intelligence = baseStats[3], agility = baseStats[4], luck = baseStats[5], wisdom = baseStats[6],
                 unlockedSkills = listOf("None", "Slash", "Quick Draw", "Smoke Bomb"),
                 equippedSkills = listOf("Slash", "Quick Draw", "Smoke Bomb"),
                 inventory = listOf("Squire Dagger", "Scout Armor", "Scout Boots"),
@@ -558,7 +576,7 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
                 equippedBoots = "Scout Boots"
             )
             "Monk" -> newData.copy(
-                vitality = 15, wisdom = 12, strength = 10,
+                strength = baseStats[0], vitality = baseStats[1], defense = baseStats[2], intelligence = baseStats[3], agility = baseStats[4], luck = baseStats[5], wisdom = baseStats[6],
                 unlockedSkills = listOf("None", "Heavy Strike", "Guard", "Heal"),
                 equippedSkills = listOf("Heavy Strike", "Guard", "Heal"),
                 inventory = listOf("None", "Padded Tunic", "Canvas Shoes"),
@@ -567,7 +585,7 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
                 equippedBoots = "Canvas Shoes"
             )
             "Archer" -> newData.copy(
-                agility = 12, strength = 12, luck = 10,
+                strength = baseStats[0], vitality = baseStats[1], defense = baseStats[2], intelligence = baseStats[3], agility = baseStats[4], luck = baseStats[5], wisdom = baseStats[6],
                 unlockedSkills = listOf("None", "Slash", "Quick Draw", "Heavy Strike"),
                 equippedSkills = listOf("Slash", "Quick Draw", "Heavy Strike"),
                 inventory = listOf("Nomad Bow", "Rugged Vest", "Leather Boots"),
@@ -576,7 +594,7 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
                 equippedBoots = "Leather Boots"
             )
             "Necromancer" -> newData.copy(
-                intelligence = 15, wisdom = 10,
+                strength = baseStats[0], vitality = baseStats[1], defense = baseStats[2], intelligence = baseStats[3], agility = baseStats[4], luck = baseStats[5], wisdom = baseStats[6],
                 unlockedSkills = listOf("None", "Magic Bolt", "Bleeding Slash"),
                 equippedSkills = listOf("Magic Bolt", "Bleeding Slash"),
                 inventory = listOf("Traveler's Staff", "Mage Robes", "Canvas Shoes"),
@@ -585,7 +603,7 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
                 equippedBoots = "Canvas Shoes"
             )
             "Bard" -> newData.copy(
-                luck = 15, wisdom = 15, agility = 10,
+                strength = baseStats[0], vitality = baseStats[1], defense = baseStats[2], intelligence = baseStats[3], agility = baseStats[4], luck = baseStats[5], wisdom = baseStats[6],
                 unlockedSkills = listOf("None", "Heal", "Lion's Roar"),
                 equippedSkills = listOf("Heal", "Lion's Roar"),
                 inventory = listOf("Wanderer's Gladius", "Explorer Jacket", "Cloud Sprints"),
@@ -594,7 +612,7 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
                 equippedBoots = "Cloud Sprints"
             )
             "Berserker" -> newData.copy(
-                strength = 20, vitality = 15, defense = 2,
+                strength = baseStats[0], vitality = baseStats[1], defense = baseStats[2], intelligence = baseStats[3], agility = baseStats[4], luck = baseStats[5], wisdom = baseStats[6],
                 unlockedSkills = listOf("None", "Heavy Strike", "Whirlwind Slash"),
                 equippedSkills = listOf("Heavy Strike", "Whirlwind Slash"),
                 inventory = listOf("Orc Cleaver", "Rugged Vest", "Leather Boots"),
@@ -603,7 +621,7 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
                 equippedBoots = "Leather Boots"
             )
             else -> newData.copy( // Warrior
-                strength = 12, vitality = 10, defense = 8,
+                strength = baseStats[0], vitality = baseStats[1], defense = baseStats[2], intelligence = baseStats[3], agility = baseStats[4], luck = baseStats[5], wisdom = baseStats[6],
                 unlockedSkills = listOf("None", "Slash", "Heavy Strike", "Guard"),
                 equippedSkills = listOf("Slash", "Heavy Strike", "Guard"),
                 inventory = listOf("Iron Sword", "Leather Armor", "Leather Boots"),
@@ -643,18 +661,22 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
     }
 
     fun onArenaBattleStart(opponent: com.solerforge.lumeria.database.ArenaOpponent) {
+        updatePlayer { it.copy(battleBuffsConsumed = false) }
         battleOrchestrator.startArenaBattle(opponent, playerData.value)
     }
 
     fun onShadowBattleStart(shadow: PlayerData) {
+        updatePlayer { it.copy(battleBuffsConsumed = false) }
         battleOrchestrator.startShadowBattle(shadow, playerData.value)
     }
 
     fun onTowerBattleStart() {
+        updatePlayer { it.copy(battleBuffsConsumed = false) }
         battleOrchestrator.startTowerBattle(playerData.value)
     }
 
     fun onStartGuildExam(exam: com.solerforge.lumeria.database.GuildDatabase.GuildExam) {
+        updatePlayer { it.copy(battleBuffsConsumed = false) }
         battleOrchestrator.startGuildExam(exam, playerData.value)
     }
 
@@ -679,6 +701,7 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
     }
 
     fun onBossBattle(locationName: String) {
+        updatePlayer { it.copy(battleBuffsConsumed = false) }
         battleOrchestrator.locationOverride = locationName
         battleOrchestrator.startBossBattle(locationName, grindingPlayerData ?: playerData.value)
     }
