@@ -865,7 +865,7 @@ object BattleEngine {
             }
             "DefenseDown" -> {
                 if (!hasAbsoluteResistance) {
-                    playerDefenseDebuffTurns = 3
+                    playerDefenseDebuffTurns = 4
                     newLogs.add(LogEntry("Xious's defense was lowered!", Color.Yellow))
                 } else {
                     newLogs.add(LogEntry("Will of the Ancients resists the debuff!", Color.Cyan))
@@ -879,11 +879,15 @@ object BattleEngine {
                 newLogs.add(LogEntry("${state.enemy.name} drained $drain HP!", Color.Red))
             }
             "MultiHit" -> {
-                playerHp = maxOf(0, playerHp - baseDmg)
-                // Secondary hit
-                val secDmg = maxOf(1, (baseDmg * 0.5).toInt())
-                playerHp = maxOf(0, playerHp - secDmg)
-                newLogs.add(LogEntry("${state.enemy.name} strikes again for $secDmg damage!", Color.Red))
+                var totalEnemyDmg = 0
+                repeat(attack.hitCount) {
+                    if (playerHp > 0) {
+                        val hitDmg = if (it == 0) baseDmg else maxOf(1, (baseDmg * 0.5).toInt())
+                        playerHp = maxOf(0, playerHp - hitDmg)
+                        totalEnemyDmg += hitDmg
+                    }
+                }
+                newLogs.add(LogEntry("${state.enemy.name} strikes ${attack.hitCount} times for $totalEnemyDmg damage!", Color.Red))
             }
             "Buff" -> {
                 currentEnrageTurns = 3

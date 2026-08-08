@@ -354,10 +354,11 @@ fun AppNavigation(
                         adventureViewModel.currentWorldEvent?.let { event ->
                             WorldEventScreen(
                                 event = event,
+                                playerData = playerData,
                                 outcomeMessage = adventureViewModel.eventOutcomeMessage,
-                                onOptionSelected = { outcome -> 
+                                onOptionSelected = { option -> 
                                     adventureViewModel.processEventOutcome(
-                                        outcome = outcome, 
+                                        option = option, 
                                         playerData = playerData, 
                                         onUpdatePlayer = { mainViewModel.updatePlayer(it) }, 
                                         onNavigateToBattle = { enemyName ->

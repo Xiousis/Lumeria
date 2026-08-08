@@ -182,7 +182,7 @@ object BattleLogic {
                     nextPlayerHp = minOf(nextPlayerHp + healAmount.toInt(), player.maxHp)
                 }
                 "Parry" -> { /* Handled in Engine */ }
-                "Buff", "CritBuff", "SuperBuff" -> { /* Handled in Engine */ }
+                "Buff", "DefenseBuff", "EvasionBuff", "CritBuff", "SuperBuff" -> { /* Handled in Engine */ }
                 else -> {
                     // Attack logic
                     multiHits = when (skill.effectType) {
@@ -263,7 +263,7 @@ object BattleLogic {
                         // Only deal damage up to remaining HP
                         val actualDmg = if (hitDmg > nextEnemyHp) nextEnemyHp else hitDmg
                         
-                        totalDmg += hitDmg
+                        totalDmg += actualDmg
                         nextEnemyHp = maxOf(nextEnemyHp - hitDmg, 0)
                         
                         // Lifesteal based on actual damage dealt
@@ -474,6 +474,18 @@ object BattleLogic {
 
         var updatedPlayer = player.copy(hp = currentHp, mana = currentMana).gainExperience(totalXpGain)
         
+        var updatedEventIndex = currentEventIndex
+        if (isStoryMode) {
+            updatedEventIndex++
+        }
+
+        if (isReplay) {
+            return updatedPlayer.copy(
+                gold = updatedPlayer.gold + totalGoldGain,
+                currentStoryEventIndex = updatedEventIndex
+            )
+        }
+
         // Quest Update Logic (Common for all)
         val currentQuests = updatedPlayer.quests.toMutableList()
         val updatedQuests = currentQuests.asSequence().map { quest ->
@@ -566,11 +578,6 @@ object BattleLogic {
                 towerFloor++
                 towerHighestFloor = maxOf(towerHighestFloor, updatedPlayer.towerFloor)
             }
-        }
-
-        var updatedEventIndex = currentEventIndex
-        if (isStoryMode) {
-            updatedEventIndex++
         }
 
         return updatedPlayer.copy(

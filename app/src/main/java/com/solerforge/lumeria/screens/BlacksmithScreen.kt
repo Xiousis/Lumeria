@@ -204,11 +204,11 @@ fun BlacksmithScreen(
 fun UpgradeRow(
     type: String,
     name: String,
-    playerGold: Int,
+    playerGold: Long,
     nationUpgradeLevel: Int,
     activeLawId: Int?,
     inventory: List<String>,
-    onUpgrade: (Int, String?) -> Unit
+    onUpgrade: (Long, String?) -> Unit
 ) {
     val level = name.substringAfterLast(" +", "0").toIntOrNull() ?: 0
     val isVoidTouched = name.contains("Void-Touched")
@@ -216,16 +216,16 @@ fun UpgradeRow(
     val isMaxRegular = level >= 5
     
     val baseCost = when {
-        isEternal -> 0
-        isVoidTouched && isMaxRegular -> 500000 // To Eternal
-        isMaxRegular -> 150000 // To Void-Touched
+        isEternal -> 0L
+        isVoidTouched && isMaxRegular -> 500000L // To Eternal
+        isMaxRegular -> 150000L // To Void-Touched
         else -> when (level) {
-            0 -> 1000
-            1 -> 5000
-            2 -> 15000
-            3 -> 35000
-            4 -> 60000
-            else -> 0
+            0 -> 1000L
+            1 -> 5000L
+            2 -> 15000L
+            3 -> 35000L
+            4 -> 60000L
+            else -> 0L
         }
     }
     

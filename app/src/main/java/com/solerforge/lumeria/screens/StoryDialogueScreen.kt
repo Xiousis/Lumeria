@@ -166,13 +166,7 @@ fun StoryDialogueScreen(
                     ) {
                         RpgButton(
                             text = if (eventIndex < arc.events.size - 1) "Next" else "Finish Arc",
-                            onClick = {
-                                if (outcomeMessage != null) {
-                                    onNext()
-                                } else {
-                                    onNext()
-                                }
-                            }
+                            onClick = onNext
                         )
                     }
                 }

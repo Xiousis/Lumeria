@@ -50,8 +50,8 @@ object StoryEnemyDatabase {
             baseName = name,
             maxHp = hp,
             level = level,
-            rewardXp = (level * level * 2) + 50,
-            rewardGold = (hp * 0.5).toInt(),
+            rewardXp = (level.toLong() * level * 2) + 50,
+            rewardGold = (hp * 0.5).toLong(),
             isHumanoid = isHuman,
             materialDrop = location?.let { GameDatabase.getRequiredMaterial(it.name) }
         )

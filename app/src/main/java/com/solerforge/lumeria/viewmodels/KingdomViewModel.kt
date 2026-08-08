@@ -43,7 +43,7 @@ class KingdomViewModel : ViewModel() {
         }
     }
 
-    fun learnGuildSkill(skillName: String, fee: Int, playerData: PlayerData, onUpdatePlayer: (PlayerData) -> Unit) {
+    fun learnGuildSkill(skillName: String, fee: Long, playerData: PlayerData, onUpdatePlayer: (PlayerData) -> Unit) {
         if (playerData.gold >= fee && !playerData.unlockedSkills.contains(skillName)) {
             onUpdatePlayer(playerData.copy(
                 gold = playerData.gold - fee,

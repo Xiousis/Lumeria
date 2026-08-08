@@ -42,30 +42,43 @@ class AdventureViewModel : ViewModel() {
     }
 
     fun processEventOutcome(
-        outcome: EventOutcome, 
+        option: com.solerforge.lumeria.models.EventOption, 
         playerData: PlayerData, 
         onUpdatePlayer: (PlayerData) -> Unit,
         onNavigateToBattle: (String) -> Unit
     ) {
-        var updated = playerData
+        val outcome = option.outcome
+        
+        // 1. Validate requirements
+        if (playerData.gold < option.goldCost) return
+        if (option.requiredItem != null && !playerData.inventory.contains(option.requiredItem)) return
+
+        // 2. Consume costs
+        var updated = playerData.copy(gold = playerData.gold - option.goldCost)
+        if (option.requiredItem != null) {
+            val newList = updated.inventory.toMutableList()
+            newList.remove(option.requiredItem)
+            updated = updated.copy(inventory = newList)
+        }
+
         var shouldBattle = false
         var enemyName = ""
 
         when (outcome) {
             is EventOutcome.Reward -> {
-                updated = playerData.gainExperience(outcome.xp).copy(
-                    gold = playerData.gold + outcome.gold
+                updated = updated.gainExperience(outcome.xp).copy(
+                    gold = updated.gold + outcome.gold
                 )
             }
             is EventOutcome.Penalty -> {
-                updated = playerData.copy(
-                    gold = maxOf(0L, playerData.gold - outcome.goldLost),
-                    hp = maxOf(1, playerData.hp - outcome.hpLost)
+                updated = updated.copy(
+                    gold = maxOf(0L, updated.gold - outcome.goldLost),
+                    hp = maxOf(1, updated.hp - outcome.hpLost)
                 )
             }
             is EventOutcome.Buff -> {
-                updated = playerData.copy(
-                    activeBuffs = (playerData.activeBuffs + outcome.buff)
+                updated = updated.copy(
+                    activeBuffs = (updated.activeBuffs + outcome.buff)
                 )
                 if (outcome.buff.type == com.solerforge.lumeria.models.BuffType.HealthRegen) {
                     updated = updated.copy(hp = updated.maxHp, mana = updated.maxMana)

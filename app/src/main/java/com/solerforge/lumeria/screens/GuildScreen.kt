@@ -40,7 +40,7 @@ enum class GuildTab(val displayName: String) {
 fun GuildScreen(
     playerData: PlayerData,
     onJoinGuild: (String) -> Unit,
-    onLearnSkill: (String, Int) -> Unit,
+    onLearnSkill: (String, Long) -> Unit,
     onStartExam: (GuildDatabase.GuildExam) -> Unit,
     onShowLore: () -> Unit,
     onReturn: () -> Unit
@@ -194,7 +194,7 @@ fun GuildSelectionScreen(onJoin: (String) -> Unit, onReturn: () -> Unit) {
 @Composable
 fun GuildMainScreen(
     playerData: PlayerData, 
-    onLearnSkill: (String, Int) -> Unit, 
+    onLearnSkill: (String, Long) -> Unit, 
     onStartExam: (GuildDatabase.GuildExam) -> Unit,
     onShowLore: () -> Unit,
     onReturn: () -> Unit
@@ -266,7 +266,7 @@ fun GuildMainScreen(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         LinearProgressIndicator(
-                            progress = { (playerData.guildXp.toFloat() / nextXp).coerceIn(0f, 1f) },
+                            progress = { (playerData.guildXp.toFloat() / nextXp.toFloat()).coerceIn(0f, 1f) },
                             modifier = Modifier.width(80.dp).height(4.dp).clip(RoundedCornerShape(2.dp)),
                             color = Color.Cyan,
                             trackColor = Color.DarkGray

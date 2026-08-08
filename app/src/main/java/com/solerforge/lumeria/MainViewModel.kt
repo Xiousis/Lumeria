@@ -168,20 +168,25 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
         if (isResetting) return
 
         viewModelScope.launch {
-            repository.updatePlayer(activeSlot) { current ->
-                val newData = transform(current)
-                val newlyUnlocked = AchievementManager.checkAchievements(newData)
-                
-                // Note: Analytics logging will still use the current snapshot for comparison
-                // which is "mostly fine" for non-critical logging, but for state it's now atomic.
-                
-                if (newlyUnlocked.isNotEmpty()) {
-                    newData.copy(unlockedAchievements = (newData.unlockedAchievements + newlyUnlocked).distinct())
-                } else newData
+            try {
+                repository.updatePlayer(activeSlot) { current ->
+                    val newData = transform(current)
+                    val newlyUnlocked = AchievementManager.checkAchievements(newData)
+                    
+                    if (newlyUnlocked.isNotEmpty()) {
+                        newData.copy(unlockedAchievements = (newData.unlockedAchievements + newlyUnlocked).distinct())
+                    } else newData
+                }
+            } catch (e: Exception) {
+                // TODO: Show recovery UI. For now, we log and prevent overwrite.
+                analytics.logEvent("save_corruption_prevented") {
+                    param("slot", activeSlot.toLong())
+                    param("error", e.message ?: "Unknown")
+                }
+                return@launch
             }
 
-            // Perform comparisons for logging after the atomic update if needed, 
-            // but for now we keep the existing logic simplified.
+            // Perform comparisons for logging after the atomic update
             val newData = transform(playerData.value)
             val previousData = playerData.value
 
@@ -354,7 +359,8 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
     }
 
     fun onBattleDeath(snapshot: PlayerData) {
-        val updated = battleOrchestrator.handleDeath(snapshot, goldLostOnDeath)
+        val goldLost = snapshot.gold * 15L / 100L
+        val updated = battleOrchestrator.handleDeath(snapshot, goldLost)
         updatePlayer(updated)
     }
 

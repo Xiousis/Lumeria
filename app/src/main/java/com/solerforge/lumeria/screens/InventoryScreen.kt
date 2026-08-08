@@ -83,7 +83,7 @@ fun InventoryScreen(
                 InventoryTab.COMBAT -> GameDatabase.weapons.any { it.name == base } || GameDatabase.shields.any { it.name == base }
                 InventoryTab.APPAREL -> GameDatabase.armors.any { (it.name == base) && (it.defense > 0) } || GameDatabase.headGears.any { it.name == base } || GameDatabase.boots.any { it.name == base }
                 InventoryTab.ACC -> GameDatabase.offHands.any { it.name == base } || GameDatabase.fishingRods.any { it.name == base }
-                InventoryTab.ITEMS -> GameDatabase.consumables.any { it.name == base } || com.solerforge.lumeria.database.FishDatabase.fishTable.any { it.name == base } || GameDatabase.craftingMaterials.any { it.name == base } || GameDatabase.armors.any { (it.name == base) && (it.defense == 0) && (it.price == 0) && it.isBossDrop }
+                InventoryTab.ITEMS -> GameDatabase.consumables.any { it.name == base } || com.solerforge.lumeria.database.FishDatabase.fishTable.any { it.name == base } || GameDatabase.craftingMaterials.any { it.name == base } || GameDatabase.armors.any { (it.name == base) && (it.defense == 0) && (it.price == 0L) && it.isBossDrop }
             }
         }
 
@@ -114,7 +114,7 @@ fun InventoryScreen(
                     ?: GameDatabase.boots.find { it.name == base }?.price
                     ?: GameDatabase.shields.find { it.name == base }?.price
                     ?: GameDatabase.offHands.find { it.name == base }?.price
-                    ?: 0
+                    ?: 0L
             }
             SortMode.RARITY -> filtered.sortedBy { (name, _) ->
                 val base = GameDatabase.getBaseName(name)

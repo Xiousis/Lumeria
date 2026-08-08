@@ -5,7 +5,8 @@ data class BossAttack(
     val multiplier: Double = 1.0,
     val description: String,
     val effectType: String = "Normal", // "Stun", "Heal", "DefenseDown", "MultiHit", "IgnoreArmor", "Buff", "Lifesteal"
-    val cooldown: Int = 0
+    val cooldown: Int = 0,
+    val hitCount: Int = 1
 )
 
 data class Boss(
@@ -45,7 +46,7 @@ object BossDatabase {
             defense = 25,
             moveset = listOf(
                 BossAttack("Crown Smash", 2.0, "A heavy club attack.", "Normal", cooldown = 0),
-                BossAttack("Goblin Ambush", 1.0, "Calls reinforcements to attack twice.", "MultiHit", cooldown = 2),
+                BossAttack("Goblin Ambush", 1.0, "Calls reinforcements to attack twice.", "MultiHit", cooldown = 2, hitCount = 2),
                 BossAttack("King's Roar", 1.0, "Reduces player defense for 3 turns.", "DefenseDown", cooldown = 3)
             )
         ),
@@ -57,7 +58,7 @@ object BossDatabase {
             rewardGold = 7500,
             defense = 50,
             moveset = listOf(
-                BossAttack("Crystal Shards", 0.6, "Fires razor-sharp crystals 3 times.", "MultiHit", cooldown = 0),
+                BossAttack("Crystal Shards", 0.6, "Fires razor-sharp crystals 3 times.", "MultiHit", cooldown = 0, hitCount = 3),
                 BossAttack("Reflective Barrier", 0.0, "Blocks 50% of incoming damage.", "Shield", cooldown = 4),
                 BossAttack("Prismatic Beam", 2.5, "A massive beam that ignores armor.", "IgnoreArmor", cooldown = 3)
             )
@@ -97,7 +98,7 @@ object BossDatabase {
             defense = 180,
             moveset = listOf(
                 BossAttack("Dragon Breath", 4.5, "A massive fire attack.", "Normal", cooldown = 4),
-                BossAttack("Wing Buffet", 1.0, "A wind attack that hits twice.", "MultiHit", cooldown = 0),
+                BossAttack("Wing Buffet", 1.0, "A wind attack that hits twice.", "MultiHit", cooldown = 0, hitCount = 2),
                 BossAttack("Ancient Fury", 0.0, "Dragon becomes enraged!", "Buff", cooldown = 6)
             )
         ),
@@ -183,7 +184,7 @@ object BossDatabase {
             hp = 5000000, level = 155, rewardXp = 15000000, rewardGold = 0, defense = 3000,
             moveset = listOf(
                 BossAttack("Gale Blade", 4.0, "Sharp wind cuts deep."),
-                BossAttack("Hurricane", 1.5, "Hits 5 times in a storm.", "MultiHit", cooldown = 4)
+                BossAttack("Hurricane", 1.5, "Hits 5 times in a storm.", "MultiHit", cooldown = 4, hitCount = 5)
             ),
             isLegacy = true
         ),

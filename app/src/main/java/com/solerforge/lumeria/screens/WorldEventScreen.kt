@@ -22,8 +22,9 @@ import com.solerforge.lumeria.models.WorldEvent
 @Composable
 fun WorldEventScreen(
     event: WorldEvent,
+    playerData: com.solerforge.lumeria.data.PlayerData,
     outcomeMessage: String?,
-    onOptionSelected: (com.solerforge.lumeria.models.EventOutcome) -> Unit,
+    onOptionSelected: (com.solerforge.lumeria.models.EventOption) -> Unit,
     onContinue: () -> Unit
 ) {
     Column(
@@ -40,6 +41,13 @@ fun WorldEventScreen(
             color = Color.Cyan,
             style = MaterialTheme.typography.labelLarge,
             fontWeight = FontWeight.Bold
+        )
+        
+        Text(
+            text = "Your Gold: ${com.solerforge.lumeria.utils.CurrencyUtils.formatGold(playerData.gold)}",
+            color = Color.Yellow,
+            style = MaterialTheme.typography.bodySmall,
+            modifier = Modifier.padding(top = 4.dp)
         )
         
         Text(
@@ -72,9 +80,14 @@ fun WorldEventScreen(
         if (outcomeMessage == null) {
             // Options
             event.options.forEach { option ->
+                val canAffordGold = playerData.gold >= option.goldCost
+                val hasItem = option.requiredItem == null || playerData.inventory.contains(option.requiredItem)
+                val isEnabled = canAffordGold && hasItem
+
                 RpgButton(
-                    text = option.text,
-                    onClick = { onOptionSelected(option.outcome) },
+                    text = if (isEnabled) option.text else "${option.text} (Missing requirements)",
+                    onClick = { onOptionSelected(option) },
+                    enabled = isEnabled,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(vertical = 8.dp)

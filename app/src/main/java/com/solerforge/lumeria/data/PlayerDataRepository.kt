@@ -123,14 +123,16 @@ class PlayerDataRepository(
                             val decodedBackup = json.decodeFromString<PlayerData>(backupJson)
                             migrateIfNeeded(decodedBackup)
                         } catch (backupEx: Exception) {
-                            PlayerData()
+                            // BOTH PRIMARY AND BACKUP CORRUPT
+                            // We return a 'Corrupt' sentinel or throw
+                            throw IllegalStateException("Save data for slot $slot is critically corrupted.")
                         }
                     } else {
-                        PlayerData()
+                        throw IllegalStateException("Save data for slot $slot is corrupted and no backup exists.")
                     }
                 }
             } else {
-                PlayerData()
+                PlayerData() // New slot
             }
 
             val updatedData = transform(currentData).copy(

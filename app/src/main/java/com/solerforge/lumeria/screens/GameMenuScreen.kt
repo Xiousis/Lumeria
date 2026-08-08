@@ -328,7 +328,7 @@ fun TownSquareTab(
     onFishing: () -> Unit,
     onFamiliarStore: () -> Unit,
     onRebirth: () -> Unit,
-    renown: Int,
+    renown: Long,
 ) {
     Column(
         modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),

@@ -11,7 +11,8 @@ object WorldEventDatabase {
             options = listOf(
                 EventOption(
                     "Offer a Health Potion",
-                    EventOutcome.Reward(xp = 2500L, message = "The traveler drinks the potion and regains his strength. \"Thank you, kind soul! Take this gold as a token of my gratitude.\" (Gained 1000G & XP)")
+                    EventOutcome.Reward(gold = 1000L, xp = 2500L, message = "The traveler drinks the potion and regains his strength. \"Thank you, kind soul! Take this gold as a token of my gratitude.\" (Gained 1000G & XP)"),
+                    requiredItem = "Health Potion"
                 ),
                 EventOption(
                     "Bandage his wounds",
@@ -36,11 +37,13 @@ object WorldEventDatabase {
                     EventOutcome.Buff(
                         PlayerBuff(BuffType.Experience, 1.25, 2, "Beggar's Wisdom"),
                         "The man smiles, revealing missing teeth. \"Wisdom comes to those who give.\" (XP Gain +25% for 2 battles)"
-                    )
+                    ),
+                    goldCost = 500L
                 ),
                 EventOption(
                     "Give 100 Gold",
-                    EventOutcome.Reward(xp = 500L, message = "He nods gratefully. \"Every bit helps. Safe travels!\"")
+                    EventOutcome.Reward(xp = 500L, message = "He nods gratefully. \"Every bit helps. Safe travels!\""),
+                    goldCost = 100L
                 ),
                 EventOption(
                     "Refuse",
@@ -84,7 +87,8 @@ object WorldEventDatabase {
                     EventOutcome.Buff(
                         PlayerBuff(BuffType.HealthRegen, 1.0, 5, "Celestial Protection"),
                         "The shrine glows brightly. Your wounds seem to close faster. (HP fully restored!)"
-                    )
+                    ),
+                    goldCost = 1000L
                 ),
                 EventOption(
                     "Investigate closely",
@@ -99,7 +103,8 @@ object WorldEventDatabase {
             options = listOf(
                 EventOption(
                     "Buy the box (2500G)",
-                    EventOutcome.Reward(xp = 10000L, message = "You open the box... it's filled with ancient scrolls! (Gained 10,000 XP)")
+                    EventOutcome.Reward(xp = 10000L, message = "You open the box... it's filled with ancient scrolls! (Gained 10,000 XP)"),
+                    goldCost = 2500L
                 ),
                 EventOption(
                     "Ignore him",

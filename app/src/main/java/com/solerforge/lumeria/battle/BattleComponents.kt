@@ -172,7 +172,7 @@ fun UnitCard(
     modifier: Modifier = Modifier,
     mana: Int? = null,
     maxMana: Int? = null,
-    gold: Int? = null,
+    gold: Long? = null,
     isActive: Boolean = false,
     activeBuffs: List<PlayerBuff> = emptyList(),
     showNumbers: Boolean = true,

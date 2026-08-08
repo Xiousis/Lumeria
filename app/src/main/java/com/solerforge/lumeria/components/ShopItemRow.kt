@@ -19,10 +19,10 @@ import com.solerforge.lumeria.utils.RarityUtils
 fun ShopItemRow(
     name: String,
     stat: String,
-    price: Int,
+    price: Long,
     rarity: String,
     description: String,
-    currentGold: Int,
+    currentGold: Long,
     isOwned: Boolean,
     statDiff: Int? = null,
     actionLabel: String? = null,

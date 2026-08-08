@@ -602,11 +602,11 @@ fun ShopScreen(
                                         text = "Sell All Fish",
                                         onClick = {
                                             val newInventory = shopSnapshot.inventory.toMutableList()
-                                            var totalGold = 0
+                                            var totalGold = 0L
                                             allFish.forEach { fishName ->
                                                 val base = GameDatabase.getBaseName(fishName)
                                                 val fishData = com.solerforge.lumeria.database.FishDatabase.fishTable.find { it.name == base }
-                                                totalGold += (fishData?.basePrice ?: 0) / 2
+                                                totalGold += (fishData?.basePrice?.toLong() ?: 0L) / 2
                                                 newInventory.remove(fishName)
                                             }
                                             shopSnapshot = shopSnapshot.copy(gold = shopSnapshot.gold + totalGold, inventory = newInventory)
@@ -621,7 +621,7 @@ fun ShopScreen(
                                         text = "Sell Common Junk",
                                         onClick = {
                                             val newInventory = shopSnapshot.inventory.toMutableList()
-                                            var totalGold = 0
+                                            var totalGold = 0L
                                             commonJunk.forEach { itemName ->
                                                 val base = GameDatabase.getBaseName(itemName)
                                                 val weapon = GameDatabase.weapons.find { it.name == base }
@@ -629,7 +629,7 @@ fun ShopScreen(
                                                 val head = GameDatabase.headGears.find { it.name == base }
                                                 val boots = GameDatabase.boots.find { it.name == base }
                                                 val shield = GameDatabase.shields.find { it.name == base }
-                                                val price = weapon?.price ?: armor?.price ?: head?.price ?: boots?.price ?: shield?.price ?: 0
+                                                val price = weapon?.price ?: armor?.price ?: head?.price ?: boots?.price ?: shield?.price ?: 0L
                                                 totalGold += price / 2
                                                 newInventory.remove(itemName)
                                             }
@@ -676,10 +676,10 @@ fun ShopScreen(
                             
                             val isGodTier = (weapon?.rarity == "God Tier") || (armor?.rarity == "God Tier") || (head?.rarity == "God Tier") || (boots?.rarity == "God Tier") || (shield?.rarity == "God Tier") || (offHand?.rarity == "God Tier") || (fish?.rarity == "God Tier")
 
-                            val price = weapon?.price ?: armor?.price ?: head?.price ?: boots?.price ?: shield?.price ?: offHand?.price ?: rod?.price ?: consumable?.price ?: fish?.basePrice ?: 0
+                            val price = weapon?.price ?: armor?.price ?: head?.price ?: boots?.price ?: shield?.price ?: offHand?.price ?: rod?.price ?: consumable?.price ?: (fish?.basePrice?.toLong()) ?: 0L
                             
                             // Hide God Tier items from sell list (0G price usually, but checking explicitly)
-                            if ((price > 0) && (!isGodTier)) {
+                            if ((price > 0L) && (!isGodTier)) {
                                 val rarity = weapon?.rarity ?: armor?.rarity ?: head?.rarity ?: boots?.rarity ?: shield?.rarity ?: offHand?.rarity ?: rod?.rarity ?: consumable?.rarity ?: fish?.rarity ?: "Common"
                                 val stat = when {
                                     weapon != null -> "${weapon.attack} ATK"

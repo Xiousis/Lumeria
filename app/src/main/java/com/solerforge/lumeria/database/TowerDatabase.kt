@@ -20,8 +20,8 @@ object TowerDatabase {
                 baseName = name,
                 maxHp = (level * 500) + 50000,
                 level = level,
-                rewardXp = floor * 10000,
-                rewardGold = floor * 5000,
+                rewardXp = floor * 10000L,
+                rewardGold = floor * 5000L,
                 isHumanoid = floor % 20 == 0 // Every 20th is humanoid
             )
         } else {
@@ -33,8 +33,8 @@ object TowerDatabase {
                 baseName = name,
                 maxHp = (level * 150) + 10000,
                 level = level,
-                rewardXp = level * 100,
-                rewardGold = level * 50
+                rewardXp = level * 100L,
+                rewardGold = level * 50L
             )
         }
     }

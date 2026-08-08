@@ -31,7 +31,9 @@ sealed class EventOutcome {
 
 data class EventOption(
     val text: String,
-    val outcome: EventOutcome
+    val outcome: EventOutcome,
+    val goldCost: Long = 0L,
+    val requiredItem: String? = null
 )
 
 data class WorldEvent(
