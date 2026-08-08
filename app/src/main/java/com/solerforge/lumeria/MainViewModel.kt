@@ -370,8 +370,8 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
     }
 
     fun onBattleAgain(newData: PlayerData) {
-        val finalData = newData.consumeBattleBuffs()
-        battleOrchestrator.handleBattleAgain(finalData)
+        val buffedData = newData.consumeBattleBuffs()
+        val finalData = battleOrchestrator.handleBattleAgain(buffedData)
         updatePlayer(finalData)
     }
 

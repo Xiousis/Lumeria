@@ -28,8 +28,8 @@ object BossDatabase {
             name = "Training Captain",
             hp = 500,
             level = 6,
-            rewardXp = 250,
-            rewardGold = 500,
+            rewardXp = 250L,
+            rewardGold = 500L,
             defense = 10,
             moveset = listOf(
                 BossAttack("Shield Bash", 1.25, "A heavy slam that can stun.", "Stun", cooldown = 2),
@@ -41,8 +41,8 @@ object BossDatabase {
             name = "Goblin King",
             hp = 2500,
             level = 16,
-            rewardXp = 800,
-            rewardGold = 2000,
+            rewardXp = 800L,
+            rewardGold = 2000L,
             defense = 25,
             moveset = listOf(
                 BossAttack("Crown Smash", 2.0, "A heavy club attack.", "Normal", cooldown = 0),
@@ -54,8 +54,8 @@ object BossDatabase {
             name = "Crystal Guardian",
             hp = 6000,
             level = 26,
-            rewardXp = 2500,
-            rewardGold = 7500,
+            rewardXp = 2500L,
+            rewardGold = 7500L,
             defense = 50,
             moveset = listOf(
                 BossAttack("Crystal Shards", 0.6, "Fires razor-sharp crystals 3 times.", "MultiHit", cooldown = 0, hitCount = 3),
@@ -67,8 +67,8 @@ object BossDatabase {
             name = "Stone Titan",
             hp = 12000,
             level = 36,
-            rewardXp = 6000,
-            rewardGold = 20000,
+            rewardXp = 6000L,
+            rewardGold = 20000L,
             defense = 80,
             moveset = listOf(
                 BossAttack("Boulder Toss", 2.0, "Throws a giant rock.", "Normal", cooldown = 0),
@@ -80,21 +80,21 @@ object BossDatabase {
             name = "Marsh Horror",
             hp = 25000,
             level = 51,
-            rewardXp = 12000,
-            rewardGold = 60000,
+            rewardXp = 12000L,
+            rewardGold = 60000L,
             defense = 120,
             moveset = listOf(
                 BossAttack("Toxic Spit", 1.25, "A poisonous attack.", "Normal", cooldown = 0),
                 BossAttack("Devour", 3.5, "Deals heavy damage and heals.", "Lifesteal", cooldown = 3),
-                BossAttack("Bog Mist", 0.0, "Summons thick mist to dodge.", "Buff", cooldown = 5)
+                BossAttack("Bog Mist", 0.0, "Summons thick mist to dodge.", "EvasionBuff", cooldown = 5)
             )
         ),
         Boss(
             name = "Ancient Dragon",
             hp = 50000,
             level = 66,
-            rewardXp = 25000,
-            rewardGold = 150000,
+            rewardXp = 25000L,
+            rewardGold = 150000L,
             defense = 180,
             moveset = listOf(
                 BossAttack("Dragon Breath", 4.5, "A massive fire attack.", "Normal", cooldown = 4),
@@ -106,8 +106,8 @@ object BossDatabase {
             name = "Lord Xarthos",
             hp = 100000,
             level = 80,
-            rewardXp = 50000,
-            rewardGold = 400000,
+            rewardXp = 50000L,
+            rewardGold = 400000L,
             defense = 300,
             moveset = listOf(
                 BossAttack("Void Slash", 2.5, "A blade of void energy.", "Normal", cooldown = 0),
@@ -118,7 +118,7 @@ object BossDatabase {
         // LEGACY BOSSES
         Boss(
             name = "The Star Sovereign",
-            hp = 150000, level = 20, rewardXp = 100000, rewardGold = 0, defense = 400,
+            hp = 150000, level = 20, rewardXp = 100000L, rewardGold = 0L, defense = 400,
             moveset = listOf(
                 BossAttack("Stellar Flare", 3.0, "Burns with the power of stars."),
                 BossAttack("Supernova", 8.0, "A massive explosion.", "IgnoreArmor", cooldown = 6)
@@ -127,7 +127,7 @@ object BossDatabase {
         ),
         Boss(
             name = "The Ancient Oak",
-            hp = 300000, level = 40, rewardXp = 250000, rewardGold = 0, defense = 600,
+            hp = 300000, level = 40, rewardXp = 250000L, rewardGold = 0L, defense = 600,
             moveset = listOf(
                 BossAttack("Root Crush", 2.5, "Crushes from beneath."),
                 BossAttack("Nature's Blessing", 0.0, "Heals using the earth.", "Heal", cooldown = 4)
@@ -136,7 +136,7 @@ object BossDatabase {
         ),
         Boss(
             name = "Prismatic Queen",
-            hp = 500000, level = 60, rewardXp = 500000, rewardGold = 0, defense = 800,
+            hp = 500000, level = 60, rewardXp = 500000L, rewardGold = 0L, defense = 800,
             moveset = listOf(
                 BossAttack("Refracted Beam", 4.0, "Light bounces and hits harder."),
                 BossAttack("Crystal Cage", 1.0, "Stuns the target in crystal.", "Stun", cooldown = 5)
@@ -145,7 +145,7 @@ object BossDatabase {
         ),
         Boss(
             name = "The Iron Titan",
-            hp = 800000, level = 80, rewardXp = 1000000, rewardGold = 0, defense = 1200,
+            hp = 800000, level = 80, rewardXp = 1000000L, rewardGold = 0L, defense = 1200,
             moveset = listOf(
                 BossAttack("Heavy Anvil", 5.0, "A massive weight falls."),
                 BossAttack("Iron Will", 0.0, "Hardens for massive defense.", "Shield", cooldown = 5)
@@ -154,7 +154,7 @@ object BossDatabase {
         ),
         Boss(
             name = "Fen Horror",
-            hp = 1200000, level = 100, rewardXp = 2000000, rewardGold = 0, defense = 1500,
+            hp = 1200000, level = 100, rewardXp = 2000000L, rewardGold = 0L, defense = 1500,
             moveset = listOf(
                 BossAttack("Swamp Gulp", 3.0, "Bites and heals.", "Lifesteal"),
                 BossAttack("Toxic Mist", 1.0, "Reduces player defense.", "DefenseDown", cooldown = 3)
@@ -163,7 +163,7 @@ object BossDatabase {
         ),
         Boss(
             name = "Solaris Drake",
-            hp = 2000000, level = 120, rewardXp = 4000000, rewardGold = 0, defense = 2000,
+            hp = 2000000, level = 120, rewardXp = 4000000L, rewardGold = 0L, defense = 2000,
             moveset = listOf(
                 BossAttack("Solar Breath", 6.0, "Melts everything."),
                 BossAttack("Incinerate", 10.0, "Ultimate fire attack.", "IgnoreArmor", cooldown = 7)
@@ -172,7 +172,7 @@ object BossDatabase {
         ),
         Boss(
             name = "Abyssal Magister",
-            hp = 3500000, level = 140, rewardXp = 8000000, rewardGold = 0, defense = 2500,
+            hp = 3500000, level = 140, rewardXp = 8000000L, rewardGold = 0L, defense = 2500,
             moveset = listOf(
                 BossAttack("Void Sphere", 5.0, "A ball of pure nothingness."),
                 BossAttack("Reality Tear", 12.0, "Tears space apart.", "IgnoreArmor", cooldown = 6)
@@ -181,7 +181,7 @@ object BossDatabase {
         ),
         Boss(
             name = "Grand Zephyr",
-            hp = 5000000, level = 155, rewardXp = 15000000, rewardGold = 0, defense = 3000,
+            hp = 5000000, level = 155, rewardXp = 15000000L, rewardGold = 0L, defense = 3000,
             moveset = listOf(
                 BossAttack("Gale Blade", 4.0, "Sharp wind cuts deep."),
                 BossAttack("Hurricane", 1.5, "Hits 5 times in a storm.", "MultiHit", cooldown = 4, hitCount = 5)
@@ -190,7 +190,7 @@ object BossDatabase {
         ),
         Boss(
             name = "The Deep One",
-            hp = 8000000, level = 170, rewardXp = 30000000, rewardGold = 0, defense = 4000,
+            hp = 8000000, level = 170, rewardXp = 30000000L, rewardGold = 0L, defense = 4000,
             moveset = listOf(
                 BossAttack("Abyssal Pressure", 7.0, "The weight of the ocean."),
                 BossAttack("Drown", 0.0, "Stuns the hero.", "Stun", cooldown = 5)
@@ -199,7 +199,7 @@ object BossDatabase {
         ),
         Boss(
             name = "Chronos",
-            hp = 12000000, level = 185, rewardXp = 60000000, rewardGold = 0, defense = 5000,
+            hp = 12000000, level = 185, rewardXp = 60000000L, rewardGold = 0L, defense = 5000,
             moveset = listOf(
                 BossAttack("Time Warp", 5.0, "Strikes before you can move."),
                 BossAttack("Rewind", 0.0, "Heals back to previous state.", "Heal", cooldown = 8)
@@ -208,7 +208,7 @@ object BossDatabase {
         ),
         Boss(
             name = "The Fate Binder",
-            hp = 20000000, level = 195, rewardXp = 120000000, rewardGold = 0, defense = 7000,
+            hp = 20000000, level = 195, rewardXp = 120000000L, rewardGold = 0L, defense = 7000,
             moveset = listOf(
                 BossAttack("Destiny's Call", 10.0, "Unavoidable damage."),
                 BossAttack("Thread Cut", 20.0, "Attempts to end the life.", "IgnoreArmor", cooldown = 10)
@@ -217,7 +217,7 @@ object BossDatabase {
         ),
         Boss(
             name = "The Genesis Creator",
-            hp = 50000000, level = 200, rewardXp = 0, rewardGold = 0, defense = 10000,
+            hp = 50000000, level = 200, rewardXp = 0L, rewardGold = 0L, defense = 10000,
             moveset = listOf(
                 BossAttack("The First Thought", 15.0, "Damage from the beginning."),
                 BossAttack("Final Erasure", 100.0, "Erasure from existence.", "IgnoreArmor", cooldown = 15)

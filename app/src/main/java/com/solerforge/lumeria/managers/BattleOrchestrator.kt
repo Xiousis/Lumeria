@@ -102,9 +102,8 @@ class BattleOrchestrator(
         onNavigateToBattleScreen()
     }
 
-    fun handleBattleAgain(newData: PlayerData) {
+    fun handleBattleAgain(newData: PlayerData): PlayerData {
         grindingPlayerData = newData
-        onUpdatePlayer(newData)
         if (isRiftBattle) {
             isBossBattle = (newData.riftStep >= 3)
         }
@@ -112,10 +111,10 @@ class BattleOrchestrator(
             // Cannot play again in PvP for now, but resetting state
         }
         battleSeed++
-        checkSpawnVoidIncursion(newData)
+        return checkSpawnVoidIncursion(newData)
     }
 
-    private fun checkSpawnVoidIncursion(current: PlayerData) {
+    private fun checkSpawnVoidIncursion(current: PlayerData): PlayerData {
         if ((current.voidIncursionLocation == null) && (Math.random() < 0.15)) {
             val potentialLocations = (if (current.isReborn) WorldDatabase.legacyLocations else WorldDatabase.locations).filter { 
                 it.name != current.currentLocation && 
@@ -123,9 +122,10 @@ class BattleOrchestrator(
             }
             if (potentialLocations.isNotEmpty()) {
                 val newLoc = potentialLocations.random().name
-                onUpdatePlayer(current.copy(voidIncursionLocation = newLoc))
+                return current.copy(voidIncursionLocation = newLoc)
             }
         }
+        return current
     }
 
     fun startShadowBattle(shadow: PlayerData, player: PlayerData) {

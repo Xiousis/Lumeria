@@ -32,24 +32,16 @@ object BattleEngine {
             return PlayerTurnResult(state.copy(isProcessing = false), newLogs, false)
         }
         
-        // 1. START OF TURN HOUSEKEEPING (Decrement all active cooldowns and debuffs)
-        val workingCooldowns = state.skillCooldowns.toMutableMap()
-        workingCooldowns.keys.forEach { name ->
-            val cd = workingCooldowns[name] ?: 0
-            if (cd > 0) workingCooldowns[name] = cd - 1
-        }
-
-        // --- MANA & HP REGENERATION FIRST ---
+        // 1. START OF TURN HOUSEKEEPING (Calculate prospectives)
         val offHand1 = GameDatabase.getOffHand(state.currentPlayerSnapshot.equippedOffHand)
         val offHand2 = GameDatabase.getOffHand(state.currentPlayerSnapshot.equippedOffHand2)
         val totalWisdom = state.currentPlayerSnapshot.wisdom + offHand1.wisdom + offHand2.wisdom
         var wisdomRegen = (totalWisdom / 5)
         
         if (state.currentPlayerSnapshot.activeKingdomLawId == 3) {
-            wisdomRegen = (wisdomRegen * 0.85).toInt() // Void Resistance Act: -15% Regen
+            wisdomRegen = (wisdomRegen * 0.85).toInt() 
         }
         
-        // Apply Mana Regen Buffs
         state.currentPlayerSnapshot.activeBuffs.find { it.type == BuffType.ManaRegen }?.let {
             wisdomRegen = (wisdomRegen * it.value).toInt()
         }
@@ -59,6 +51,20 @@ object BattleEngine {
         }
 
         val nextManaWithRegen = minOf(state.playerMana + wisdomRegen, state.currentPlayerSnapshot.maxMana)
+
+        // Mana Validation (Strict: return original state if fails)
+        if (nextManaWithRegen < skill.manaCost && skill.name != "None") {
+            newLogs.add(LogEntry("Not enough Mana for ${skill.name}!", Color.Red))
+            return PlayerTurnResult(state.copy(isProcessing = false), newLogs, false)
+        }
+
+        // --- COMMIT CHANGES ---
+        val workingCooldowns = state.skillCooldowns.toMutableMap()
+        workingCooldowns.keys.forEach { name ->
+            val cd = workingCooldowns[name] ?: 0
+            if (cd > 0) workingCooldowns[name] = cd - 1
+        }
+
         if (nextManaWithRegen > state.playerMana) {
             newLogs.add(LogEntry("Regenerated ${nextManaWithRegen - state.playerMana} Mana.", Color.Cyan))
         }
@@ -68,7 +74,6 @@ object BattleEngine {
         if (state.currentPlayerSnapshot.unlockedTraits.contains("Eyes of the Creator")) hpRegen += 20
         if (state.currentPlayerSnapshot.unlockedTraits.contains("Will of the Ancients")) hpRegen += 50
         
-        // Passive from items/buffs
         if (state.currentPlayerSnapshot.activeBuffs.any { it.type == BuffType.HealthRegen }) {
             hpRegen += (state.currentPlayerSnapshot.maxHp * 0.05).toInt()
         }
@@ -78,19 +83,8 @@ object BattleEngine {
             newLogs.add(LogEntry("Regenerated ${nextHpWithRegen - state.playerHp} HP.", Color.Green))
         }
 
-        // Mana Validation After Regen
-        if (nextManaWithRegen < skill.manaCost && skill.name != "None") {
-            newLogs.add(LogEntry("Not enough Mana for ${skill.name}!", Color.Red))
-            return PlayerTurnResult(state.copy(
-                isProcessing = false,
-                playerMana = nextManaWithRegen,
-                playerHp = nextHpWithRegen,
-                skillCooldowns = workingCooldowns
-            ), newLogs, false)
-        }
-
         var currentState = state.copy(
-            parryActive = false, // Reset parry stance at start of turn
+            parryActive = false, 
             skillCooldowns = workingCooldowns,
             playerDefenseDebuffTurns = maxOf(0, state.playerDefenseDebuffTurns - 1),
             playerMana = nextManaWithRegen,
@@ -178,6 +172,7 @@ object BattleEngine {
             playerDamageBuff = totalTurnDamageMultiplier,
             bonusCritChance = bonusCrit,
             previousSkillName = currentState.lastSkillName,
+            enemyEvasionBonus = currentState.enemyEvasionBonus,
         )
         
         // --- 5.1 SECONDARY ENEMY LOGIC (AoE) ---
@@ -199,6 +194,7 @@ object BattleEngine {
                 playerDamageBuff = totalTurnDamageMultiplier,
                 bonusCritChance = bonusCrit,
                 previousSkillName = state.lastSkillName,
+                enemyEvasionBonus = currentState.enemyEvasionBonus,
             )
             enemy2Hp = result2.enemyHp
             if (result2.playerDamage > 0) {
@@ -352,6 +348,11 @@ object BattleEngine {
         val familiar = FamiliarDatabase.getFamiliar(state.currentPlayerSnapshot.equippedFamiliar)
         var familiarActionTaken = false
         
+        var enemyDamageMultiplier = state.enemyDamageMultiplier
+        var enemyDamageDebuffTurns = state.enemyDamageDebuffTurns
+        var enemyEvasionBonus = state.enemyEvasionBonus
+        var enemyEvasionBuffTurns = state.enemyEvasionBuffTurns
+
         if (familiar.name != "None" && familiarActionCounter >= familiar.supportInterval) {
             familiarActionCounter = 0
             familiarActionTaken = true
@@ -382,7 +383,21 @@ object BattleEngine {
                     newLogs.add(LogEntry("${familiar.name} boosted your attack!", Color.Yellow))
                 }
                 FamiliarActionType.Debuff -> {
-                    newLogs.add(LogEntry("${familiar.name} distracted the enemy!", Color.Magenta))
+                    when (familiar.name) {
+                        "Shadow Bat" -> {
+                            enemyDamageMultiplier = 0.90
+                            enemyDamageDebuffTurns = 2
+                            newLogs.add(LogEntry("Shadow Bat uses Echolocation! Enemy damage reduced by 10%.", Color.Magenta))
+                        }
+                        "Mire Hydra" -> {
+                            enemyDamageMultiplier = 0.80
+                            enemyDamageDebuffTurns = 2
+                            newLogs.add(LogEntry("Mire Hydra releases Toxic Fumes! Enemy damage reduced by 20%.", Color.Magenta))
+                        }
+                        else -> {
+                            newLogs.add(LogEntry("${familiar.name} distracted the enemy!", Color.Magenta))
+                        }
+                    }
                 }
             }
         }
@@ -416,6 +431,10 @@ object BattleEngine {
             enemy2BurnTurns = enemy2BurnTurns,
             poisonTurns = poisonTurns,
             enemy2PoisonTurns = enemy2PoisonTurns,
+            enemyDamageMultiplier = enemyDamageMultiplier,
+            enemyDamageDebuffTurns = enemyDamageDebuffTurns,
+            enemyEvasionBonus = enemyEvasionBonus,
+            enemyEvasionBuffTurns = enemyEvasionBuffTurns,
             lastSkillName = skill.name,
             skillCooldowns = workingCooldowns,
             battleMessage = if (result.isCrit) "CRITICAL HIT!" else "",
@@ -446,8 +465,17 @@ object BattleEngine {
         var currentState = state.copy(
             enemySkillCooldowns = workingCooldowns,
             bossEnrageTurns = maxOf(0, state.bossEnrageTurns - 1),
-            bossShieldTurns = maxOf(0, state.bossShieldTurns - 1)
+            bossShieldTurns = maxOf(0, state.bossShieldTurns - 1),
+            enemyDamageDebuffTurns = maxOf(0, state.enemyDamageDebuffTurns - 1),
+            enemyEvasionBuffTurns = maxOf(0, state.enemyEvasionBuffTurns - 1)
         )
+
+        if (currentState.enemyDamageDebuffTurns == 0) {
+            currentState = currentState.copy(enemyDamageMultiplier = 1.0)
+        }
+        if (currentState.enemyEvasionBuffTurns == 0) {
+            currentState = currentState.copy(enemyEvasionBonus = 0.0)
+        }
 
         // --- PASSIVE STATUS DAMAGE (Burn, Poison, Bleed) ---
         val (passiveState, passiveLogs) = applyPassiveDamage(currentState)
@@ -647,6 +675,7 @@ object BattleEngine {
         val effectiveDef = if (state.playerDefenseDebuffTurns > 0) (totalDef * 0.8).toInt() else totalDef
         
         var enemyDmgDealt = BattleLogic.calculateEnemyDamage(state.enemy.name, state.enemy.level, effectiveDef)
+        enemyDmgDealt = (enemyDmgDealt * state.enemyDamageMultiplier).toInt()
         
         // --- KINGDOM LAWS ---
         when (state.currentPlayerSnapshot.activeKingdomLawId) {
@@ -798,6 +827,8 @@ object BattleEngine {
         var playerDefenseDebuffTurns = state.playerDefenseDebuffTurns
         var currentEnrageTurns = enrageTurns
         var currentShieldTurns = shieldTurns
+        var enemyEvasionBonus = state.enemyEvasionBonus
+        var enemyEvasionBuffTurns = state.enemyEvasionBuffTurns
 
         // 3. DAMAGE CALCULATION
         val armorDef = GameDatabase.getArmor(state.currentPlayerSnapshot.equippedArmor).defense
@@ -827,6 +858,7 @@ object BattleEngine {
         
         val ignoreArmor = attack.effectType == "IgnoreArmor"
         var baseDmg = BattleLogic.calculateBossDamage(state.enemy.level, effectiveDef, multiplier, ignoreArmor)
+        baseDmg = (baseDmg * state.enemyDamageMultiplier).toInt()
 
         // --- KINGDOM LAWS ---
         when (state.currentPlayerSnapshot.activeKingdomLawId) {
@@ -903,14 +935,20 @@ object BattleEngine {
                 }
                 newLogs.add(LogEntry("${state.enemy.name} strikes ${attack.hitCount} times for $totalEnemyDmg damage!", Color.Red))
             }
-            "Buff" -> {
+            "Buff", "DamageBuff" -> {
                 currentEnrageTurns = 3
                 newLogs.add(LogEntry("${state.enemy.name} is enraged! (+25% DMG)", Color.Yellow))
                 playerHp = maxOf(0, playerHp - baseDmg)
             }
-            "Shield" -> {
+            "EvasionBuff" -> {
+                enemyEvasionBonus = 0.20
+                enemyEvasionBuffTurns = 3
+                newLogs.add(LogEntry("${state.enemy.name} is shrouded in mist! Evasion increased!", Color.Cyan))
+                playerHp = maxOf(0, playerHp - baseDmg)
+            }
+            "Shield", "DefenseBuff" -> {
                 currentShieldTurns = 3
-                newLogs.add(LogEntry("${state.enemy.name} raises a reflective barrier!", Color.Cyan))
+                newLogs.add(LogEntry("${state.enemy.name} raises a defensive barrier!", Color.Cyan))
                 playerHp = maxOf(0, playerHp - baseDmg)
             }
             else -> {
@@ -935,7 +973,9 @@ object BattleEngine {
                 bossShieldTurns = currentShieldTurns,
                 playerStunnedTurns = playerStunnedTurns,
                 playerDefenseDebuffTurns = playerDefenseDebuffTurns,
-                secondWindUsed = secondWindUsed
+                secondWindUsed = secondWindUsed,
+                enemyEvasionBonus = enemyEvasionBonus,
+                enemyEvasionBuffTurns = enemyEvasionBuffTurns
             ),
             newLogs
         )

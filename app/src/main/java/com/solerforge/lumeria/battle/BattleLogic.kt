@@ -123,14 +123,15 @@ object BattleLogic {
         playerDamageBuff: Double = 1.0,
         bonusCritChance: Double = 0.0,
         previousSkillName: String? = null,
+        enemyEvasionBonus: Double = 0.0,
     ): TurnResult {
         var nextEnemyHp = currentEnemyHp
         var nextPlayerHp = currentHp
         var playerDmgDealt = 0
         var actualHeal = 0
         var isCrit = false
-        val isDodge = false
-        val enemyDmgDealt = 0
+        var isDodge = false
+        var enemyDmgDealt = 0
         var stunApplied = false
         var bleedApplied = false
         var multiHits = 1
@@ -138,6 +139,21 @@ object BattleLogic {
         val reflectedDamage = 0
         var comboTriggered = false
         var appliedStatus = StatusEffect.None
+
+        // 0. CHECK ENEMY DODGE
+        if (skill.effectType != "Heal" && skill.effectType != "Buff" && Math.random() < enemyEvasionBonus) {
+            isDodge = true
+            return TurnResult(
+                playerHp = currentHp,
+                playerMana = currentMana, // Handled in engine
+                enemyHp = currentEnemyHp,
+                isCrit = false,
+                isDodge = true,
+                playerDamage = 0,
+                enemyDamage = 0,
+                actualHeal = 0
+            )
+        }
 
         val bootsAgi = GameDatabase.getBoots(player.equippedBoots).agility
         val offHand1 = GameDatabase.getOffHand(player.equippedOffHand)
@@ -246,7 +262,7 @@ object BattleLogic {
                         baseDmg *= eventDamageMult
                         
                         // Bestiary Mastery Damage Bonus (Rank 4 = 1000 Kills)
-                        val kills = player.killCounts[enemy.name] ?: 0
+                        val kills = player.killCounts[enemy.baseName] ?: 0
                         if (kills >= 1000) baseDmg *= 1.10
                         
                         // Execute logic
@@ -499,7 +515,7 @@ object BattleLogic {
 
         // Bestiary Update Logic
         val newKillCounts = updatedPlayer.killCounts.toMutableMap()
-        newKillCounts[enemy.name] = (newKillCounts[enemy.name] ?: 0) + 1
+        newKillCounts[enemy.baseName] = (newKillCounts[enemy.baseName] ?: 0) + 1
 
         // Renown Logic
         var renownGain = when {

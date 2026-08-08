@@ -181,14 +181,15 @@ class PlayerDataRepository(
             // Check local data
             val localPreferences = context.dataStore.data.first()
             val localJsonString = localPreferences[Keys.slotKey(slot)]
-            if (localJsonString != null) {
-                val localDecoded = json.decodeFromString<PlayerData>(localJsonString)
-                val localMigrated = migrateIfNeeded(localDecoded)
-                
-                // If local is newer, abort sync or handle accordingly
-                if (localMigrated.lastSavedAt > cloudMigrated.lastSavedAt) {
-                    return false // Local is newer
-                }
+            
+            val localData = localJsonString?.let {
+                runCatching {
+                    json.decodeFromString<PlayerData>(it)
+                }.getOrNull()?.let { migrateIfNeeded(it) }
+            }
+            
+            if (localData != null && localData.lastSavedAt > cloudMigrated.lastSavedAt) {
+                return false // Local is newer
             }
 
             // Save to local

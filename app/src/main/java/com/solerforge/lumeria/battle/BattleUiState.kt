@@ -53,6 +53,10 @@ data class BattleUiState(
     // Status Effects
     val playerStunnedTurns: Int = 0,
     val playerDefenseDebuffTurns: Int = 0,
+    val enemyDamageMultiplier: Double = 1.0,
+    val enemyEvasionBonus: Double = 0.0,
+    val enemyDamageDebuffTurns: Int = 0,
+    val enemyEvasionBuffTurns: Int = 0,
     val bossShieldTurns: Int = 0,
     val bossEnrageTurns: Int = 0,
     val enemyStunnedTurns: Int = 0,
