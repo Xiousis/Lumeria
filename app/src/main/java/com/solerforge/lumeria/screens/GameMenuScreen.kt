@@ -6,6 +6,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
@@ -64,6 +65,7 @@ fun GameMenuScreen(
     onWorldChat: () -> Unit,
     onSettings: () -> Unit,
     onRebirth: () -> Unit,
+    onRaid: () -> Unit,
     onLeaderboard: () -> Unit,
     selectedTabIndex: Int,
     onTabSelected: (Int) -> Unit,
@@ -75,13 +77,14 @@ fun GameMenuScreen(
     val context = LocalContext.current
     val tabs = listOf("Adventure", "Player", "Town Square")
 
-    LaunchedEffect(Unit) {
-        MusicManager.playMusic(context, R.raw.lumeria_main_menu_theme)
+    LaunchedEffect(playerData.isReborn) {
+        val theme = if (playerData.isReborn) R.raw.echoes_of_lumeria_title else R.raw.lumeria_main_menu_theme
+        MusicManager.playMusic(context, theme)
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
         Image(
-            painter = painterResource(id = R.drawable.menu_background),
+            painter = painterResource(id = if (playerData.isReborn) R.drawable.hall_of_heroes_bg else R.drawable.menu_background),
             contentDescription = null,
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Crop,
@@ -215,9 +218,9 @@ fun GameMenuScreen(
                     .padding(horizontal = 24.dp)
             ) {
                 when (selectedTabIndex) {
-                    0 -> AdventureTab(onBattle, onStory, onArena, onBounty, onTower, onQuests, playerData.defeatedBosses)
+                    0 -> AdventureTab(onBattle, onStory, onArena, onBounty, onTower, onQuests, onRaid, playerData)
                     1 -> PlayerTab(playerData, onInventory, onStats, onSkills, onJournal, onBestiary, onTrophyRoom, onCodex, onWorldChat, onLeaderboard)
-                    2 -> TownSquareTab(onShop, onElder, onInn, onGambling, onBlacksmith, onBank, onKingdom, onGuild, onFishing, onFamiliarStore, onRebirth, playerData.renown, playerData.isReborn)
+                    2 -> TownSquareTab(onShop, onElder, onInn, onGambling, onBlacksmith, onBank, onKingdom, onGuild, onFishing, onFamiliarStore, onRebirth, playerData)
                 }
             }
 
@@ -243,22 +246,29 @@ fun AdventureTab(
     onBounty: () -> Unit, 
     onTower: () -> Unit,
     onQuests: () -> Unit,
-    defeatedBosses: List<String>
+    onRaid: () -> Unit,
+    playerData: PlayerData
 ) {
+    val unlocked = playerData.unlockedFeatures
     Column(
         modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        MenuCard("WORLD MAP", "Travel across Lumeria and clear regions.", onBattle)
-        MenuCard("STORY MODE", "Progress through the epic Rise of Xious.", onStory)
-        MenuCard("BOUNTY BOARD", "Hunt down dangerous outlaws for big rewards.", onBounty)
-        MenuCard("GRAND ARENA", "Challenge the realm's strongest humans.", onArena)
+        MenuCard("WORLD MAP", "Travel across Lumeria and clear regions.", onBattle, isLocked = !unlocked.contains("WORLD MAP"))
+        MenuCard("STORY MODE", "Progress through the epic Rise of Xious.", onStory, isLocked = !unlocked.contains("STORY MODE"))
+        MenuCard("BOUNTY BOARD", "Hunt down dangerous outlaws for big rewards.", onBounty, isLocked = !unlocked.contains("BOUNTY BOARD"))
+        MenuCard("GRAND ARENA", "Challenge the realm's strongest humans.", onArena, isLocked = !unlocked.contains("GRAND ARENA"))
         
-        if (com.solerforge.lumeria.database.TowerDatabase.isTowerUnlocked(defeatedBosses)) {
+        if (com.solerforge.lumeria.database.TowerDatabase.isTowerUnlocked(playerData.defeatedBosses)) {
             MenuCard("BATTLE TOWER", "Scale the 100 floors of ultimate trials.", onTower)
         }
         
-        MenuCard("QUEST LOG", "Track your active objectives and rewards.", onQuests)
+        // RAID - Locked and Hidden until feature is ready
+        if (false) {
+            MenuCard("RAID", "Coming Soon - Cooperate with others for legendary loot.", onRaid, isLocked = true)
+        }
+        
+        MenuCard("QUEST LOG", "Track your active objectives and rewards.", onQuests, isLocked = !unlocked.contains("QUEST LOG"))
     }
 }
 
@@ -289,27 +299,40 @@ fun PlayerTab(
 
         Image(
             painter = painterResource(id = portraitId),
-            contentDescription = "Xious Portrait",
+            contentDescription = "Hero Portrait",
             modifier = Modifier
                 .size(260.dp)
-                .clip(RoundedCornerShape(32.dp)),
+                .clip(RoundedCornerShape(32.dp))
+                .then(
+                    if (playerData.isReborn) {
+                        Modifier.border(4.dp, Color(0xFFFFD600), RoundedCornerShape(32.dp))
+                    } else Modifier
+                ),
             contentScale = ContentScale.Fit
         )
         
         Spacer(modifier = Modifier.height(8.dp))
 
         if (playerData.isReborn) {
+            Text(
+                text = "★ LEGENDARY HERO ★",
+                color = Color(0xFFFFD600),
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.Black,
+                letterSpacing = 2.sp,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
             MenuCard("HEROES' CIRCLE", "Communicate with fellow heroes and Legends.", onWorldChat, highlight = true)
             MenuCard("HALL OF LEGENDS", "View global player rankings and PvP records.", onLeaderboard, highlight = true)
         }
         
-        MenuCard("LUMERIA CODEX", "Learn about attributes, combat, and world systems.", onCodex, highlight = true)
-        MenuCard("HALL OF HEROES", "View your trophies, medals, and legendary feats.", onTrophyRoom)
-        MenuCard("INVENTORY", "Manage your gear and consumables.", onInventory)
-        MenuCard("CHARACTER STATS", "Allocate points and review your power.", onStats)
-        MenuCard("SKILL BOOK", "Equip and mastery your combat abilities.", onSkills)
-        MenuCard("BESTIARY", "Review known enemies and their secrets.", onBestiary)
-        MenuCard("STORY JOURNAL", "Review your journey and achievements.", onJournal)
+        MenuCard("LUMERIA CODEX", "Learn about attributes, combat, and world systems.", onCodex, highlight = true, isLocked = !playerData.unlockedFeatures.contains("LUMERIA CODEX"))
+        MenuCard("HALL OF HEROES", "View your trophies, medals, and legendary feats.", onTrophyRoom, isLocked = !playerData.unlockedFeatures.contains("HALL OF HEROES"))
+        MenuCard("INVENTORY", "Manage your gear and consumables.", onInventory, isLocked = !playerData.unlockedFeatures.contains("INVENTORY"))
+        MenuCard("CHARACTER STATS", "Allocate points and review your power.", onStats, isLocked = !playerData.unlockedFeatures.contains("CHARACTER STATS"))
+        MenuCard("SKILL BOOK", "Equip and mastery your combat abilities.", onSkills, isLocked = !playerData.unlockedFeatures.contains("SKILL BOOK"))
+        MenuCard("BESTIARY", "Review known enemies and their secrets.", onBestiary, isLocked = !playerData.unlockedFeatures.contains("BESTIARY"))
+        MenuCard("STORY JOURNAL", "Review your journey and achievements.", onJournal, isLocked = !playerData.unlockedFeatures.contains("STORY JOURNAL"))
         
         Spacer(modifier = Modifier.height(16.dp))
     }
@@ -328,49 +351,52 @@ fun TownSquareTab(
     onFishing: () -> Unit,
     onFamiliarStore: () -> Unit,
     onRebirth: () -> Unit,
-    renown: Long,
-    isReborn: Boolean,
+    playerData: PlayerData,
 ) {
+    val unlocked = playerData.unlockedFeatures
     Column(
         modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        if (!isReborn) {
+        if (!playerData.isReborn) {
             MenuCard(
                 title = "REBIRTH ALTAR",
                 subtitle = "Transcend your mortal limits and forge a legacy.",
                 onClick = onRebirth,
-                highlight = true
+                highlight = true,
+                isLocked = !unlocked.contains("REBIRTH ALTAR")
             )
         }
 
-        MenuCard("THE ROYAL COURT", "Visit King Alaric and review your standing.", onKingdom)
+        MenuCard("THE ROYAL COURT", "Visit King Alaric and review your standing.", onKingdom, isLocked = !unlocked.contains("THE ROYAL COURT"))
         
-        val guildUnlocked = renown >= 7500
+        val guildUnlocked = playerData.renown >= 7500
         MenuCard(
             title = "THE GUILD",
             subtitle = if (guildUnlocked) "Join a House and learn elemental magic." else "Become Respected Adventurer to unlock.",
             onClick = { if (guildUnlocked) onGuild() },
-            isLocked = !guildUnlocked
+            isLocked = !guildUnlocked || !unlocked.contains("THE GUILD")
         )
 
-        MenuCard("FISHING POND", "Relax and catch some legendary fish.", onFishing)
-        MenuCard("FAMILIAR NURSERY", "Find a loyal companion to aid you.", onFamiliarStore)
-        MenuCard("IRONCLAD BANK", "Deposit gold to protect it from defeat penalties.", onBank)
-        MenuCard("THE FORGE", "Upgrade your weapons and armor to +5.", onBlacksmith)
-        MenuCard("BILLY'S STORE", "Buy new gear or sell your old equipment.", onShop)
-        MenuCard("THE ELDER", "Seek wisdom, respec stats, or make a wish.", onElder)
+        MenuCard("FISHING POND", "Relax and catch some legendary fish.", onFishing, isLocked = !unlocked.contains("FISHING POND"))
+        MenuCard("FAMILIAR NURSERY", "Find a loyal companion to aid you.", onFamiliarStore, isLocked = !unlocked.contains("FAMILIAR NURSERY"))
+        MenuCard("IRONCLAD BANK", "Deposit gold to protect it from defeat penalties.", onBank, isLocked = !unlocked.contains("IRONCLAD BANK"))
+        MenuCard("THE FORGE", "Upgrade your weapons and armor to +5.", onBlacksmith, isLocked = !unlocked.contains("THE FORGE"))
+        MenuCard("BILLY'S STORE", "Buy new gear or sell your old equipment.", onShop, isLocked = !unlocked.contains("BILLY'S STORE"))
+        MenuCard("THE ELDER", "Seek wisdom, respec stats, or make a wish.", onElder, isLocked = !unlocked.contains("THE ELDER"))
         
         MenuCard(
             title = "THE INN",
             subtitle = "Rest and recover your strength at Yumi's Inn.",
-            onClick = onInn
+            onClick = onInn,
+            isLocked = !unlocked.contains("THE INN")
         )
 
         MenuCard(
             title = "THE GAMBLING HOUSE",
             subtitle = "Try your luck at Blackjack and double your gold.",
-            onClick = onGambling
+            onClick = onGambling,
+            isLocked = !unlocked.contains("THE GAMBLING HOUSE")
         )
     }
 }

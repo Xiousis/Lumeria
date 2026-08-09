@@ -333,6 +333,37 @@ fun StatsScreen(
                     )
                 }
                 
+                // BUILD SUMMARY PANEL
+                item {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(Color(0xFF334155).copy(alpha = 0.5f), RoundedCornerShape(12.dp))
+                            .border(1.dp, Color.Cyan.copy(alpha = 0.3f), RoundedCornerShape(12.dp))
+                            .padding(16.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        Text("Build Summary", color = Color.Cyan, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black)
+                        Spacer(modifier = Modifier.height(8.dp))
+                        
+                        val bootsAgi = GameDatabase.getBoots(playerData.equippedBoots).agility
+                        val offHand1 = GameDatabase.getOffHand(playerData.equippedOffHand)
+                        val offHand2 = GameDatabase.getOffHand(playerData.equippedOffHand2)
+                        
+                        val totalAgi = playerData.agility + bootsAgi + offHand1.agility + offHand2.agility
+                        val totalLuck = playerData.luck + offHand1.luck + offHand2.luck
+                        
+                        val crit = ((totalAgi * 1.0) + (totalLuck * 0.5)).coerceAtMost(75.0)
+                        val dodge = ((totalAgi * 0.5) + (totalLuck * 0.2)).coerceAtMost(50.0)
+                        val goldBonus = totalLuck * 1
+                        
+                        BuildStatRow("Crit Chance", "${crit.toInt()}%")
+                        BuildStatRow("Dodge Chance", "${dodge.toInt()}%")
+                        BuildStatRow("Gold Bonus", "+$goldBonus%")
+                        BuildStatRow("XP Bonus", if (playerData.activeKingdomLawId == 2) "+25%" else "+0%")
+                    }
+                }
+
                 // DERIVED STATS PANEL
                 item {
                     Column(
@@ -453,5 +484,16 @@ fun AttributeDetail(name: String, detail: String) {
     Row(modifier = Modifier.padding(vertical = 2.dp)) {
         Text("$name: ", color = Color.Cyan, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
         Text(detail, color = Color.White, style = MaterialTheme.typography.labelMedium)
+    }
+}
+
+@Composable
+fun BuildStatRow(label: String, value: String) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(label, color = Color.LightGray, style = MaterialTheme.typography.bodySmall)
+        Text(value, color = Color.White, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold)
     }
 }

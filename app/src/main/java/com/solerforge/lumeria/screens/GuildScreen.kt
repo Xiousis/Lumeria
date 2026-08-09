@@ -8,7 +8,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -16,7 +15,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -25,406 +23,367 @@ import androidx.compose.ui.unit.sp
 import com.solerforge.lumeria.R
 import com.solerforge.lumeria.components.RpgButton
 import com.solerforge.lumeria.data.PlayerData
-import com.solerforge.lumeria.database.GuildDatabase
-import com.solerforge.lumeria.database.GuildSkillRequirement
+import com.solerforge.lumeria.models.Guild
+import com.solerforge.lumeria.models.GuildMember
 import com.solerforge.lumeria.utils.CurrencyUtils
+import com.solerforge.lumeria.viewmodels.GuildViewModel
 
 enum class GuildTab(val displayName: String) {
-    LEADER("LEADER"),
-    SKILLS("SKILLS"),
-    QUESTS("QUESTS"),
-    RANKS("RANKS")
+    DASHBOARD("DASHBOARD"),
+    MEMBERS("MEMBERS"),
+    VAULT("VAULT"),
+    WARS("WARS")
 }
 
 @Composable
 fun GuildScreen(
     playerData: PlayerData,
-    onJoinGuild: (String) -> Unit,
-    onLearnSkill: (String, Long) -> Unit,
-    onStartExam: (GuildDatabase.GuildExam) -> Unit,
-    onShowLore: () -> Unit,
+    guildViewModel: GuildViewModel,
+    deviceId: String,
+    onPlayerUpdate: (PlayerData) -> Unit,
+    onNavigateToIntro: () -> Unit,
+    onStartExam: (com.solerforge.lumeria.database.GuildDatabase.GuildExam) -> Unit,
     onReturn: () -> Unit
 ) {
-    val context = androidx.compose.ui.platform.LocalContext.current
-    
-    LaunchedEffect(playerData.joinedGuild) {
-        val theme = when (playerData.joinedGuild) {
-            "House of Fire" -> R.raw.house_of_fire_guild_theme
-            "House of Water" -> R.raw.house_of_water_guild_theme
-            "House of Wind" -> R.raw.house_of_wind_ninja_guild_theme
-            else -> R.raw.lumeria_main_menu_theme
+    val currentGuild by guildViewModel.currentGuild.collectAsState()
+    val guildList by guildViewModel.guildList.collectAsState()
+    val members by guildViewModel.guildMembers.collectAsState()
+    val isLoading by guildViewModel.isLoading.collectAsState()
+    val error by guildViewModel.error.collectAsState()
+
+    LaunchedEffect(playerData.joinedGuildId, playerData.isReborn) {
+        if (playerData.joinedGuildId != null) {
+            guildViewModel.fetchCurrentGuild(playerData.joinedGuildId)
+        } else if (playerData.isReborn) {
+            guildViewModel.fetchGuilds()
         }
-        com.solerforge.lumeria.utils.MusicManager.playMusic(context, theme)
     }
 
-    if (playerData.joinedGuild == null) {
-        GuildSelectionScreen(onJoinGuild, onReturn)
+    if (playerData.joinedGuildId == null && playerData.joinedGuild == null) {
+        if (playerData.isReborn) {
+            GuildBrowserScreen(
+                guildList = guildList,
+                isLoading = isLoading,
+                playerData = playerData,
+                onCreateGuild = { name ->
+                    if (playerData.gold >= 1000000L) {
+                        guildViewModel.createGuild(name, playerData, deviceId) { id, guildName ->
+                            onPlayerUpdate(playerData.copy(
+                                joinedGuildId = id, 
+                                joinedGuild = guildName,
+                                gold = playerData.gold - 1000000L
+                            ))
+                        }
+                    }
+                },
+                onJoinGuild = { guild ->
+                    guildViewModel.joinGuild(guild.id, guild.name, playerData, deviceId) { id, guildName ->
+                        onPlayerUpdate(playerData.copy(joinedGuildId = id, joinedGuild = guildName))
+                    }
+                },
+                onReturn = onReturn
+            )
+        } else {
+            StoryGuildSelectionScreen(
+                onJoinGuild = { name ->
+                    onPlayerUpdate(playerData.copy(joinedGuild = name, guildLevel = 1, guildXp = 0))
+                    onNavigateToIntro()
+                },
+                onReturn = onReturn
+            )
+        }
+    } else if (playerData.joinedGuildId != null) {
+        GuildDashboardScreen(
+            playerData = playerData,
+            guild = currentGuild,
+            members = members,
+            deviceId = deviceId,
+            guildViewModel = guildViewModel,
+            onPlayerUpdate = onPlayerUpdate,
+            onReturn = onReturn
+        )
     } else {
-        GuildMainScreen(playerData, onLearnSkill, onStartExam, onShowLore, onReturn)
+        StoryGuildDashboardScreen(
+            playerData = playerData,
+            onPlayerUpdate = onPlayerUpdate,
+            onStartExam = onStartExam,
+            onReturn = onReturn
+        )
+    }
+    
+    error?.let {
+        AlertDialog(
+            onDismissRequest = { guildViewModel.clearError() },
+            title = { Text("Guild Error") },
+            text = { Text(it) },
+            confirmButton = { Button(onClick = { guildViewModel.clearError() }) { Text("OK") } }
+        )
     }
 }
 
 @Composable
-fun GuildSelectionScreen(onJoin: (String) -> Unit, onReturn: () -> Unit) {
-    var guildToConfirm by remember { mutableStateOf<String?>(null) }
+fun GuildBrowserScreen(
+    guildList: List<Guild>,
+    isLoading: Boolean,
+    playerData: PlayerData,
+    onCreateGuild: (String) -> Unit,
+    onJoinGuild: (Guild) -> Unit,
+    onReturn: () -> Unit
+) {
+    var showCreateDialog by remember { mutableStateOf(false) }
+    var guildNameInput by remember { mutableStateOf("") }
 
     Box(modifier = Modifier.fillMaxSize()) {
-        val currentBg = when (guildToConfirm) {
-            "House of Fire" -> R.drawable.house_of_fire_bg
-            "House of Water" -> R.drawable.house_of_water_bg
-            "House of Wind" -> R.drawable.house_of_wind_bg
-            else -> R.drawable.guild_screen_bg
-        }
-
         Image(
-            painter = painterResource(id = currentBg),
+            painter = painterResource(id = R.drawable.guild_screen_bg),
             contentDescription = null,
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Crop,
-            alpha = if (guildToConfirm != null) 1.0f else 0.7f
+            alpha = 0.7f
         )
-        
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .windowInsetsPadding(WindowInsets.statusBars)
-                .padding(horizontal = 0.dp, vertical = 0.dp),
+                .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            val guilds = listOf(
-                "House of Fire" to R.drawable.house_of_fire_button,
-                "House of Water" to R.drawable.house_of_water_button,
-                "House of Wind" to R.drawable.house_of_wind_button
-            )
-            
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                guilds.forEach { (guildName, assetId) ->
-                    Image(
-                        painter = painterResource(id = assetId),
-                        contentDescription = guildName,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .weight(1f)
-                            .graphicsLayer {
-                                scaleX = 1.15f
-                                scaleY = 1.15f
-                            }
-                            .clickable { guildToConfirm = guildName },
-                        contentScale = ContentScale.Fit
-                    )
-                }
+            Text("THE GUILD HALL", color = Color.Cyan, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Black)
+            Text("Create or join a fellowship of adventurers", color = Color.Gray, style = MaterialTheme.typography.labelSmall)
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            if (playerData.isReborn) {
+                RpgButton(
+                    text = "Create Guild (1,000,000 Gold)",
+                    onClick = { showCreateDialog = true },
+                    modifier = Modifier.fillMaxWidth(0.8f)
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
             }
 
-            Image(
-                painter = painterResource(id = R.drawable.return_to_menu_font),
-                contentDescription = "Return",
-                modifier = Modifier
-                    .padding(bottom = 8.dp)
-                    .height(60.dp)
-                    .clickable { onReturn() },
-                contentScale = ContentScale.Fit
-            )
-        }
-
-        // CONFIRMATION OVERLAY
-        guildToConfirm?.let { guildName ->
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.85f))
-                    .clickable(enabled = false) {}, // Prevent clicking through
-                contentAlignment = Alignment.Center
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth(0.85f)
-                        .background(Color(0xFF1E293B), RoundedCornerShape(16.dp))
-                        .border(2.dp, Color.Cyan.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
-                        .padding(24.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(
-                        text = "JOIN $guildName?",
-                        style = MaterialTheme.typography.headlineSmall,
-                        color = Color.White,
-                        fontWeight = FontWeight.Black,
-                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    
-                    Spacer(modifier = Modifier.height(16.dp))
-                    
-                    Text(
-                        text = "Are you sure? You may only join one house, and this choice is permanent.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = Color.LightGray,
-                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
-                    )
-                    
-                    Spacer(modifier = Modifier.height(32.dp))
-                    
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
-                        RpgButton(
-                            text = "Yes",
-                            onClick = { onJoin(guildName) },
-                            modifier = Modifier.weight(1f)
-                        )
-                        RpgButton(
-                            text = "No",
-                            onClick = { guildToConfirm = null },
-                            modifier = Modifier.weight(1f),
-                            containerColor = Color(0xFF4B5563)
-                        )
+            if (isLoading) {
+                CircularProgressIndicator(color = Color.Cyan)
+            } else {
+                LazyColumn(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    item { Text("Available Guilds", color = Color.White, style = MaterialTheme.typography.titleMedium) }
+                    items(guildList) { guild ->
+                        GuildListItem(guild, onJoin = { onJoinGuild(guild) })
                     }
                 }
             }
+
+            Spacer(modifier = Modifier.height(16.dp))
+            RpgButton(text = "Return", onClick = onReturn, modifier = Modifier.width(200.dp))
+        }
+
+        if (showCreateDialog) {
+            AlertDialog(
+                onDismissRequest = { showCreateDialog = false },
+                title = { Text("Founder's Decree", color = Color.White) },
+                text = {
+                    Column {
+                        Text("Name your guild (Max 20 chars):", color = Color.LightGray)
+                        Spacer(modifier = Modifier.height(12.dp))
+                        OutlinedTextField(
+                            value = guildNameInput,
+                            onValueChange = { if (it.length <= 20) guildNameInput = it },
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true,
+                            colors = TextFieldDefaults.colors(
+                                focusedContainerColor = Color.Black.copy(alpha = 0.3f),
+                                unfocusedContainerColor = Color.Black.copy(alpha = 0.3f),
+                                focusedTextColor = Color.White,
+                                unfocusedTextColor = Color.White
+                            )
+                        )
+                    }
+                },
+                confirmButton = {
+                    RpgButton(text = "Confirm", onClick = {
+                        if (guildNameInput.isNotBlank()) {
+                            onCreateGuild(guildNameInput)
+                            showCreateDialog = false
+                        }
+                    }, modifier = Modifier.width(100.dp))
+                },
+                dismissButton = {
+                    TextButton(onClick = { showCreateDialog = false }) {
+                        Text("Cancel", color = Color.Gray)
+                    }
+                },
+                containerColor = Color(0xFF1E293B)
+            )
         }
     }
 }
 
 @Composable
-fun GuildMainScreen(
-    playerData: PlayerData, 
-    onLearnSkill: (String, Long) -> Unit, 
-    onStartExam: (GuildDatabase.GuildExam) -> Unit,
-    onShowLore: () -> Unit,
+fun GuildListItem(guild: Guild, onJoin: () -> Unit) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = Color.Black.copy(alpha = 0.7f)),
+        border = BorderStroke(1.dp, Color.Cyan.copy(alpha = 0.3f))
+    ) {
+        Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(guild.name, color = Color.White, fontWeight = FontWeight.Black, style = MaterialTheme.typography.titleMedium)
+                Text("Leader: ${guild.leaderName}", color = Color.Gray, style = MaterialTheme.typography.labelSmall)
+                Text("${guild.membersCount}/${guild.maxMembers} Members", color = Color.LightGray, style = MaterialTheme.typography.bodySmall)
+            }
+            RpgButton(text = "Join", onClick = onJoin, modifier = Modifier.height(40.dp))
+        }
+    }
+}
+
+@Composable
+fun GuildDashboardScreen(
+    playerData: PlayerData,
+    guild: Guild?,
+    members: List<GuildMember>,
+    deviceId: String,
+    guildViewModel: GuildViewModel,
+    onPlayerUpdate: (PlayerData) -> Unit,
     onReturn: () -> Unit
 ) {
-    val guildName = playerData.joinedGuild ?: ""
-    val guildMaster = GuildDatabase.getGuildMaster(guildName)
-    val skills = GuildDatabase.getGuildSkills(guildName, playerData.playerClass)
-    var selectedTab by remember { mutableStateOf(GuildTab.LEADER) }
-    
-    val nextXp = GuildDatabase.getGuildXpForNextLevel(playerData.guildLevel)
-    val isEligibleForRankUp = (playerData.guildXp >= nextXp) && (playerData.guildLevel < 10)
-    val pendingExam = if (isEligibleForRankUp) GuildDatabase.getGuildExam(guildName, playerData.guildLevel + 1) else null
-
-    val color = when (guildName) {
-        "House of Fire" -> Color(0xFFEF4444)
-        "House of Water" -> Color(0xFF3B82F6)
-        "House of Wind" -> Color(0xFF10B981)
-        else -> Color.White
-    }
-
-    val guildBg = when (guildName) {
-        "House of Fire" -> R.drawable.house_of_fire_bg
-        "House of Water" -> R.drawable.house_of_water_bg
-        "House of Wind" -> R.drawable.house_of_wind_bg
-        else -> R.drawable.guild_screen_bg
-    }
+    var selectedTab by remember { mutableStateOf(GuildTab.DASHBOARD) }
+    val color = Color.Cyan
 
     Box(modifier = Modifier.fillMaxSize()) {
         Image(
-            painter = painterResource(id = guildBg),
+            painter = painterResource(id = R.drawable.guild_screen_bg),
             contentDescription = null,
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Crop,
             alpha = 0.8f
         )
-        
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .windowInsetsPadding(WindowInsets.statusBars)
                 .padding(16.dp)
         ) {
-            // CENTERED HEADER
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(
-                    text = guildName.uppercase(), 
-                    color = color, 
-                    style = MaterialTheme.typography.headlineMedium, 
-                    fontWeight = FontWeight.Black,
-                    letterSpacing = 2.sp
-                )
+            if (guild == null) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(color = Color.Cyan)
+                }
+            } else {
+                Text(guild.name.uppercase(), color = color, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Black, letterSpacing = 2.sp)
                 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("Lv. ${playerData.guildLevel} Member", color = Color.LightGray, style = MaterialTheme.typography.labelSmall)
+                    Text("Guild Level ${guild.level}", color = Color.Gray, style = MaterialTheme.typography.labelSmall)
                     
-                    val nextXp = GuildDatabase.getGuildXpForNextLevel(playerData.guildLevel)
+                    val nextXp = com.solerforge.lumeria.database.GuildDatabase.getGuildXpForNextLevel(guild.level)
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
-                            text = "${playerData.guildXp} / $nextXp XP",
+                            text = "${guild.xp} / $nextXp XP",
                             color = Color.Cyan,
                             style = MaterialTheme.typography.labelSmall
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         LinearProgressIndicator(
-                            progress = { (playerData.guildXp.toFloat() / nextXp.toFloat()).coerceIn(0f, 1f) },
+                            progress = { (guild.xp.toFloat() / nextXp.toFloat()).coerceIn(0f, 1f) },
                             modifier = Modifier.width(80.dp).height(4.dp).clip(RoundedCornerShape(2.dp)),
                             color = Color.Cyan,
                             trackColor = Color.DarkGray
                         )
                     }
                 }
-            }
 
-            Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
-            // TAB ROW
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                GuildTab.entries.forEach { tab ->
-                    val isSelected = selectedTab == tab
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .clickable { selectedTab = tab }
-                            .padding(vertical = 8.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = tab.displayName,
-                            color = if (isSelected) Color.Cyan else Color.White.copy(alpha = 0.6f),
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = if (isSelected) FontWeight.ExtraBold else FontWeight.Normal,
-                            modifier = Modifier.graphicsLayer {
-                                scaleX = if (isSelected) 1.1f else 1f
-                                scaleY = if (isSelected) 1.1f else 1f
-                            }
-                        )
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // CONTENT AREA
-            Box(modifier = Modifier.weight(1f)) {
-                when (selectedTab) {
-                    GuildTab.LEADER -> {
-                        Column(
-                            modifier = Modifier.fillMaxSize(),
-                            horizontalAlignment = Alignment.CenterHorizontally
+                Row(modifier = Modifier.fillMaxWidth()) {
+                    GuildTab.entries.forEach { tab ->
+                        val isSelected = selectedTab == tab
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .clickable { selectedTab = tab }
+                                .padding(vertical = 12.dp)
+                                .background(if (isSelected) color.copy(alpha = 0.2f) else Color.Transparent, RoundedCornerShape(4.dp))
+                                .border(1.dp, if (isSelected) color else Color.Transparent, RoundedCornerShape(4.dp)),
+                            contentAlignment = Alignment.Center
                         ) {
-                            val masterPortrait = when (guildName) {
-                                "House of Fire" -> R.drawable.ignis_profile
-                                "House of Water" -> R.drawable.marina_profile
-                                "House of Wind" -> R.drawable.zephyr_profile
-                                else -> null
-                            }
+                            Text(
+                                tab.displayName, 
+                                color = if (isSelected) Color.Cyan else Color.White.copy(alpha = 0.6f),
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                            )
+                        }
+                    }
+                }
 
-                            if (masterPortrait != null) {
-                                Box(contentAlignment = Alignment.Center) {
-                                    // Glow behind portrait
-                                    Box(modifier = Modifier.size(220.dp).background(color.copy(alpha = 0.1f), CircleShape))
-                                    Image(
-                                        painter = painterResource(id = masterPortrait),
-                                        contentDescription = "Master Portrait",
-                                        modifier = Modifier
-                                            .size(200.dp)
-                                            .clip(CircleShape)
-                                            .border(4.dp, color.copy(alpha = 0.5f), CircleShape),
-                                        contentScale = ContentScale.Crop,
-                                        alignment = Alignment.TopCenter
-                                    )
-                                }
-                            }
+                Spacer(modifier = Modifier.height(16.dp))
 
-                            Spacer(modifier = Modifier.height(24.dp))
-
-                            Card(
-                                modifier = Modifier.fillMaxWidth(),
-                                colors = CardDefaults.cardColors(containerColor = Color.Black.copy(alpha = 0.7f)),
-                                border = BorderStroke(1.dp, color.copy(alpha = 0.3f))
-                            ) {
-                                Column(modifier = Modifier.padding(20.dp)) {
-                                    Text("Master $guildMaster", color = color, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Black)
-                                    Spacer(modifier = Modifier.height(12.dp))
-
-                                    val dialogue = pendingExam?.introDialogue ?: GuildDatabase.getGuildMasterDialogue(guildName, playerData.guildLevel)
-
-                                    Text(
-                                        text = dialogue,
-                                        color = Color.White,
-                                        style = MaterialTheme.typography.bodyLarge,
-                                        lineHeight = 24.sp
-                                    )
-
-                                    if (pendingExam != null) {
-                                        Spacer(modifier = Modifier.height(24.dp))
-                                        RpgButton(
-                                            text = "Take Rank ${pendingExam.rank} Exam",
-                                            onClick = { onStartExam(pendingExam) },
-                                            modifier = Modifier.fillMaxWidth(),
-                                            containerColor = color
-                                        )
+                Box(modifier = Modifier.weight(1f)) {
+                    when (selectedTab) {
+                        GuildTab.DASHBOARD -> {
+                            Column {
+                                Card(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    colors = CardDefaults.cardColors(containerColor = Color.Black.copy(alpha = 0.5f)),
+                                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.1f))
+                                ) {
+                                    Column(modifier = Modifier.padding(16.dp)) {
+                                        Text("MOTD", color = Color.Cyan, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelSmall)
+                                        Spacer(modifier = Modifier.height(4.dp))
+                                        Text(guild.announcement, color = Color.White, style = MaterialTheme.typography.bodyMedium)
                                     }
-
-                                    Spacer(modifier = Modifier.height(16.dp))
-                                    Text(
-                                        text = "Lore: ${GuildDatabase.getGuildDescription(guildName)}",
-                                        color = Color.Gray,
-                                        style = MaterialTheme.typography.labelSmall
-                                    )
-
-                                    Spacer(modifier = Modifier.height(16.dp))
-                                    Text(
-                                        text = "Read House History",
-                                        color = Color.Cyan.copy(alpha = 0.7f),
-                                        style = MaterialTheme.typography.labelSmall,
-                                        fontWeight = FontWeight.Bold,
-                                        modifier = Modifier.clickable { onShowLore() }
-                                    )
                                 }
-                            }
-                        }
-                    }
-
-                    GuildTab.SKILLS -> {
-                        LazyColumn(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            items(skills) { req ->
-                                val isUnlocked = playerData.unlockedSkills.contains(req.skill.name)
-                                val canLearn = !isUnlocked && playerData.guildLevel >= req.requiredGuildLevel && playerData.gold >= req.fee
-                                
-                                SkillReqRow(req, isUnlocked, canLearn) {
-                                    onLearnSkill(req.skill.name, req.fee)
-                                }
-                            }
-                        }
-                    }
-
-                    GuildTab.QUESTS -> {
-                        val guildQuests = GuildDatabase.getGuildQuests(guildName)
-                        LazyColumn(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                            item {
-                                Text("Special Guild Directives", color = Color.Cyan, style = MaterialTheme.typography.titleMedium)
-                            }
-                            items(guildQuests) { q ->
-                                GuildQuestRow(q, playerData.level)
-                            }
-                            item {
                                 Spacer(modifier = Modifier.height(16.dp))
-                                Text("Note: Progress guild levels by participating in world events and defeating enemies while a member.", color = Color.Gray, style = MaterialTheme.typography.labelSmall)
+                                Text("War Readiness", color = Color.White, fontWeight = FontWeight.Bold)
+                                Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                                    Text("Rating: ${guild.warRating}", color = Color.Red, style = MaterialTheme.typography.bodyLarge)
+                                    Text("Record: ${guild.warWins}W / ${guild.warLosses}L", color = Color.Gray)
+                                }
                             }
                         }
-                    }
-
-                    GuildTab.RANKS -> {
-                        LazyColumn(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                            item { Text("Guild Progression Benefits", color = Color.Cyan, style = MaterialTheme.typography.titleMedium) }
-                            (1..10).forEach { lvl ->
-                                item {
-                                    RankBenefitRow(lvl, lvl <= playerData.guildLevel, color)
+                        GuildTab.MEMBERS -> {
+                            LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                item { Text("Guild Roster (${members.size}/${guild.maxMembers})", color = Color.White, style = MaterialTheme.typography.labelSmall) }
+                                items(members) { member ->
+                                    MemberRow(member)
                                 }
+                            }
+                        }
+                        GuildTab.VAULT -> {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
+                                Text("Guild Treasure Vault", color = Color.Yellow, style = MaterialTheme.typography.titleMedium)
+                                Text(CurrencyUtils.formatGold(guild.guildVault), color = Color.White, style = MaterialTheme.typography.displaySmall, fontWeight = FontWeight.Black)
+                                Spacer(modifier = Modifier.height(32.dp))
+                                RpgButton(
+                                    text = "Donate 5,000 Gold",
+                                    onClick = {
+                                        if (playerData.gold >= 5000) {
+                                            guildViewModel.donate(guild.id, 5000, deviceId) {
+                                                onPlayerUpdate(playerData.copy(gold = playerData.gold - 5000))
+                                            }
+                                        }
+                                    },
+                                    modifier = Modifier.fillMaxWidth(0.7f)
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text("Your Gold: ${CurrencyUtils.formatGold(playerData.gold)}", color = Color.Gray, style = MaterialTheme.typography.labelSmall)
+                            }
+                        }
+                        GuildTab.WARS -> {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center,
+                                modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.3f), RoundedCornerShape(16.dp))
+                            ) {
+                                Text("GUILD WARS", color = Color.Red, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Black)
+                                Text("TERRITORY CONTROL", color = Color.White.copy(alpha = 0.6f), style = MaterialTheme.typography.titleMedium)
+                                Spacer(modifier = Modifier.height(16.dp))
+                                Text("COMING SOON", color = Color.White, style = MaterialTheme.typography.labelLarge)
                             }
                         }
                     }
@@ -432,91 +391,194 @@ fun GuildMainScreen(
             }
 
             Spacer(modifier = Modifier.height(16.dp))
-            Image(
-                painter = painterResource(id = R.drawable.return_to_menu_font),
-                contentDescription = "Return",
-                modifier = Modifier
-                    .align(Alignment.CenterHorizontally)
-                    .padding(8.dp)
-                    .height(80.dp)
-                    .clickable { onReturn() },
-                contentScale = ContentScale.Fit
-            )
+            RpgButton(text = "Return to Menu", onClick = onReturn, modifier = Modifier.align(Alignment.CenterHorizontally).width(220.dp))
         }
     }
 }
 
 @Composable
-fun GuildQuestRow(quest: GuildDatabase.GuildQuest, playerLevel: Int) {
-    val isLocked = playerLevel < quest.minLevel
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = Color.Black.copy(alpha = 0.7f)),
-        border = BorderStroke(1.dp, if (isLocked) Color.DarkGray else Color.Cyan.copy(alpha = 0.3f))
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text(quest.title, color = if (isLocked) Color.Gray else Color.White, fontWeight = FontWeight.Bold)
-                if (isLocked) Text("Lv. ${quest.minLevel} REQ", color = Color.Red, style = MaterialTheme.typography.labelSmall)
-            }
-            Text("Eliminate ${quest.targetCount} ${quest.targetEnemy}", color = Color.LightGray, style = MaterialTheme.typography.bodySmall)
-            Spacer(modifier = Modifier.height(8.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                Text("Reward: ${CurrencyUtils.formatGold(quest.rewardGold)}", color = Color.Yellow, style = MaterialTheme.typography.labelSmall)
-                Text("+${quest.rewardGuildXp} Guild XP", color = Color.Cyan, style = MaterialTheme.typography.labelSmall)
-            }
-        }
-    }
-}
-
-@Composable
-fun RankBenefitRow(lvl: Int, isReached: Boolean, guildColor: Color) {
+fun MemberRow(member: GuildMember) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(if (isReached) guildColor.copy(alpha = 0.1f) else Color.Transparent, RoundedCornerShape(8.dp))
-            .border(1.dp, if (isReached) guildColor.copy(alpha = 0.4f) else Color.White.copy(alpha = 0.1f), RoundedCornerShape(8.dp))
+            .background(Color.Black.copy(alpha = 0.4f), RoundedCornerShape(8.dp))
+            .border(1.dp, Color.White.copy(alpha = 0.1f), RoundedCornerShape(8.dp))
             .padding(12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text("Rank $lvl", color = if (isReached) guildColor else Color.Gray, fontWeight = FontWeight.Bold, modifier = Modifier.width(60.dp))
-        Spacer(modifier = Modifier.width(16.dp))
-        val benefit = when (lvl) {
-            1 -> "Membership established."
-            2 -> "New skill available."
-            3 -> "Guild discount +1%."
-            5 -> "Elite Skill Tier unlocked."
-            7 -> "Master's technique access."
-            10 -> "Guild Champion Title."
-            else -> "Increased prestige within the house."
+        Column(modifier = Modifier.weight(1f)) {
+            Text(member.playerName, color = Color.White, fontWeight = FontWeight.Bold)
+            Text("Lv. ${member.playerLevel} • ${member.rank}", color = Color.Gray, style = MaterialTheme.typography.labelSmall)
         }
-        Text(benefit, color = if (isReached) Color.White else Color.DarkGray, style = MaterialTheme.typography.bodySmall)
+        Column(horizontalAlignment = Alignment.End) {
+            Text(CurrencyUtils.formatGold(member.contributionGold), color = Color.Yellow, style = MaterialTheme.typography.labelSmall)
+            Text("Contributed", color = Color.DarkGray, style = MaterialTheme.typography.labelSmall)
+        }
     }
 }
 
 @Composable
-fun SkillReqRow(req: GuildSkillRequirement, isUnlocked: Boolean, canLearn: Boolean, onLearn: () -> Unit) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = Color.Black.copy(alpha = 0.7f)),
-        border = androidx.compose.foundation.BorderStroke(1.dp, if (isUnlocked) Color.Cyan.copy(alpha = 0.3f) else Color.White.copy(alpha = 0.1f))
-    ) {
-        Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(req.skill.name, color = if (isUnlocked) Color.Cyan else Color.White, fontWeight = FontWeight.Bold)
-                Text(req.skill.description, color = Color.Gray, style = MaterialTheme.typography.bodySmall)
-                Text("Req: Guild Lv. ${req.requiredGuildLevel}", color = if (isUnlocked) Color.Cyan else Color.LightGray, style = MaterialTheme.typography.labelSmall)
+fun StoryGuildDashboardScreen(
+    playerData: PlayerData,
+    onPlayerUpdate: (PlayerData) -> Unit,
+    onStartExam: (com.solerforge.lumeria.database.GuildDatabase.GuildExam) -> Unit,
+    onReturn: () -> Unit
+) {
+    val guildName = playerData.joinedGuild ?: "Unknown Guild"
+    val color = when (guildName) {
+        "House of Fire" -> Color(0xFFEF4444)
+        "House of Water" -> Color(0xFF3B82F6)
+        "House of Wind" -> Color(0xFF10B981)
+        else -> Color.Cyan
+    }
+
+    val dashboardBg = when (guildName) {
+        "House of Fire" -> R.drawable.house_of_fire_bg
+        "House of Water" -> R.drawable.house_of_water_bg
+        "House of Wind" -> R.drawable.house_of_wind_bg
+        else -> R.drawable.guild_screen_bg
+    }
+    
+    var showSkillsDialog by remember { mutableStateOf(false) }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        Image(
+            painter = painterResource(id = dashboardBg),
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop,
+            alpha = 0.8f
+        )
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .windowInsetsPadding(WindowInsets.statusBars)
+                .padding(16.dp)
+        ) {
+            Text(guildName.uppercase(), color = color, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Black, letterSpacing = 2.sp)
+            Text("Master: ${com.solerforge.lumeria.database.GuildDatabase.getGuildMaster(guildName)}", color = Color.Gray, style = MaterialTheme.typography.labelSmall)
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = Color.Black.copy(alpha = 0.5f)),
+                border = BorderStroke(1.dp, color.copy(alpha = 0.3f))
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text("HOUSE MISSION", color = color, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelSmall)
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = com.solerforge.lumeria.database.GuildDatabase.getGuildMasterDialogue(guildName, playerData.guildLevel),
+                        color = Color.White,
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
+                    )
+                }
             }
-            if (isUnlocked) {
-                Text("LEARNED", color = Color.Cyan, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelSmall)
-            } else {
-                RpgButton(
-                    text = CurrencyUtils.formatGold(req.fee),
-                    onClick = onLearn,
-                    enabled = canLearn,
-                    modifier = Modifier.height(36.dp)
-                )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Guild Level HUD
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text("Rank ${playerData.guildLevel}", color = Color.White, fontWeight = FontWeight.Bold)
+                val nextXp = com.solerforge.lumeria.database.GuildDatabase.getGuildXpForNextLevel(playerData.guildLevel)
+                Text("${playerData.guildXp} / $nextXp XP", color = color, style = MaterialTheme.typography.labelSmall)
             }
+            
+            LinearProgressIndicator(
+                progress = { (playerData.guildXp.toFloat() / com.solerforge.lumeria.database.GuildDatabase.getGuildXpForNextLevel(playerData.guildLevel).toFloat()).coerceIn(0f, 1f) },
+                modifier = Modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(4.dp)),
+                color = color,
+                trackColor = Color.DarkGray
+            )
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            RpgButton(
+                text = "Learn Elemental Skills",
+                onClick = { showSkillsDialog = true },
+                modifier = Modifier.fillMaxWidth()
+            )
+            
+            Spacer(modifier = Modifier.height(12.dp))
+
+            val nextRank = playerData.guildLevel + 1
+            val exam = com.solerforge.lumeria.database.GuildDatabase.getGuildExam(guildName, nextRank)
+            val canTakeExam = exam != null && playerData.guildXp >= com.solerforge.lumeria.database.GuildDatabase.getGuildXpForNextLevel(playerData.guildLevel)
+
+            RpgButton(
+                text = if (exam != null) "Take Rank $nextRank Exam" else "Max Rank Reached",
+                enabled = canTakeExam,
+                onClick = { exam?.let { onStartExam(it) } },
+                modifier = Modifier.fillMaxWidth(),
+                containerColor = if (canTakeExam) Color(0xFF6200EE) else Color.DarkGray
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+            RpgButton(text = "Return to Menu", onClick = onReturn, modifier = Modifier.align(Alignment.CenterHorizontally).width(220.dp))
+        }
+        
+        if (showSkillsDialog) {
+            val skills = com.solerforge.lumeria.database.GuildDatabase.getGuildSkills(guildName, playerData.playerClass)
+            AlertDialog(
+                onDismissRequest = { showSkillsDialog = false },
+                title = { Text("Elemental Techniques", color = color, fontWeight = FontWeight.Black) },
+                text = {
+                    LazyColumn(modifier = Modifier.heightIn(max = 400.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        items(skills) { req ->
+                            val isUnlocked = playerData.unlockedSkills.contains(req.skill.name)
+                            val canAfford = playerData.gold >= req.fee
+                            val levelMet = playerData.guildLevel >= req.requiredGuildLevel
+
+                            Card(
+                                modifier = Modifier.fillMaxWidth(),
+                                colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.05f)),
+                                border = BorderStroke(1.dp, if (isUnlocked) Color.Green.copy(alpha = 0.3f) else Color.White.copy(alpha = 0.1f))
+                            ) {
+                                Column(modifier = Modifier.padding(12.dp)) {
+                                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                        Text(req.skill.name, color = Color.White, fontWeight = FontWeight.Bold)
+                                        if (isUnlocked) {
+                                            Text("LEARNED", color = Color.Green, fontSize = 10.sp, fontWeight = FontWeight.Black)
+                                        } else {
+                                            Text(CurrencyUtils.formatGold(req.fee), color = Color.Yellow, fontSize = 10.sp)
+                                        }
+                                    }
+                                    Text(req.skill.description, color = Color.Gray, style = MaterialTheme.typography.bodySmall)
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    
+                                    if (!isUnlocked) {
+                                        Button(
+                                            onClick = {
+                                                onPlayerUpdate(playerData.copy(
+                                                    gold = playerData.gold - req.fee,
+                                                    unlockedSkills = (playerData.unlockedSkills + req.skill.name).distinct()
+                                                ))
+                                            },
+                                            enabled = canAfford && levelMet,
+                                            modifier = Modifier.fillMaxWidth().height(32.dp),
+                                            contentPadding = PaddingValues(0.dp),
+                                            colors = ButtonDefaults.buttonColors(containerColor = color)
+                                        ) {
+                                            Text(if (levelMet) "Learn" else "Requires Rank ${req.requiredGuildLevel}", fontSize = 10.sp)
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                confirmButton = {
+                    TextButton(onClick = { showSkillsDialog = false }) { Text("Close", color = Color.White) }
+                },
+                containerColor = Color(0xFF0F172A)
+            )
         }
     }
 }

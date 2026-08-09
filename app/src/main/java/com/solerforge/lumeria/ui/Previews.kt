@@ -13,9 +13,12 @@ import com.solerforge.lumeria.battle.BattleViewModel
 import com.solerforge.lumeria.components.HpBar
 import com.solerforge.lumeria.components.ManaBar
 import com.solerforge.lumeria.data.PlayerData
+import com.solerforge.lumeria.data.PlayerDataRepository
+import com.solerforge.lumeria.data.SaveStatus
 import com.solerforge.lumeria.data.Quest
 import com.solerforge.lumeria.database.StoryDatabase
 import com.solerforge.lumeria.screens.ArcCompletionScreen
+import com.solerforge.lumeria.screens.CharacterCreationScreen
 import com.solerforge.lumeria.screens.GamblingHouseScreen
 import com.solerforge.lumeria.screens.GameMenuScreen
 import com.solerforge.lumeria.screens.ElderRitualScreen
@@ -129,14 +132,63 @@ fun MainMenuPreview() {
     TEXTBASEDRPGMAGICTheme {
         MainMenu(
             activePlayerData = PlayerData(),
-            slot1Data = PlayerData(level = 5, currentLocation = "Goblin Forest"),
-            slot2Data = null,
-            slot3Data = null,
+            slot1Data = PlayerDataRepository.SaveResult(
+                PlayerData(level = 5, currentLocation = "Goblin Forest"),
+                SaveStatus.Loaded
+            ),
+            slot2Data = PlayerDataRepository.SaveResult(
+                PlayerData(),
+                SaveStatus.Empty
+            ),
+            slot3Data = PlayerDataRepository.SaveResult(
+                PlayerData(),
+                SaveStatus.Empty
+            ),
             activeSlot = 1,
             onSelectSlot = {},
             onStartGame = {},
             onNewGame = {},
             onSettings = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Main Menu - Reborn")
+@Composable
+fun MainMenuRebornPreview() {
+    TEXTBASEDRPGMAGICTheme(isReborn = true) {
+        MainMenu(
+            activePlayerData = PlayerData(isReborn = true, playerName = "Legend"),
+            slot1Data = PlayerDataRepository.SaveResult(
+                PlayerData(level = 105, isReborn = true, playerName = "Legend"),
+                SaveStatus.Loaded
+            ),
+            slot2Data = PlayerDataRepository.SaveResult(
+                PlayerData(),
+                SaveStatus.Empty
+            ),
+            slot3Data = PlayerDataRepository.SaveResult(
+                PlayerData(),
+                SaveStatus.Empty
+            ),
+            activeSlot = 1,
+            onSelectSlot = {},
+            onStartGame = {},
+            onNewGame = {},
+            onSettings = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Character Creation")
+@Composable
+fun CharacterCreationPreview() {
+    TEXTBASEDRPGMAGICTheme(isReborn = true) {
+        CharacterCreationScreen(
+            nameAvailability = true,
+            onCheckName = {},
+            onConfirm = { _, _, _ -> },
+            onCancel = {}
         )
     }
 }
@@ -185,6 +237,7 @@ fun GameMenuPreview() {
             onLeaderboard = {},
             onSettings = {},
             onRebirth = {},
+            onRaid = {},
             selectedTabIndex = 0,
             onTabSelected = {},
             onReturnToMain = {},

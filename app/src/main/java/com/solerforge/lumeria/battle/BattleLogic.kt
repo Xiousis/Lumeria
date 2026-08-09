@@ -41,15 +41,15 @@ object BattleLogic {
         ignoreArmor: Boolean = false,
     ): Int {
         val baseEnemyDamage = when (enemyName) {
-            "Slime", "Wild Rat", "Crystal Slime" -> 4
-            "Training Goblin", "Goblin", "Goblin Archer" -> 6
-            "Goblin Rogue", "Cave Bat", "Crystal Spider", "Mountain Wolf" -> 8
-            "Orc", "Poison Toad", "Fire Drake" -> 10
-            "Dark Spirit", "Stone Golem", "Lava Serpent" -> 12
-            "Swamp Horror", "Shadow Knight" -> 15
-            "Void Reaper" -> 20
-            else -> 8
-        } + (enemyLevel * 1.5).toInt()
+            "Slime", "Wild Rat", "Crystal Slime" -> 6
+            "Training Goblin", "Goblin", "Goblin Archer" -> 10
+            "Goblin Rogue", "Cave Bat", "Crystal Spider", "Mountain Wolf" -> 14
+            "Orc", "Poison Toad", "Fire Drake" -> 18
+            "Dark Spirit", "Stone Golem", "Lava Serpent" -> 22
+            "Swamp Horror", "Shadow Knight" -> 28
+            "Void Reaper" -> 40
+            else -> 12
+        } + (enemyLevel * 2.2).toInt()
         
         val effectiveArmor = if (ignoreArmor) 0 else armorDefense
         val finalDmg = (baseEnemyDamage * multiplier).toInt()
@@ -62,7 +62,7 @@ object BattleLogic {
         multiplier: Double = 1.0,
         ignoreArmor: Boolean = false,
     ): Int {
-        val baseDamage = (bossLevel * 3) + 15
+        val baseDamage = (bossLevel * 5) + 30
         val effectiveArmor = if (ignoreArmor) 0 else armorDefense
         val finalDmg = (baseDamage * multiplier).toInt()
         
@@ -253,6 +253,14 @@ object BattleLogic {
                         
                         var baseDmg = getSkillDamage(player, skill).toDouble()
                         
+                        // Enemy Passives: Magic Resist & Crystal Armor
+                        if (enemy.passive == com.solerforge.lumeria.data.EnemyPassive.MAGIC_RESIST && skill.elementType != ElementType.Physical) {
+                            baseDmg *= 0.6
+                        }
+                        if (enemy.passive == com.solerforge.lumeria.data.EnemyPassive.CRYSTAL_ARMOR) {
+                            baseDmg = (baseDmg * 0.8) - 10
+                        }
+
                         // Apply Elemental & Combo multipliers
                         baseDmg *= elementalMult
                         baseDmg *= comboMultiplier
@@ -667,7 +675,7 @@ object BattleLogic {
                 inventory = updatedInventory,
                 unlockedTitles = updatedUnlockedTitles.distinct(),
                 currentTitle = updatedCurrentTitle,
-            )
+            ).checkFeatureUnlocks()
         }
     }
 }

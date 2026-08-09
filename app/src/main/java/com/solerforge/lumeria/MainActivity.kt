@@ -20,6 +20,7 @@ import com.solerforge.lumeria.utils.SecurityUtils
 import com.solerforge.lumeria.viewmodels.*
 import com.solerforge.lumeria.billing.BillingManager
 import com.solerforge.lumeria.managers.CloudSaveManager
+import com.solerforge.lumeria.managers.GuildManager
 import com.google.android.gms.games.PlayGames
 import com.google.firebase.Firebase
 import com.google.firebase.analytics.analytics
@@ -50,6 +51,7 @@ class MainActivity : ComponentActivity() {
         val cloudSaveManager = CloudSaveManager(this)
         val repository = PlayerDataRepository(this, cloudSaveManager)
         val billingManager = BillingManager(this)
+        val guildManager = GuildManager(this)
         
         val mainViewModel: MainViewModel by viewModels { MainViewModelFactory(repository) }
         
@@ -58,11 +60,14 @@ class MainActivity : ComponentActivity() {
         val economyViewModel: EconomyViewModel by viewModels()
         val adventureViewModel: AdventureViewModel by viewModels()
         val billingViewModel: BillingViewModel by viewModels { BillingViewModelFactory(billingManager) }
+        val guildViewModel: GuildViewModel by viewModels { GuildViewModelFactory(guildManager) }
 
         enableEdgeToEdge()
 
         setContent {
-            TEXTBASEDRPGMAGICTheme {
+            val playerData by mainViewModel.playerData.collectAsState()
+            
+            TEXTBASEDRPGMAGICTheme(isReborn = playerData.isReborn) {
                 val settings by mainViewModel.settings.collectAsState()
 
                 LaunchedEffect(settings.musicEnabled) {
@@ -90,6 +95,7 @@ class MainActivity : ComponentActivity() {
                         economyViewModel = economyViewModel,
                         adventureViewModel = adventureViewModel,
                         billingViewModel = billingViewModel,
+                        guildViewModel = guildViewModel,
                         contentPadding = innerPadding,
                         modifier = Modifier.fillMaxSize()
                     )

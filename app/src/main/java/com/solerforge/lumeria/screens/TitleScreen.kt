@@ -38,7 +38,7 @@ import com.solerforge.lumeria.utils.MusicManager
 import kotlin.random.Random
 
 @Composable
-fun TitleScreen(onStart: () -> Unit, onSettings: () -> Unit) {
+fun TitleScreen(isReborn: Boolean = false, onStart: () -> Unit, onSettings: () -> Unit) {
 
     val isPreview = LocalInspectionMode.current
     val context = LocalContext.current
@@ -62,11 +62,15 @@ fun TitleScreen(onStart: () -> Unit, onSettings: () -> Unit) {
             .graphicsLayer(alpha = alphaAnim),
     ) {
         Image(
-            painter = painterResource(id = R.drawable.title_screen),
+            painter = painterResource(id = if (isReborn) R.drawable.lumeria_load_screen else R.drawable.title_screen),
             contentDescription = "Title Art",
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.FillHeight,
         )
+        
+        if (isReborn) {
+             Box(modifier = Modifier.fillMaxSize().background(Color(0xFFA855F7).copy(alpha = 0.15f)))
+        }
 
         // SETTINGS ICON
         Box(
@@ -89,13 +93,13 @@ fun TitleScreen(onStart: () -> Unit, onSettings: () -> Unit) {
         }
 
         // Magic Particles Effect
-        MagicParticles()
+        MagicParticles(isReborn)
     }
 }
 
 @Composable
-fun MagicParticles() {
-    val particles = remember { List(15) { ParticleState() } }
+fun MagicParticles(isReborn: Boolean = false) {
+    val particles = remember(isReborn) { List(15) { ParticleState(isReborn) } }
     
     Box(modifier = Modifier.fillMaxSize()) {
         particles.forEach { particle ->
@@ -147,12 +151,16 @@ fun MagicParticles() {
     }
 }
 
-class ParticleState {
+class ParticleState(isReborn: Boolean = false) {
     val startX = Random.nextFloat() * 400
     val startY = Random.nextFloat() * 800
     val endX = startX + (Random.nextFloat() - 0.5f) * 100
     val endY = startY - Random.nextFloat() * 200
     val duration = Random.nextInt(4000, 8000)
     val size = Random.nextInt(2, 6)
-    val color = if (Random.nextBoolean()) Color(0xFF00E5FF) else Color(0xFFFFD700)
+    val color = if (isReborn) {
+        if (Random.nextBoolean()) Color(0xFFA855F7) else Color(0xFFFFD700)
+    } else {
+        if (Random.nextBoolean()) Color(0xFF00E5FF) else Color(0xFFFFD700)
+    }
 }

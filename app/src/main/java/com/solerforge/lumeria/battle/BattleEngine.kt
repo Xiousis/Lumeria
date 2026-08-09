@@ -218,6 +218,7 @@ object BattleEngine {
         val workingUnlockedSkills = state.currentPlayerSnapshot.unlockedSkills.toMutableList()
         val workingEquippedSkills = state.currentPlayerSnapshot.equippedSkills.toMutableList()
 
+        var evolvedSkillName: String? = null
         if (skill.name != "None" && !state.isStoryReplay) {
             val currentExp = workingSkillExp[skill.name] ?: 0
             val currentLvl = workingSkillLevels[skill.name] ?: 1
@@ -235,6 +236,7 @@ object BattleEngine {
                     // Handle Evolution at Level 3
                     if (nextLvl == 3 && skill.evolvesTo != null) {
                         val evolvedName = skill.evolvesTo
+                        evolvedSkillName = evolvedName
                         newLogs.add(LogEntry("SKILL EVOLVED! ${skill.name} has become $evolvedName!", Color.Cyan))
                         
                         // Replace skill in unlocked and equipped lists
@@ -299,6 +301,13 @@ object BattleEngine {
             // Reflected damage back to enemy
             if (result.reflectedDamage > 0) {
                 newLogs.add(LogEntry("Reflected ${result.reflectedDamage} damage back to ${state.enemy.name}!", Color.Cyan))
+            }
+
+            // --- Enemy Passive: Physical Counter ---
+            if (state.enemy.passive == com.solerforge.lumeria.data.EnemyPassive.PHYSICAL_COUNTER && skill.elementType == ElementType.Physical && result.playerDamage > 0) {
+                val counterDmg = (result.playerDamage * 0.1).toInt().coerceAtLeast(1)
+                playerHp = maxOf(0, playerHp - counterDmg)
+                newLogs.add(LogEntry("${state.enemy.name} counters for $counterDmg damage!", Color.Red))
             }
 
             // --- Status Effects for Enemy 1 ---
@@ -449,6 +458,7 @@ object BattleEngine {
             enemyEvasionBuffTurns = enemyEvasionBuffTurns,
             lastSkillName = skill.name,
             skillCooldowns = workingCooldowns,
+            evolvedSkillName = evolvedSkillName,
             battleMessage = if (result.isCrit) "CRITICAL HIT!" else "",
         )
 
@@ -679,8 +689,15 @@ object BattleEngine {
         
         newLogs.add(LogEntry("${state.enemy.name} attacks for $enemyDmgDealt damage.", Color.Red))
         
+        // --- Enemy Passive: Poison Touch ---
+        var poisonTurns = state.poisonTurns
+        if (state.enemy.passive == com.solerforge.lumeria.data.EnemyPassive.POISON_TOUCH && enemyDmgDealt > 0 && !isDodge) {
+            poisonTurns = 3
+            newLogs.add(LogEntry("Xious was poisoned by ${state.enemy.name}!", Color(0xFF4CAF50)))
+        }
+        
         return Pair(
-            state.copy(playerHp = playerHp, enemyHp = enemyHp, secondWindUsed = secondWindUsed),
+            state.copy(playerHp = playerHp, enemyHp = enemyHp, secondWindUsed = secondWindUsed, poisonTurns = poisonTurns),
             newLogs
         )
     }
@@ -824,6 +841,13 @@ object BattleEngine {
             newLogs.add(LogEntry("${state.enemy.name} deals $baseDmg damage.", Color.Red))
         }
 
+        // --- Enemy Passive: Poison Touch (Boss/Arena) ---
+        var poisonTurns = state.poisonTurns
+        if (state.enemy.passive == com.solerforge.lumeria.data.EnemyPassive.POISON_TOUCH && baseDmg > 0 && !isDodge) {
+            poisonTurns = 3
+            newLogs.add(LogEntry("Xious was poisoned by ${state.enemy.name}!", Color(0xFF4CAF50)))
+        }
+
         // 4. APPLY EFFECTS
         val hasAbsoluteResistance = player.unlockedTraits.contains("Will of the Ancients")
 
@@ -909,7 +933,8 @@ object BattleEngine {
                 playerDefenseDebuffTurns = playerDefenseDebuffTurns,
                 secondWindUsed = secondWindUsed,
                 enemyEvasionBonus = enemyEvasionBonus,
-                enemyEvasionBuffTurns = enemyEvasionBuffTurns
+                enemyEvasionBuffTurns = enemyEvasionBuffTurns,
+                poisonTurns = poisonTurns
             ),
             newLogs
         )
@@ -947,6 +972,14 @@ object BattleEngine {
             BattleLogic.calculateBossDamage(enemyLevel, effectiveDef, multiplier, ignoreArmor)
         } else {
             BattleLogic.calculateEnemyDamage(enemyName, enemyLevel, effectiveDef, multiplier, ignoreArmor)
+        }
+        
+        // --- Enemy Passive: Desperation ---
+        if (state.enemy.passive == com.solerforge.lumeria.data.EnemyPassive.DESPERATION) {
+            val hpPercent = state.enemyHp.toFloat() / state.enemy.maxHp
+            if (hpPercent < 0.3) {
+                baseDmg = (baseDmg * 1.5).toInt()
+            }
         }
         
         baseDmg = (baseDmg * state.enemyDamageMultiplier).toInt()

@@ -57,6 +57,7 @@ data class PlayerData(
     val nationUpgradeLevel: Int = 0,
     val claimedRankIds: List<Int> = emptyList(),
     val joinedGuild: String? = null,
+    val joinedGuildId: String? = null,
     val guildLevel: Int = 1,
     val guildXp: Long = 0,
     val activeBuffs: List<com.solerforge.lumeria.models.PlayerBuff> = emptyList(),
@@ -92,7 +93,8 @@ data class PlayerData(
     val familiarLevels: Map<String, Int> = emptyMap(),
     val activeKingdomLawId: Int? = null,
     val completedTutorialSteps: List<String> = emptyList(),
-    val saveVersion: Int = 3,
+    val unlockedFeatures: Set<String> = setOf("WORLD MAP", "STORY MODE", "INVENTORY", "CHARACTER STATS", "SKILL BOOK", "STORY JOURNAL", "BILLY'S STORE", "THE INN"),
+    val saveVersion: Int = 4,
     
     // Legacy / Rebirth System
     val playerName: String = "Xious",
@@ -157,7 +159,42 @@ data class PlayerData(
             )
         }
         
-        return currentData
+        return currentData.checkFeatureUnlocks()
+    }
+
+    fun checkFeatureUnlocks(): PlayerData {
+        val newFeatures = unlockedFeatures.toMutableSet()
+        
+        if (level >= 5) {
+            newFeatures.add("THE FORGE")
+            newFeatures.add("IRONCLAD BANK")
+            newFeatures.add("THE ROYAL COURT")
+        }
+        if (level >= 10) {
+            newFeatures.add("THE ELDER")
+            newFeatures.add("QUEST LOG")
+            newFeatures.add("GRAND ARENA")
+        }
+        if (level >= 15) {
+            newFeatures.add("FISHING POND")
+            newFeatures.add("FAMILIAR NURSERY")
+            newFeatures.add("LUMERIA CODEX")
+        }
+        if (defeatedBosses.isNotEmpty() || level >= 8) {
+             newFeatures.add("BOUNTY BOARD")
+        }
+        if (renown >= 2000) {
+            newFeatures.add("THE GUILD")
+            newFeatures.add("HALL OF HEROES")
+        }
+        if (level >= 30) {
+            newFeatures.add("THE GAMBLING HOUSE")
+        }
+        if (!isReborn && level >= 50) {
+            newFeatures.add("REBIRTH ALTAR")
+        }
+
+        return if (newFeatures.size > unlockedFeatures.size) copy(unlockedFeatures = newFeatures) else this
     }
 
     fun recalculateVitals(): PlayerData {

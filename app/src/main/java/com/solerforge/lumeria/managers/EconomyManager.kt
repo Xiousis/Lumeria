@@ -5,7 +5,8 @@ import com.solerforge.lumeria.models.Screen
 
 class EconomyManager(
     private val onUpdatePlayer: (PlayerData) -> Unit,
-    private val onNavigate: (Screen) -> Unit
+    private val onNavigate: (Screen) -> Unit,
+    private val onReplace: (Screen) -> Unit
 ) {
     fun enterShop(player: PlayerData) {
         if (!player.visitedBilly) {
@@ -17,7 +18,7 @@ class EconomyManager(
 
     fun completeBillyIntro(player: PlayerData) {
         onUpdatePlayer(player.copy(visitedBilly = true))
-        onNavigate(Screen.Shop)
+        onReplace(Screen.Shop)
     }
 
     fun enterInn(player: PlayerData) {
@@ -30,7 +31,7 @@ class EconomyManager(
 
     fun completeInnIntro(player: PlayerData) {
         onUpdatePlayer(player.copy(visitedInn = true))
-        onNavigate(Screen.Inn)
+        onReplace(Screen.Inn)
     }
 
     fun enterForge(player: PlayerData) {
@@ -43,6 +44,6 @@ class EconomyManager(
 
     fun completeForgeIntro(player: PlayerData) {
         onUpdatePlayer(player.copy(visitedForge = true))
-        onNavigate(Screen.Blacksmith)
+        onReplace(Screen.Blacksmith)
     }
 }

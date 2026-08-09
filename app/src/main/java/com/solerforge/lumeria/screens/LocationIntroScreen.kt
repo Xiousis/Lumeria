@@ -33,17 +33,28 @@ fun LocationIntroScreen(
 ) {
     val scrollState = rememberScrollState()
     
+    var hasContinued by remember { mutableStateOf(false) }
+    
+    val safeContinue = {
+        if (!hasContinued) {
+            hasContinued = true
+            onContinue()
+        }
+    }
+
     // Auto-scroll effect
     LaunchedEffect(Unit) {
         delay(1000)
-        while (scrollState.value < scrollState.maxValue) {
+        while (scrollState.value < scrollState.maxValue && !hasContinued) {
             scrollState.animateScrollTo(
                 value = scrollState.value + 1,
                 animationSpec = tween(durationMillis = 25, easing = LinearEasing)
             )
         }
-        delay(2000)
-        onContinue()
+        if (!hasContinued) {
+            delay(2000)
+            safeContinue()
+        }
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -113,7 +124,7 @@ fun LocationIntroScreen(
                 text = "Tap to skip...",
                 color = Color.Gray.copy(alpha = 0.5f),
                 style = MaterialTheme.typography.labelSmall,
-                modifier = Modifier.padding(top = 16.dp).clickable { onContinue() }
+                modifier = Modifier.padding(top = 16.dp).clickable { safeContinue() }
             )
         }
     }

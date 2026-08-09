@@ -27,6 +27,7 @@ fun ShopItemRow(
     statDiff: Int? = null,
     actionLabel: String? = null,
     requiredClasses: List<String> = emptyList(),
+    hideRequirements: Boolean = false,
     onBuy: () -> Unit
 ) {
     val rarityColor = RarityUtils.getColor(rarity)
@@ -73,7 +74,7 @@ fun ShopItemRow(
                 }
             }
 
-            if (requiredClasses.isNotEmpty()) {
+            if (requiredClasses.isNotEmpty() && !hideRequirements) {
                 Text(
                     text = "Classes: ${requiredClasses.joinToString(", ")}",
                     color = Color.Yellow.copy(alpha = 0.7f),

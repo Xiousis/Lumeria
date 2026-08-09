@@ -34,6 +34,7 @@ fun AppNavigation(
     economyViewModel: EconomyViewModel,
     adventureViewModel: AdventureViewModel,
     billingViewModel: BillingViewModel,
+    guildViewModel: GuildViewModel,
     contentPadding: PaddingValues,
     modifier: Modifier = Modifier
 ) {
@@ -61,6 +62,7 @@ fun AppNavigation(
             Box(modifier = Modifier.fillMaxSize()) {
                 when (targetScreen) {
                     Screen.Title -> TitleScreen(
+                        isReborn = playerData.isReborn,
                         onStart = { mainViewModel.navigateTo(Screen.MainMenu) },
                         onSettings = { mainViewModel.navigateTo(Screen.Settings) }
                     )
@@ -109,9 +111,10 @@ fun AppNavigation(
                         onLeaderboard = { mainViewModel.navigateTo(Screen.Leaderboard) },
                         onSettings = { mainViewModel.navigateTo(Screen.Settings) },
                         onRebirth = { mainViewModel.navigateTo(Screen.RebirthRequirements) },
+                        onRaid = { mainViewModel.navigateTo(Screen.Raid) },
                         selectedTabIndex = mainViewModel.gameMenuTabIndex,
                         onTabSelected = { mainViewModel.updateGameMenuTab(it) },
-                        onReturnToMain = { mainViewModel.navigateTo(Screen.MainMenu) },
+                        onReturnToMain = { mainViewModel.replaceWith(Screen.MainMenu) },
                         playerData = playerData,
                         towerUnlockMessage = mainViewModel.towerUnlockMessage,
                         onDismissTowerUnlock = { mainViewModel.dismissTowerUnlock() }
@@ -311,10 +314,11 @@ fun AppNavigation(
 
                     Screen.Guild -> GuildScreen(
                         playerData = playerData,
-                        onJoinGuild = { guildName -> kingdomViewModel.joinGuild(guildName, playerData, { newData -> mainViewModel.updatePlayer(newData) }, { mainViewModel.navigateTo(Screen.GuildIntro) }) },
-                        onLearnSkill = { skillName, fee -> kingdomViewModel.learnGuildSkill(skillName, fee, playerData, { newData -> mainViewModel.updatePlayer(newData) }) },
-                        onStartExam = { mainViewModel.onStartGuildExam(it) },
-                        onShowLore = { mainViewModel.navigateTo(Screen.GuildIntro) },
+                        guildViewModel = guildViewModel,
+                        deviceId = mainViewModel.deviceId ?: "unknown",
+                        onPlayerUpdate = { mainViewModel.updatePlayer(it) },
+                        onNavigateToIntro = { mainViewModel.navigateTo(Screen.GuildIntro) },
+                        onStartExam = { exam -> mainViewModel.onStartGuildExam(exam) },
                         onReturn = { mainViewModel.popBackstack() }
                     )
 
@@ -361,8 +365,8 @@ fun AppNavigation(
                                         option = option, 
                                         playerData = playerData, 
                                         onUpdatePlayer = { mainViewModel.updatePlayer(it) }, 
-                                        onNavigateToBattle = { enemyName ->
-                                            mainViewModel.navigateToBattle(isRift = false, enemyName = enemyName, isBoss = false, snapshot = playerData)
+                                        onNavigateToBattle = { enemyName, updated ->
+                                            mainViewModel.navigateToBattle(isRift = false, enemyName = enemyName, isBoss = false, snapshot = updated)
                                         }
                                     )
                                 },
@@ -435,11 +439,23 @@ fun AppNavigation(
                         onReturn = { mainViewModel.popBackstack() }
                     )
 
-                    Screen.RebirthSelection -> RebirthSelectionScreen(
-                        onConfirmRebirth = { name, gender, className -> 
-                            mainViewModel.onPerformRebirth(name, gender, className)
-                        },
-                        onCancel = { mainViewModel.popBackstack() }
+                    Screen.RebirthSelection -> {
+                        val nameAvailability by mainViewModel.nameAvailability.collectAsState()
+                        CharacterCreationScreen(
+                            title = "FORGE A NEW LEGACY",
+                            buttonText = "CONFIRM REBIRTH",
+                            nameAvailability = nameAvailability,
+                            onCheckName = { mainViewModel.checkNameAvailability(it) },
+                            onConfirm = { name, gender, className -> 
+                                mainViewModel.onPerformRebirth(name, gender, className)
+                            },
+                            onCancel = { mainViewModel.popBackstack() }
+                        )
+                    }
+
+                    Screen.RebirthIntro -> RebirthIntroScreen(
+                        playerName = playerData.playerName,
+                        onContinue = { mainViewModel.replaceWith(Screen.GameMenu) }
                     )
 
                     Screen.WorldChat -> WorldChatScreen(
@@ -461,6 +477,10 @@ fun AppNavigation(
                             onReturn = { mainViewModel.popBackstack() }
                         )
                     }
+
+                    Screen.Raid -> RaidScreen(
+                        onReturn = { mainViewModel.popBackstack() }
+                    )
                 }
             }
         }

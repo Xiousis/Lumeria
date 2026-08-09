@@ -34,11 +34,30 @@ import kotlin.time.Duration.Companion.milliseconds
 fun FloatingNumberItem(num: FloatingNumber) {
     // Using a key to trigger animation once
     var startAnim by remember { mutableStateOf(value = false) }
+    
+    val shake by animateFloatAsState(
+        targetValue = if (num.damageType == DamageType.Crit && startAnim) 10f else 0f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(50, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "Shake"
+    )
+
     val animatedY by animateFloatAsState(
-        targetValue = if (startAnim) num.initialY - 120f else num.initialY,
-        animationSpec = tween(1200, easing = LinearOutSlowInEasing),
+        targetValue = if (startAnim) {
+            if (num.damageType == DamageType.Magic) num.initialY - 180f else num.initialY - 120f
+        } else num.initialY,
+        animationSpec = tween(if (num.damageType == DamageType.Heal) 800 else 1200, easing = LinearOutSlowInEasing),
         label = "Y",
     )
+    
+    val animatedX by animateFloatAsState(
+        targetValue = if (num.damageType == DamageType.Magic && startAnim) num.initialX + 40f else num.initialX,
+        animationSpec = tween(1200, easing = LinearOutSlowInEasing),
+        label = "X"
+    )
+
     val animatedAlpha by animateFloatAsState(
         targetValue = if (startAnim) 0f else 1f,
         animationSpec = tween(1200, easing = LinearEasing),
@@ -49,14 +68,30 @@ fun FloatingNumberItem(num: FloatingNumber) {
         startAnim = true
     }
 
+    val isCrit = num.damageType == DamageType.Crit
     Text(
-        text = if (num.isCrit) stringResource(R.string.battle_crit_format, num.text) else num.text,
-        color = num.color,
-        fontSize = if (num.isCrit) 28.sp else 22.sp,
+        text = if (isCrit) stringResource(R.string.battle_crit_format, num.text) else num.text,
+        color = when(num.damageType) {
+            DamageType.Magic -> Color(0xFFA855F7)
+            DamageType.Status -> Color.Yellow
+            else -> num.color
+        },
+        fontSize = when(num.damageType) {
+            DamageType.Crit -> 34.sp
+            DamageType.Magic -> 24.sp
+            DamageType.Heal -> 26.sp
+            else -> 22.sp
+        },
         fontWeight = FontWeight.Black,
         modifier = Modifier
-            .offset(x = num.initialX.dp, y = animatedY.dp)
-            .graphicsLayer { this.alpha = animatedAlpha }
+            .offset(x = (animatedX + shake).dp, y = animatedY.dp)
+            .graphicsLayer { 
+                this.alpha = animatedAlpha
+                if (isCrit) {
+                    this.scaleX = 1.2f
+                    this.scaleY = 1.2f
+                }
+            }
     )
 }
 
@@ -106,7 +141,7 @@ fun BattleScreen(
                         y = 200f + (Math.random() * 50).toFloat(),
                         vx = ((Math.random() - 0.5) * 10).toFloat(),
                         vy = ((Math.random() - 0.5) * 10).toFloat(),
-                        color = if (state.enemyFloatingColor == Color.Magenta) Color.Magenta else Color.Red,
+                        color = Color.Red, // Simplified particle color
                         life = 1.0f,
                         size = (5..15).random().toFloat(),
                     ),
@@ -608,6 +643,55 @@ fun BattleScreen(
                         Button(onClick = { onLeave(playerData) }) { 
                             Text(if (state.isStoryMode) stringResource(R.string.battle_btn_continue) else stringResource(R.string.battle_btn_return)) 
                         }
+                    }
+                }
+            }
+        }
+
+        // LOW HP WARNING
+        if (state.isLowHpWarning && !state.victoryProcessed && !state.isDying) {
+            val infiniteTransition = rememberInfiniteTransition(label = "LowHP")
+            val alpha by infiniteTransition.animateFloat(
+                initialValue = 0f,
+                targetValue = 0.4f,
+                animationSpec = infiniteRepeatable(
+                    animation = tween(1000, easing = LinearEasing),
+                    repeatMode = RepeatMode.Reverse
+                ),
+                label = "Alpha"
+            )
+            
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .border(8.dp, Color.Red.copy(alpha = alpha))
+            )
+        }
+
+        // SKILL EVOLUTION BANNER
+        state.evolvedSkillName?.let { evolvedName ->
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.6f))
+                    .clickable { viewModel.clearEvolutionBanner() },
+                contentAlignment = Alignment.Center
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth(0.85f)
+                        .background(Color.DarkGray, RoundedCornerShape(16.dp))
+                        .border(2.dp, Color.Cyan, RoundedCornerShape(16.dp))
+                        .padding(24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text("SKILL EVOLVED!", color = Color.Cyan, style = MaterialTheme.typography.headlineLarge, fontWeight = FontWeight.Black)
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text("Your power has grown.", color = Color.LightGray)
+                    Text("New Skill: $evolvedName", color = Color.White, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                    Spacer(modifier = Modifier.height(24.dp))
+                    Button(onClick = { viewModel.clearEvolutionBanner() }, colors = ButtonDefaults.buttonColors(containerColor = Color.Cyan)) {
+                        Text("EXCELLENT", color = Color.Black, fontWeight = FontWeight.Bold)
                     }
                 }
             }

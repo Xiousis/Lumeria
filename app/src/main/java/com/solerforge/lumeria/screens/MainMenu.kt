@@ -51,13 +51,14 @@ fun MainMenu(
 ) {
     val context = LocalContext.current
     
-    LaunchedEffect(Unit) {
-        MusicManager.playMusic(context, R.raw.echoes_of_lumeria_title)
+    LaunchedEffect(activePlayerData.isReborn) {
+        val theme = if (activePlayerData.isReborn) R.raw.echoes_of_lumeria_title else R.raw.lumeria_main_menu_theme
+        MusicManager.playMusic(context, theme)
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
         Image(
-            painter = painterResource(id = R.drawable.lumeria_load_screen),
+            painter = painterResource(id = if (activePlayerData.isReborn) R.drawable.tower_final_floor_bg else R.drawable.lumeria_load_screen),
             contentDescription = null,
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.FillHeight,

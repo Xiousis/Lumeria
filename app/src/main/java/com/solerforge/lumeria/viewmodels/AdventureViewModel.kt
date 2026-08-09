@@ -46,7 +46,7 @@ class AdventureViewModel : ViewModel() {
         option: com.solerforge.lumeria.models.EventOption, 
         playerData: PlayerData, 
         onUpdatePlayer: (PlayerData) -> Unit,
-        onNavigateToBattle: (String) -> Unit
+        onNavigateToBattle: (String, PlayerData) -> Unit
     ) {
         val outcome = option.outcome
         
@@ -102,7 +102,7 @@ class AdventureViewModel : ViewModel() {
         }
         
         if (shouldBattle) {
-            onNavigateToBattle(enemyName)
+            onNavigateToBattle(enemyName, updated)
         }
     }
 

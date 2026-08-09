@@ -24,13 +24,23 @@ import com.solerforge.lumeria.R
 import com.solerforge.lumeria.components.RpgButton
 
 @Composable
-fun RebirthSelectionScreen(
-    onConfirmRebirth: (name: String, gender: String, className: String) -> Unit,
+fun CharacterCreationScreen(
+    title: String = "FORGE A NEW LEGACY",
+    buttonText: String = "BEGIN JOURNEY",
+    nameAvailability: Boolean?,
+    onCheckName: (String) -> Unit,
+    onConfirm: (name: String, gender: String, className: String) -> Unit,
     onCancel: () -> Unit
 ) {
     var name by remember { mutableStateOf("") }
     var gender by remember { mutableStateOf("Male") }
     var selectedClass by remember { mutableStateOf("Warrior") }
+
+    LaunchedEffect(name) {
+        if (name.length >= 3) {
+            onCheckName(name)
+        }
+    }
     
     val classes = listOf(
         Triple("Warrior", "High Strength & Vitality. A master of the blade.", Color(0xFFD32F2F)),
@@ -64,7 +74,7 @@ fun RebirthSelectionScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = "FORGE A NEW LEGACY",
+                text = title,
                 style = MaterialTheme.typography.headlineMedium,
                 color = Color.Yellow,
                 fontWeight = FontWeight.Black
@@ -87,6 +97,24 @@ fun RebirthSelectionScreen(
                     unfocusedTextColor = Color.White
                 )
             )
+
+            if (name.length >= 3) {
+                Text(
+                    text = when (nameAvailability) {
+                        true -> "Name Available"
+                        false -> "Name Already Taken"
+                        null -> "Checking..."
+                    },
+                    color = when (nameAvailability) {
+                        true -> Color.Green
+                        false -> Color.Red
+                        null -> Color.Gray
+                    },
+                    fontSize = 12.sp,
+                    modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
+                    textAlign = TextAlign.Start
+                )
+            }
 
             Spacer(modifier = Modifier.height(24.dp))
 
@@ -128,9 +156,9 @@ fun RebirthSelectionScreen(
             Spacer(modifier = Modifier.height(48.dp))
 
             RpgButton(
-                text = "REBIRTH AS $selectedClass",
-                enabled = name.isNotBlank(),
-                onClick = { onConfirmRebirth(name, gender, selectedClass) },
+                text = buttonText,
+                enabled = name.isNotBlank() && nameAvailability == true,
+                onClick = { onConfirm(name, gender, selectedClass) },
                 containerColor = Color(0xFF6200EE),
                 modifier = Modifier.fillMaxWidth().height(64.dp)
             )

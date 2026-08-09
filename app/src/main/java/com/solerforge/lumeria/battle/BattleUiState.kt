@@ -4,11 +4,15 @@ import androidx.compose.ui.graphics.Color
 import com.solerforge.lumeria.data.Enemy
 import com.solerforge.lumeria.data.PlayerData
 
+enum class DamageType {
+    Physical, Magic, Crit, Heal, Status
+}
+
 data class FloatingNumber(
     val id: Long = java.util.UUID.randomUUID().mostSignificantBits,
     val text: String,
     val color: Color,
-    val isCrit: Boolean = false,
+    val damageType: DamageType = DamageType.Physical,
     val initialX: Float,
     val initialY: Float,
     val createdAt: Long = System.currentTimeMillis()
@@ -37,20 +41,12 @@ data class BattleUiState(
     val enemyOffsetX: Float = 0f,
     val enemy2OffsetX: Float = 0f,
     val floatingNumbers: List<FloatingNumber> = emptyList(),
-    val playerFloatingText: String = "",
-    val playerFloatingColor: Color = Color.Red,
-    val playerFloatingY: Float = 0f,
-    val enemyFloatingText: String = "",
-    val enemyFloatingColor: Color = Color.Red,
-    val enemyFloatingY: Float = 0f,
-    val enemy2FloatingText: String = "",
-    val enemy2FloatingColor: Color = Color.Red,
-    val enemy2FloatingY: Float = 0f,
     val playerFlashAlpha: Float = 0f,
     val enemyFlashAlpha: Float = 0f,
     val enemy2FlashAlpha: Float = 0f,
     
     // Status Effects
+    val isLowHpWarning: Boolean = false,
     val playerStunnedTurns: Int = 0,
     val playerFrozenTurns: Int = 0,
     val playerDefenseDebuffTurns: Int = 0,
@@ -97,6 +93,7 @@ data class BattleUiState(
     
     // UI Feedback
     val isProcessing: Boolean = false,
+    val evolvedSkillName: String? = null,
     val isFleeable: Boolean = true,
     val isStoryMode: Boolean = false,
     val isStoryBoss: Boolean = false,

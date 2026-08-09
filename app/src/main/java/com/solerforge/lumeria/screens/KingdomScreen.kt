@@ -105,8 +105,8 @@ fun KingdomScreen(
                 ) {
                     Text("King Alaric", color = Color.Cyan, fontWeight = FontWeight.Black, style = MaterialTheme.typography.titleLarge)
                     val kingGreeting = when {
-                        playerData.renown >= 500000 -> "\"By the ancient stars... you have done it. Xious, Hero of Lumeria, your name will echo through the halls of history for all eternity!\""
-                        playerData.renown >= 250000 -> "\"The realm is saved by your hand, Legendary Hero. Lumeria shall never forget the name Xious.\""
+                        playerData.renown >= 500000 -> "\"By the ancient stars... you have done it. ${playerData.playerName}, Hero of Lumeria, your name will echo through the halls of history for all eternity!\""
+                        playerData.renown >= 250000 -> "\"The realm is saved by your hand, Legendary Hero. Lumeria shall never forget the name ${playerData.playerName}.\""
                         playerData.renown >= 50000 -> "\"Protector, your dedication to our nation is a beacon of hope in these dark times.\""
                         playerData.renown >= 5000 -> "\"Welcome, Adventurer. I see the fire of Lumeria burning brightly within you.\""
                         else -> "\"Rise, ${playerData.currentTitle}. Your deeds in Lumeria do not go unnoticed.\""

@@ -136,7 +136,12 @@ class BattleViewModel(
                         finalLevel += 10
                         finalHp = (finalHp * 2.0).toInt()
                     }
-                    Enemy(finalName, b.name, finalHp, finalLevel, isHumanoid = isHuman, materialDrop = GameDatabase.getRequiredMaterial(location.name))
+                    val passive = when {
+                        b.name.contains("Armor", ignoreCase = true) -> com.solerforge.lumeria.data.EnemyPassive.PHYSICAL_COUNTER
+                        b.name.contains("Titan", ignoreCase = true) -> com.solerforge.lumeria.data.EnemyPassive.CRYSTAL_ARMOR
+                        else -> null
+                    }
+                    Enemy(finalName, b.name, finalHp, finalLevel, isHumanoid = isHuman, materialDrop = GameDatabase.getRequiredMaterial(location.name), passive = passive)
                 }
             }
             else -> {
@@ -154,7 +159,7 @@ class BattleViewModel(
                 } else {
                     name = location.enemies.random()
                     level = (location.minLevel..location.maxLevel).random()
-                    hp = (level * 25) + 30
+                    hp = (level * 45) + 120 // Buffed HP scaling for mobs
                     isHuman = name.contains("Goblin", ignoreCase = true) || name.contains("Orc", ignoreCase = true) || name.contains("Knight", ignoreCase = true) || 
                               name.contains("Rogue", ignoreCase = true) || name.contains("Assassin", ignoreCase = true) || name.contains("Guard", ignoreCase = true) || 
                               name.contains("Squire", ignoreCase = true)
@@ -166,7 +171,16 @@ class BattleViewModel(
                     level += 5
                     hp = (hp * 1.5).toInt()
                 }
-                Enemy(finalName, name, hp, level, isHumanoid = isHuman, materialDrop = GameDatabase.getRequiredMaterial(location.name))
+                
+                val passive = when {
+                    name.contains("Toad", ignoreCase = true) -> com.solerforge.lumeria.data.EnemyPassive.POISON_TOUCH
+                    name.contains("Armor", ignoreCase = true) -> com.solerforge.lumeria.data.EnemyPassive.PHYSICAL_COUNTER
+                    name.contains("Hound", ignoreCase = true) -> com.solerforge.lumeria.data.EnemyPassive.DESPERATION
+                    name.contains("Slime", ignoreCase = true) -> com.solerforge.lumeria.data.EnemyPassive.MAGIC_RESIST
+                    name.contains("Titan", ignoreCase = true) || name.contains("Golem", ignoreCase = true) -> com.solerforge.lumeria.data.EnemyPassive.CRYSTAL_ARMOR
+                    else -> null
+                }
+                Enemy(finalName, name, hp, level, isHumanoid = isHuman, materialDrop = GameDatabase.getRequiredMaterial(location.name), passive = passive)
             }
         }
 
@@ -185,7 +199,15 @@ class BattleViewModel(
                           name2.contains("Rogue", ignoreCase = true) || name2.contains("Assassin", ignoreCase = true) || name2.contains("Guard", ignoreCase = true) || 
                           name2.contains("Squire", ignoreCase = true)
             
-            enemy2 = Enemy(name2, name2, hp2, level2, isHumanoid = isHuman2, materialDrop = GameDatabase.getRequiredMaterial(location.name))
+            val passive2 = when {
+                name2.contains("Toad", ignoreCase = true) -> com.solerforge.lumeria.data.EnemyPassive.POISON_TOUCH
+                name2.contains("Armor", ignoreCase = true) -> com.solerforge.lumeria.data.EnemyPassive.PHYSICAL_COUNTER
+                name2.contains("Hound", ignoreCase = true) -> com.solerforge.lumeria.data.EnemyPassive.DESPERATION
+                name2.contains("Slime", ignoreCase = true) -> com.solerforge.lumeria.data.EnemyPassive.MAGIC_RESIST
+                name2.contains("Titan", ignoreCase = true) || name2.contains("Golem", ignoreCase = true) -> com.solerforge.lumeria.data.EnemyPassive.CRYSTAL_ARMOR
+                else -> null
+            }
+            enemy2 = Enemy(name2, name2, hp2, level2, isHumanoid = isHuman2, materialDrop = GameDatabase.getRequiredMaterial(location.name), passive = passive2)
             enemy2LogoId = getEnemyLogoId(enemy2)
         }
 
@@ -253,17 +275,23 @@ class BattleViewModel(
             // Trigger Floating Numbers based on HP changes
             val dmg1 = initialState.enemyHp - playerTurnState.enemyHp
             if (dmg1 > 0) {
-                triggerFloatingNumber("Enemy1", dmg1.toString(), Color.Red, playerTurnState.battleMessage.contains("CRITICAL"))
+                val skill = SkillDatabase.resolveSkill(skillName)
+                val type = when {
+                    playerTurnState.battleMessage.contains("CRITICAL") -> DamageType.Crit
+                    skill?.elementType != com.solerforge.lumeria.models.ElementType.Physical -> DamageType.Magic
+                    else -> DamageType.Physical
+                }
+                triggerFloatingNumber("Enemy1", dmg1.toString(), Color.Red, type)
             }
 
             val dmg2 = initialState.enemy2Hp - playerTurnState.enemy2Hp
             if (dmg2 > 0) {
-                triggerFloatingNumber("Enemy2", dmg2.toString(), Color.Red)
+                triggerFloatingNumber("Enemy2", dmg2.toString(), Color.Red, DamageType.Physical)
             }
 
             val heal = playerTurnState.playerHp - initialState.playerHp
             if (heal > 0) {
-                triggerFloatingNumber("Hero", "+$heal", Color.Green)
+                triggerFloatingNumber("Hero", "+$heal", Color.Green, DamageType.Heal)
             }
             
             _state.update { 
@@ -274,7 +302,7 @@ class BattleViewModel(
             }
             
             if ((skillName != "Heal") && (!playerLogs.any { it.message.contains("stunned") })) {
-                triggerPlayerAttackAnimation()
+                triggerPlayerAttackAnimation(skillName)
             }
 
             delay(1500.milliseconds)
@@ -293,18 +321,18 @@ class BattleViewModel(
                 // Damage to Player
                 val playerDmg = stateAfterPlayer.playerHp - enemyTurnState.playerHp
                 if (playerDmg > 0) {
-                    triggerFloatingNumber("Hero", playerDmg.toString(), Color.Red)
+                    triggerFloatingNumber("Hero", playerDmg.toString(), Color.Red, DamageType.Physical)
                 }
 
                 // Passive damage to enemies (Status effects)
                 val e1Passive = stateAfterPlayer.enemyHp - enemyTurnState.enemyHp
                 if (e1Passive > 0) {
-                    triggerFloatingNumber("Enemy1", e1Passive.toString(), Color.Yellow)
+                    triggerFloatingNumber("Enemy1", e1Passive.toString(), Color.Yellow, DamageType.Status)
                 }
 
                 val e2Passive = stateAfterPlayer.enemy2Hp - enemyTurnState.enemy2Hp
                 if (e2Passive > 0) {
-                    triggerFloatingNumber("Enemy2", e2Passive.toString(), Color.Yellow)
+                    triggerFloatingNumber("Enemy2", e2Passive.toString(), Color.Yellow, DamageType.Status)
                 }
                 
                 _state.update {
@@ -332,9 +360,11 @@ class BattleViewModel(
         _state.update { it.copy(battleLog = (it.battleLog + newLogs).takeLast(20)) }
     }
 
-    private fun triggerPlayerAttackAnimation() {
+    private fun triggerPlayerAttackAnimation(skillName: String = "") {
         viewModelScope.launch {
             val isAoE = (state.value.enemy2 != null) && (state.value.enemy2Hp > 0)
+            val skill = SkillDatabase.resolveSkill(skillName)
+            val isMagic = skill?.elementType != com.solerforge.lumeria.models.ElementType.Physical
             
             _state.update { 
                 it.copy(
@@ -348,7 +378,12 @@ class BattleViewModel(
                 ) 
             }
             onHaptic?.invoke(HapticType.HIT)
-            SoundManager.playSound(R.raw.hit_001)
+            
+            if (isMagic) {
+                SoundManager.playSound(R.raw.hit_002) // Magic hit placeholder
+            } else {
+                SoundManager.playSound(R.raw.hit_001)
+            }
             
             delay(50.milliseconds)
             SoundManager.playSound(R.raw.monster_hurt)
@@ -377,7 +412,7 @@ class BattleViewModel(
         }
     }
 
-    private fun triggerFloatingNumber(target: String, text: String, color: Color, isCrit: Boolean = false) {
+    private fun triggerFloatingNumber(target: String, text: String, color: Color, type: DamageType = DamageType.Physical) {
         viewModelScope.launch {
             // Target-based X offsets
             val xPos = when(target) {
@@ -390,7 +425,7 @@ class BattleViewModel(
             val num = FloatingNumber(
                 text = text,
                 color = color,
-                isCrit = isCrit,
+                damageType = type,
                 initialX = xPos,
                 initialY = -50f // Start slightly above center
             )
@@ -441,6 +476,17 @@ class BattleViewModel(
             enemy.name.contains("Marsh Horror", ignoreCase = true) -> R.drawable.marsh_horror
             enemy.name.contains("Training Captain", ignoreCase = true) -> R.drawable.training_captain
             enemy.name.contains("Stone Titan", ignoreCase = true) -> R.drawable.stone_titan
+
+            // Story Bosses
+            enemy.name.contains("Aurelius", ignoreCase = true) -> R.drawable.aurelius
+            enemy.name.contains("Lord Umbra", ignoreCase = true) -> R.drawable.lord_umbra
+            enemy.name.contains("King Maldrake", ignoreCase = true) -> R.drawable.king_maldrake
+            enemy.name.contains("Elder Wyvern Tyrant", ignoreCase = true) -> R.drawable.elder_wyvern_tyrant
+            enemy.name.contains("Grand Magister Veyra", ignoreCase = true) -> R.drawable.grand_magister_veyra
+            enemy.name.contains("High Inquisitor Kael", ignoreCase = true) -> R.drawable.high_inquisitor_kael
+            enemy.name.contains("Rift Sovereign", ignoreCase = true) -> R.drawable.rift_sovereign
+            enemy.name.contains("Void Prophet", ignoreCase = true) -> R.drawable.void_prophet
+            enemy.name.contains("Ascended Xarthos", ignoreCase = true) -> R.drawable.ascended_xarthos
             
             // Arena Specific & High Tier Mobs
             enemy.name.contains("Shield Squire", ignoreCase = true) -> R.drawable.shield_squire
@@ -568,8 +614,19 @@ class BattleViewModel(
         }
     }
 
+    fun clearEvolutionBanner() {
+        _state.update { it.copy(evolvedSkillName = null) }
+    }
+
     private fun checkBattleEnd(onUpdate: (PlayerData) -> Unit) {
         val currentState = _state.value
+        
+        // Low HP Warning Check
+        val isLow = currentState.playerHp < currentState.currentPlayerSnapshot.maxHp * 0.25
+        if (isLow != currentState.isLowHpWarning) {
+            _state.update { it.copy(isLowHpWarning = isLow) }
+        }
+
         if (currentState.playerHp <= 0) {
             _state.update { it.copy(isDying = true) }
             onHaptic?.invoke(HapticType.DEATH)

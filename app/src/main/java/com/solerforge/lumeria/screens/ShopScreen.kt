@@ -262,6 +262,7 @@ fun ShopScreen(
                                         isOwned = isOwned,
                                         statDiff = statDiff,
                                         requiredClasses = weapon.requiredClasses,
+                                        hideRequirements = !shopSnapshot.isReborn,
                                     ) {
                                         if (shopSnapshot.gold >= price) {
                                             shopSnapshot = shopSnapshot.copy(
@@ -301,6 +302,7 @@ fun ShopScreen(
                                         isOwned = isOwned,
                                         statDiff = item.defense - currentStat,
                                         requiredClasses = item.requiredClasses,
+                                        hideRequirements = !shopSnapshot.isReborn,
                                     ) {
                                         if (shopSnapshot.gold >= price) {
                                             shopSnapshot = shopSnapshot.copy(
@@ -343,6 +345,7 @@ fun ShopScreen(
                                         isOwned = isOwned,
                                         statDiff = item.defense - currentStat,
                                         requiredClasses = item.requiredClasses,
+                                        hideRequirements = !shopSnapshot.isReborn,
                                     ) {
                                         if (shopSnapshot.gold >= price) {
                                             shopSnapshot = shopSnapshot.copy(
@@ -385,6 +388,7 @@ fun ShopScreen(
                                         isOwned = isOwned,
                                         statDiff = statDiff,
                                         requiredClasses = armor.requiredClasses,
+                                        hideRequirements = !shopSnapshot.isReborn,
                                     ) {
                                         if (shopSnapshot.gold >= price) {
                                             shopSnapshot = shopSnapshot.copy(
@@ -424,6 +428,7 @@ fun ShopScreen(
                                         isOwned = isOwned,
                                         statDiff = item.agility - currentStat,
                                         requiredClasses = item.requiredClasses,
+                                        hideRequirements = !shopSnapshot.isReborn,
                                     ) {
                                         if (shopSnapshot.gold >= price) {
                                             shopSnapshot = shopSnapshot.copy(
@@ -468,6 +473,7 @@ fun ShopScreen(
                                         currentGold = shopSnapshot.gold,
                                         isOwned = isOwned,
                                         requiredClasses = item.requiredClasses,
+                                        hideRequirements = !shopSnapshot.isReborn,
                                     ) {
                                         if (shopSnapshot.gold >= price) {
                                             shopSnapshot = shopSnapshot.copy(
@@ -499,6 +505,7 @@ fun ShopScreen(
                                         currentGold = shopSnapshot.gold,
                                         isOwned = isOwned,
                                         requiredClasses = rod.requiredClasses,
+                                        hideRequirements = !shopSnapshot.isReborn,
                                     ) {
                                         if (shopSnapshot.gold >= price) {
                                             shopSnapshot = shopSnapshot.copy(
@@ -542,8 +549,9 @@ fun ShopScreen(
                                             description = item.description,
                                             currentGold = shopSnapshot.gold,
                                             isOwned = false,
-                                            actionLabel = "Buy x$buyAmount",
+                                            actionLabel = "Buy x$buyAmount (${CurrencyUtils.formatGold(totalPrice)})",
                                             requiredClasses = item.requiredClasses,
+                                            hideRequirements = !shopSnapshot.isReborn,
                                         ) {
                                             if (shopSnapshot.gold >= totalPrice) {
                                                 val newItems = List(buyAmount) { item.name }

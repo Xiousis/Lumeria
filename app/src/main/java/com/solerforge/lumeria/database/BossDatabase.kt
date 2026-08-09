@@ -17,6 +17,7 @@ data class Boss(
     val rewardGold: Long,
     val defense: Int,
     val moveset: List<BossAttack>,
+    val description: String = "",
     val isLegacy: Boolean = false
 )
 
@@ -26,11 +27,11 @@ object BossDatabase {
         // WORLD BOSSES
         Boss(
             name = "Training Captain",
-            hp = 500,
+            hp = 1200,
             level = 6,
             rewardXp = 250L,
             rewardGold = 500L,
-            defense = 10,
+            defense = 20,
             moveset = listOf(
                 BossAttack("Shield Bash", 1.25, "A heavy slam that can stun.", "Stun", cooldown = 2),
                 BossAttack("Commanding Strike", 1.75, "A powerful veteran strike.", "Normal", cooldown = 0),
@@ -39,11 +40,11 @@ object BossDatabase {
         ),
         Boss(
             name = "Goblin King",
-            hp = 2500,
+            hp = 4500,
             level = 16,
             rewardXp = 800L,
             rewardGold = 2000L,
-            defense = 25,
+            defense = 45,
             moveset = listOf(
                 BossAttack("Crown Smash", 2.0, "A heavy club attack.", "Normal", cooldown = 0),
                 BossAttack("Goblin Ambush", 1.0, "Calls reinforcements to attack twice.", "MultiHit", cooldown = 2, hitCount = 2),
@@ -52,11 +53,11 @@ object BossDatabase {
         ),
         Boss(
             name = "Crystal Guardian",
-            hp = 6000,
+            hp = 10000,
             level = 26,
             rewardXp = 2500L,
             rewardGold = 7500L,
-            defense = 50,
+            defense = 80,
             moveset = listOf(
                 BossAttack("Crystal Shards", 0.6, "Fires razor-sharp crystals 3 times.", "MultiHit", cooldown = 0, hitCount = 3),
                 BossAttack("Reflective Barrier", 0.0, "Blocks 50% of incoming damage.", "Shield", cooldown = 4),

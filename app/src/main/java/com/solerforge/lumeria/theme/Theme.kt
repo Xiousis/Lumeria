@@ -36,14 +36,28 @@ private val LightColorScheme = lightColorScheme(
     surface = Color.LightGray
 )
 
+private val RebornColorScheme = darkColorScheme(
+    primary = RpgLegendaryPurple,
+    secondary = RpgGold,
+    tertiary = RpgCelestialBlue,
+    background = RpgObsidian,
+    surface = Color(0xFF1E293B),
+    onPrimary = Color.White,
+    onSecondary = Color.Black,
+    onBackground = Color.White,
+    onSurface = Color.White
+)
+
 @Composable
 fun TEXTBASEDRPGMAGICTheme(
+    isReborn: Boolean = false,
     darkTheme: Boolean = isSystemInDarkTheme(),
     // Dynamic color is available on Android 12+
     dynamicColor: Boolean = false, // Disabled for more consistent RPG feel
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {
+        isReborn -> RebornColorScheme
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
             val context = LocalContext.current
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)

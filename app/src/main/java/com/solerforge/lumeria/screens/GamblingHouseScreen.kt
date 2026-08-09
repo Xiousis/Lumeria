@@ -90,8 +90,8 @@ fun GamblingHouseScreen(
         // Handle recovery from interrupted game
         if (playerData.pendingWager > 0) {
             val wager = playerData.pendingWager
-            frankDialogue = "You left in quite a hurry! Here's your $wager gold back. Try not to run off again."
-            onPlayerUpdate(playerData.copy(gold = playerData.gold + wager, pendingWager = 0))
+            frankDialogue = "You left in quite a hurry! I'm afraid your $wager gold bet is forfeit. House rules!"
+            onPlayerUpdate(playerData.copy(pendingWager = 0))
         }
     }
 

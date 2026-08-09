@@ -49,7 +49,8 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
 
     val economyManager = EconomyManager(
         onUpdatePlayer = { updatePlayer(it) },
-        onNavigate = { navigateTo(it) }
+        onNavigate = { navigateTo(it) },
+        onReplace = { replaceTo(it) }
     )
 
     val battleSeed: Int get() = battleOrchestrator.battleSeed
@@ -79,7 +80,24 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
 
     var deviceId: String? = null
 
+    private val _nameAvailability = MutableStateFlow<Boolean?>(null)
+    val nameAvailability = _nameAvailability.asStateFlow()
+
+    fun checkNameAvailability(name: String) {
+        if (name.isBlank() || name.length < 3) {
+            _nameAvailability.value = null
+            return
+        }
+        viewModelScope.launch {
+            val available = com.solerforge.lumeria.managers.NameManager.isNameAvailable(name)
+            _nameAvailability.value = available
+        }
+    }
+
     var towerUnlockMessage by mutableStateOf<String?>(null)
+        private set
+
+    var showCorruptionRecovery by mutableStateOf(false)
         private set
 
     private val _shadows = MutableStateFlow<List<PlayerData>>(emptyList())
@@ -150,8 +168,32 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
         }
     }
 
+    fun replaceTo(screen: Screen) {
+        if (_backstack.isNotEmpty()) {
+            _backstack.removeAt(_backstack.size - 1)
+        }
+        _backstack.add(screen)
+    }
+
     fun selectSlot(slot: Int) {
         activeSlot = slot
+    }
+
+    fun triggerCorruptionRecovery() {
+        showCorruptionRecovery = true
+    }
+
+    fun dismissCorruptionRecovery() {
+        showCorruptionRecovery = false
+    }
+
+    fun restoreBackup() {
+        viewModelScope.launch {
+            // In a real app, this might try to force use the backup key
+            // For now, we'll try to trigger a re-read or log it.
+            // Since repository already tries backup, this might just be a manual re-trigger.
+            showCorruptionRecovery = false
+        }
     }
 
     fun fetchShadows() {
@@ -263,6 +305,97 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
         }
     }
 
+
+
+    private fun applyClassBonuses(data: PlayerData, className: String): PlayerData {
+        val statsAppliedData = data
+        return when (className) {
+            "Mage" -> statsAppliedData.copy(
+                unlockedSkills = listOf("None", "Magic Bolt", "Mana Shield", "Heal"),
+                equippedSkills = listOf("Magic Bolt", "Mana Shield", "Heal"),
+                inventory = listOf("Apprentice Staff", "Mage Robes", "Canvas Shoes", "Mana Potion"),
+                equippedWeapon = "Apprentice Staff",
+                equippedArmor = "Mage Robes",
+                equippedBoots = "Canvas Shoes"
+            )
+            "Samurai" -> statsAppliedData.copy(
+                unlockedSkills = listOf("None", "Slash", "Quick Draw", "Parry"),
+                equippedSkills = listOf("Slash", "Quick Draw", "Parry"),
+                inventory = listOf("Training Katana", "Shinobi Garb", "Sandals"),
+                equippedWeapon = "Training Katana",
+                equippedArmor = "Shinobi Garb",
+                equippedBoots = "Sandals"
+            )
+            "Paladin" -> statsAppliedData.copy(
+                unlockedSkills = listOf("None", "Guard", "Shield Bash", "Heal"),
+                equippedSkills = listOf("Guard", "Shield Bash", "Heal"),
+                inventory = listOf("Knight Blade", "Knight Armor", "Knight Shield", "Leather Boots"),
+                equippedWeapon = "Knight Blade",
+                equippedArmor = "Knight Armor",
+                equippedShield = "Knight Shield",
+                equippedBoots = "Leather Boots"
+            )
+            "Assassin" -> statsAppliedData.copy(
+                unlockedSkills = listOf("None", "Slash", "Quick Draw", "Smoke Bomb"),
+                equippedSkills = listOf("Slash", "Quick Draw", "Smoke Bomb"),
+                inventory = listOf("Squire Dagger", "Scout Armor", "Scout Boots"),
+                equippedWeapon = "Squire Dagger",
+                equippedArmor = "Scout Armor",
+                equippedBoots = "Scout Boots"
+            )
+            "Monk" -> statsAppliedData.copy(
+                unlockedSkills = listOf("None", "Heavy Strike", "Guard", "Heal"),
+                equippedSkills = listOf("Heavy Strike", "Guard", "Heal"),
+                inventory = listOf("None", "Padded Tunic", "Canvas Shoes"),
+                equippedWeapon = "None",
+                equippedArmor = "Padded Tunic",
+                equippedBoots = "Canvas Shoes"
+            )
+            "Archer" -> statsAppliedData.copy(
+                unlockedSkills = listOf("None", "Slash", "Quick Draw", "Heavy Strike"),
+                equippedSkills = listOf("Slash", "Quick Draw", "Heavy Strike"),
+                inventory = listOf("Nomad Bow", "Rugged Vest", "Leather Boots"),
+                equippedWeapon = "Nomad Bow",
+                equippedArmor = "Rugged Vest",
+                equippedBoots = "Leather Boots"
+            )
+            "Necromancer" -> statsAppliedData.copy(
+                unlockedSkills = listOf("None", "Magic Bolt", "Bleeding Slash"),
+                equippedSkills = listOf("Magic Bolt", "Bleeding Slash"),
+                inventory = listOf("Traveler's Staff", "Mage Robes", "Canvas Shoes"),
+                equippedWeapon = "Traveler's Staff",
+                equippedArmor = "Mage Robes",
+                equippedBoots = "Canvas Shoes"
+            )
+            "Bard" -> statsAppliedData.copy(
+                unlockedSkills = listOf("None", "Heal", "Lion's Roar"),
+                equippedSkills = listOf("Heal", "Lion's Roar"),
+                inventory = listOf("Wanderer's Gladius", "Explorer Jacket", "Cloud Sprints"),
+                equippedWeapon = "Wanderer's Gladius",
+                equippedArmor = "Explorer Jacket",
+                equippedBoots = "Cloud Sprints"
+            )
+            "Berserker" -> statsAppliedData.copy(
+                unlockedSkills = listOf("None", "Heavy Strike", "Whirlwind Slash"),
+                equippedSkills = listOf("Heavy Strike", "Whirlwind Slash"),
+                inventory = listOf("Orc Cleaver", "Rugged Vest", "Leather Boots"),
+                equippedWeapon = "Orc Cleaver",
+                equippedArmor = "Rugged Vest",
+                equippedBoots = "Leather Boots"
+            )
+            else -> statsAppliedData.copy( // Warrior
+                unlockedSkills = listOf("None", "Slash", "Heavy Strike", "Guard"),
+                equippedSkills = listOf("Slash", "Heavy Strike", "Guard"),
+                inventory = listOf("Iron Sword", "Leather Armor", "Leather Boots"),
+                equippedWeapon = "Iron Sword",
+                equippedArmor = "Leather Armor",
+                equippedBoots = "Leather Boots"
+            )
+        }.let { data ->
+            data.recalculateVitals()
+        }
+    }
+
     fun onIntroSeen() {
         if (!isResetting) {
             val targetSlot = activeSlot
@@ -270,7 +403,7 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
                 repository.savePlayerData(playerData.value.copy(introSeen = true), targetSlot)
             }
         }
-        navigateTo(Screen.GameMenu)
+        replaceWith(Screen.GameMenu)
     }
 
     fun updateStoryArc(arc: StoryArc?) {
@@ -333,7 +466,8 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
                         gold = current.gold + option.rewardGold
                     )
                 }
-                updated.copy(currentStoryEventIndex = nextIndex)
+                
+                if (isReplay) updated else updated.copy(currentStoryEventIndex = nextIndex)
             }
             currentEventIndex = nextIndex
         }
@@ -524,126 +658,61 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
 
     fun onArcCompletionContinue() {
         previousLevelForCompletion = 1
-        navigateTo(Screen.StorySelection)
+        selectedStoryArc = null
+        currentEventIndex = 0
+        battleOrchestrator.isStoryReplay = false
+        battleOrchestrator.storyEnemyName = null
+        _backstack.clear()
+        _backstack.add(Screen.GameMenu)
+        _backstack.add(Screen.StorySelection)
     }
 
     fun onPerformRebirth(name: String, gender: String, className: String) {
-        val oldData = playerData.value
-        val newData = PlayerData(
-            playerName = name,
-            gender = gender,
-            playerClass = className,
-            isReborn = true,
-            legacyHeroStats = oldData,
-            introSeen = true,
-            currentLocation = "Training Fields",
-            unlockedLocations = listOf("Training Fields"),
-            saveVersion = 3
-        )
-        
-        val baseStats = GameDatabase.getClassBaseStats(className)
-        val statsAppliedData = newData.copy(
-            strength = baseStats[0],
-            vitality = baseStats[1],
-            defense = baseStats[2],
-            intelligence = baseStats[3],
-            agility = baseStats[4],
-            luck = baseStats[5],
-            wisdom = baseStats[6]
-        )
-
-        // Initial class bonuses
-        val finalizedData = when (className) {
-            "Mage" -> statsAppliedData.copy(
-                unlockedSkills = listOf("None", "Magic Bolt", "Mana Shield", "Heal"),
-                equippedSkills = listOf("Magic Bolt", "Mana Shield", "Heal"),
-                inventory = listOf("Apprentice Staff", "Mage Robes", "Canvas Shoes", "Mana Potion"),
-                equippedWeapon = "Apprentice Staff",
-                equippedArmor = "Mage Robes",
-                equippedBoots = "Canvas Shoes"
-            )
-            "Samurai" -> statsAppliedData.copy(
-                unlockedSkills = listOf("None", "Slash", "Quick Draw", "Parry"),
-                equippedSkills = listOf("Slash", "Quick Draw", "Parry"),
-                inventory = listOf("Training Katana", "Shinobi Garb", "Sandals"),
-                equippedWeapon = "Training Katana",
-                equippedArmor = "Shinobi Garb",
-                equippedBoots = "Sandals"
-            )
-            "Paladin" -> statsAppliedData.copy(
-                unlockedSkills = listOf("None", "Guard", "Shield Bash", "Heal"),
-                equippedSkills = listOf("Guard", "Shield Bash", "Heal"),
-                inventory = listOf("Knight Blade", "Knight Armor", "Knight Shield", "Leather Boots"),
-                equippedWeapon = "Knight Blade",
-                equippedArmor = "Knight Armor",
-                equippedShield = "Knight Shield",
-                equippedBoots = "Leather Boots"
-            )
-            "Assassin" -> statsAppliedData.copy(
-                unlockedSkills = listOf("None", "Slash", "Quick Draw", "Smoke Bomb"),
-                equippedSkills = listOf("Slash", "Quick Draw", "Smoke Bomb"),
-                inventory = listOf("Squire Dagger", "Scout Armor", "Scout Boots"),
-                equippedWeapon = "Squire Dagger",
-                equippedArmor = "Scout Armor",
-                equippedBoots = "Scout Boots"
-            )
-            "Monk" -> statsAppliedData.copy(
-                unlockedSkills = listOf("None", "Heavy Strike", "Guard", "Heal"),
-                equippedSkills = listOf("Heavy Strike", "Guard", "Heal"),
-                inventory = listOf("None", "Padded Tunic", "Canvas Shoes"),
-                equippedWeapon = "None",
-                equippedArmor = "Padded Tunic",
-                equippedBoots = "Canvas Shoes"
-            )
-            "Archer" -> statsAppliedData.copy(
-                unlockedSkills = listOf("None", "Slash", "Quick Draw", "Heavy Strike"),
-                equippedSkills = listOf("Slash", "Quick Draw", "Heavy Strike"),
-                inventory = listOf("Nomad Bow", "Rugged Vest", "Leather Boots"),
-                equippedWeapon = "Nomad Bow",
-                equippedArmor = "Rugged Vest",
-                equippedBoots = "Leather Boots"
-            )
-            "Necromancer" -> statsAppliedData.copy(
-                unlockedSkills = listOf("None", "Magic Bolt", "Bleeding Slash"),
-                equippedSkills = listOf("Magic Bolt", "Bleeding Slash"),
-                inventory = listOf("Traveler's Staff", "Mage Robes", "Canvas Shoes"),
-                equippedWeapon = "Traveler's Staff",
-                equippedArmor = "Mage Robes",
-                equippedBoots = "Canvas Shoes"
-            )
-            "Bard" -> statsAppliedData.copy(
-                unlockedSkills = listOf("None", "Heal", "Lion's Roar"),
-                equippedSkills = listOf("Heal", "Lion's Roar"),
-                inventory = listOf("Wanderer's Gladius", "Explorer Jacket", "Cloud Sprints"),
-                equippedWeapon = "Wanderer's Gladius",
-                equippedArmor = "Explorer Jacket",
-                equippedBoots = "Cloud Sprints"
-            )
-            "Berserker" -> statsAppliedData.copy(
-                unlockedSkills = listOf("None", "Heavy Strike", "Whirlwind Slash"),
-                equippedSkills = listOf("Heavy Strike", "Whirlwind Slash"),
-                inventory = listOf("Orc Cleaver", "Rugged Vest", "Leather Boots"),
-                equippedWeapon = "Orc Cleaver",
-                equippedArmor = "Rugged Vest",
-                equippedBoots = "Leather Boots"
-            )
-            else -> statsAppliedData.copy( // Warrior
-                unlockedSkills = listOf("None", "Slash", "Heavy Strike", "Guard"),
-                equippedSkills = listOf("Slash", "Heavy Strike", "Guard"),
-                inventory = listOf("Iron Sword", "Leather Armor", "Leather Boots"),
-                equippedWeapon = "Iron Sword",
-                equippedArmor = "Leather Armor",
-                equippedBoots = "Leather Boots"
-            )
-        }.let { data ->
-            data.recalculateVitals()
-        }
-
         val targetSlot = activeSlot
+        val id = deviceId ?: "unknown"
+        val oldData = playerData.value
+
+        if (oldData.isReborn) return
+        
         viewModelScope.launch {
+            val claimed = com.solerforge.lumeria.managers.NameManager.claimName(name, id)
+            if (!claimed) {
+                _nameAvailability.value = false
+                return@launch
+            }
+
+            val oldData = playerData.value
+            val newData = PlayerData(
+                playerName = name,
+                gender = gender,
+                playerClass = className,
+                isReborn = true,
+                legacyHeroStats = oldData,
+                introSeen = true,
+                currentLocation = "Celestial Plains",
+                unlockedLocations = listOf("Celestial Plains"),
+                joinedGuild = oldData.joinedGuild,
+                joinedGuildId = oldData.joinedGuildId,
+                saveVersion = 4
+            )
+            
+            val baseStats = GameDatabase.getClassBaseStats(className)
+            val statsAppliedData = newData.copy(
+                strength = baseStats[0],
+                vitality = baseStats[1],
+                defense = baseStats[2],
+                intelligence = baseStats[3],
+                agility = baseStats[4],
+                luck = baseStats[5],
+                wisdom = baseStats[6]
+            )
+
+            val finalizedData = applyClassBonuses(statsAppliedData, className)
+
             repository.savePlayerData(finalizedData, targetSlot)
+            updatePlayer(finalizedData)
             _backstack.clear()
-            _backstack.add(Screen.GameMenu)
+            _backstack.add(Screen.RebirthIntro)
         }
     }
 
@@ -654,6 +723,13 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
                 mana = current.maxMana,
             )
         }
+        
+        // Clear story state on death return to prevent bugs
+        selectedStoryArc = null
+        currentEventIndex = 0
+        battleOrchestrator.isStoryReplay = false
+        battleOrchestrator.storyEnemyName = null
+        
         _backstack.clear()
         _backstack.add(Screen.GameMenu)
     }
@@ -716,7 +792,16 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
     }
 
     fun resetStorySelection() {
+        selectedStoryArc = null
+        currentEventIndex = 0
+        battleOrchestrator.isStoryReplay = false
+        battleOrchestrator.storyEnemyName = null
         popBackstack()
+    }
+
+    fun replaceWith(screen: Screen) {
+        _backstack.clear()
+        _backstack.add(screen)
     }
 
     fun onEnterCode(code: String, deviceId: String): String {

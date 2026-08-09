@@ -47,17 +47,22 @@ fun StoryScreen(onContinue: () -> Unit) {
         label = "IntroAlpha"
     )
 
+    var hasContinued by remember { mutableStateOf(false) }
+
     // Global Advance Function
     val onAdvance = {
-        when (step) {
-            IntroStep.LazyText -> {
-                step = IntroStep.LazyImage
-            }
-            IntroStep.LazyImage -> {
-                step = IntroStep.FinalStory
-            }
-            IntroStep.FinalStory -> {
-                onContinue()
+        if (!hasContinued) {
+            when (step) {
+                IntroStep.LazyText -> {
+                    step = IntroStep.LazyImage
+                }
+                IntroStep.LazyImage -> {
+                    step = IntroStep.FinalStory
+                }
+                IntroStep.FinalStory -> {
+                    hasContinued = true
+                    onContinue()
+                }
             }
         }
     }

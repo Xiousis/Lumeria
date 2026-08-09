@@ -67,7 +67,7 @@ fun RebirthRequirementsScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = "THE REBIRTH ALTAR",
+                text = if (playerData.isReborn) "LEGENDARY HERO" else "THE REBIRTH ALTAR",
                 style = MaterialTheme.typography.headlineMedium,
                 color = Color.Yellow,
                 fontWeight = FontWeight.Black,
@@ -75,7 +75,9 @@ fun RebirthRequirementsScreen(
             )
 
             Text(
-                text = "Only those who have truly conquered Lumeria may transcend their mortal limits and forge a new legacy.",
+                text = if (playerData.isReborn) 
+                    "You have already transcended your mortal limits. You are now a Legend of Lumeria." 
+                    else "Only those who have truly conquered Lumeria may transcend their mortal limits and forge a new legacy.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = Color.LightGray,
                 textAlign = TextAlign.Center,
@@ -84,39 +86,50 @@ fun RebirthRequirementsScreen(
 
             HorizontalDivider(color = Color.White.copy(alpha = 0.2f))
 
-            LazyColumn(
-                modifier = Modifier.weight(1f).fillMaxWidth(),
-                contentPadding = PaddingValues(vertical = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                items(requirements) { req ->
-                    RequirementRow(req)
-                }
-            }
-
-            if (canRebirth) {
-                RpgButton(
-                    text = "BEGIN ASCENSION",
-                    onClick = onStartRebirth,
-                    containerColor = Color(0xFF6200EE),
-                    modifier = Modifier.fillMaxWidth().height(64.dp)
-                )
-                Text(
-                    text = "WARNING: This will reset your progress to Level 1 and allow you to create a new hero. This cannot be undone.",
-                    color = Color.Red,
-                    fontSize = 12.sp,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(top = 8.dp)
-                )
-            } else {
-                Button(
-                    onClick = {},
-                    enabled = false,
-                    modifier = Modifier.fillMaxWidth().height(64.dp),
-                    colors = ButtonDefaults.buttonColors(disabledContainerColor = Color.DarkGray)
+            if (!playerData.isReborn) {
+                LazyColumn(
+                    modifier = Modifier.weight(1f).fillMaxWidth(),
+                    contentPadding = PaddingValues(vertical = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Text("REQUIREMENTS NOT MET", color = Color.Gray)
+                    items(requirements) { req ->
+                        RequirementRow(req)
+                    }
                 }
+
+                if (canRebirth) {
+                    RpgButton(
+                        text = "BEGIN ASCENSION",
+                        onClick = onStartRebirth,
+                        containerColor = Color(0xFF6200EE),
+                        modifier = Modifier.fillMaxWidth().height(64.dp)
+                    )
+                    Text(
+                        text = "WARNING: This will reset your progress to Level 1 and allow you to create a new hero. This cannot be undone.",
+                        color = Color.Red,
+                        fontSize = 12.sp,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(top = 8.dp)
+                    )
+                } else {
+                    Button(
+                        onClick = {},
+                        enabled = false,
+                        modifier = Modifier.fillMaxWidth().height(64.dp),
+                        colors = ButtonDefaults.buttonColors(disabledContainerColor = Color.DarkGray)
+                    ) {
+                        Text("REQUIREMENTS NOT MET", color = Color.Gray)
+                    }
+                }
+            } else {
+                Spacer(modifier = Modifier.weight(1f))
+                Text(
+                    text = "Your journey as ${playerData.playerName} is permanent.\nContinue your legend through the world of Lumeria.",
+                    color = Color.Cyan,
+                    textAlign = TextAlign.Center,
+                    style = MaterialTheme.typography.titleMedium
+                )
+                Spacer(modifier = Modifier.weight(1f))
             }
 
             Spacer(modifier = Modifier.height(16.dp))

@@ -158,10 +158,10 @@ fun MasteryDetailView(name: String, killCount: Int, onBack: () -> Unit) {
 
         // Progress to next rank
         val nextThreshold = when(rank) {
-            0 -> 50
-            1 -> 150
-            2 -> 400
-            3 -> 1000
+            0 -> 10
+            1 -> 50
+            2 -> 150
+            3 -> 500
             else -> 1000
         }
         
@@ -185,7 +185,7 @@ fun MasteryDetailView(name: String, killCount: Int, onBack: () -> Unit) {
         // Information Section based on rank
         Column(modifier = Modifier.fillMaxWidth().weight(1f).verticalScroll(rememberScrollState())) {
             Text("Information", color = Color.Cyan, fontWeight = FontWeight.Bold)
-            if (killCount >= 150) {
+            if (killCount >= 10) {
                  Text("This creature inhabits various regions of Lumeria and poses a significant threat to unprepared travelers.", color = Color.White)
             } else {
                  Text("???", color = Color.DarkGray)
@@ -193,15 +193,15 @@ fun MasteryDetailView(name: String, killCount: Int, onBack: () -> Unit) {
 
             Spacer(modifier = Modifier.height(16.dp))
             Text("Elemental Affinity", color = Color.Cyan, fontWeight = FontWeight.Bold)
-            if (killCount >= 150) {
+            if (killCount >= 50) {
                 Text("Study complete. Weaknesses and resistances revealed in combat view.", color = Color.White)
             } else {
-                Text("(Rank 2 required to reveal)", color = Color.DarkGray, style = MaterialTheme.typography.labelSmall)
+                Text("(10 Kills required to reveal basic info, 50 for full study)", color = Color.DarkGray, style = MaterialTheme.typography.labelSmall)
             }
 
             Spacer(modifier = Modifier.height(16.dp))
             Text("Lore", color = Color.Cyan, fontWeight = FontWeight.Bold)
-            if (killCount >= 400) {
+            if (killCount >= 500) {
                 Text("Ancient texts mention this being as a guardian of the ley lines, though its nature has been twisted over centuries of conflict.", color = Color.White)
             } else {
                 Text("(Rank 3 required to reveal)", color = Color.DarkGray, style = MaterialTheme.typography.labelSmall)
@@ -212,9 +212,9 @@ fun MasteryDetailView(name: String, killCount: Int, onBack: () -> Unit) {
 
         // Perks List Summary
         Text("Unlocked Mastery Perks", color = Color.LightGray, style = MaterialTheme.typography.labelSmall)
-        MasteryPerkRow("Reveal HP Numbers", killCount >= 50, 1)
+        MasteryPerkRow("Reveal HP Numbers", killCount >= 25, 1)
         MasteryPerkRow("Reveal Resistances", killCount >= 150, 2)
-        MasteryPerkRow("Full Intel", killCount >= 400, 3)
+        MasteryPerkRow("Full Intel", killCount >= 500, 3)
         MasteryPerkRow("+10% Damage Bonus", killCount >= 1000, 4)
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -245,9 +245,9 @@ fun MasteryPerkRow(label: String, isUnlocked: Boolean, rankReq: Int) {
 fun getMasteryRank(kills: Int): Int {
     return when {
         kills >= 1000 -> 4
-        kills >= 400 -> 3
+        kills >= 500 -> 3
         kills >= 150 -> 2
-        kills >= 50 -> 1
+        kills >= 10 -> 1
         else -> 0
     }
 }
