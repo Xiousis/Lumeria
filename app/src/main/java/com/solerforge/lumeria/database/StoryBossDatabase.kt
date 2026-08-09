@@ -13,7 +13,7 @@ object StoryBossDatabase {
             moveset = listOf(
                 BossAttack("Veteran Slash", 1.75, "A precise strike from a master.", "Normal"),
                 BossAttack("Disarm", 1.0, "Knocks your weapon aside to stun.", "Stun", cooldown = 3),
-                BossAttack("Tactical Guard", 0.0, "Assumes a defensive stance.", "Buff", cooldown = 4)
+                BossAttack("Tactical Guard", 0.0, "Assumes a defensive stance.", "DefenseBuff", cooldown = 4)
             ),
             description = "A veteran commander who once led the King's Vanguard. His tactical brilliance is matched only by his unwavering loyalty."
         ),
@@ -40,7 +40,7 @@ object StoryBossDatabase {
             defense = 85,
             moveset = listOf(
                 BossAttack("Refraction Beam", 2.5, "A beam of light that ignores armor.", "IgnoreArmor", cooldown = 3),
-                BossAttack("Crystal Shell", 0.0, "Hardens its body for defense.", "Buff", cooldown = 5),
+                BossAttack("Crystal Shell", 0.0, "Hardens its body for defense.", "Shield", cooldown = 5),
                 BossAttack("Shatter", 1.75, "Explodes crystals outward.", "MultiHit")
             ),
             description = "An ancient construct carved from the purest mana-crystals. It guards the subterranean vaults with tireless, prismatic vigilance."
@@ -54,7 +54,7 @@ object StoryBossDatabase {
             defense = 150,
             moveset = listOf(
                 BossAttack("Corrupted Strike", 1.8, "A heavy blow tainted by dark magic.", "Normal"),
-                BossAttack("Dark Shield", 0.0, "Raises a shield of shadow.", "Buff", cooldown = 3),
+                BossAttack("Dark Shield", 0.0, "Raises a shield of shadow.", "Shield", cooldown = 3),
                 BossAttack("Despair", 1.2, "Lowers player spirit and stuns.", "Stun", cooldown = 4)
             ),
             description = "A fallen knight whose once-noble soul has been consumed by shadow. He wanders the ruins of his former kingdom, seeking redemption through combat."
@@ -62,21 +62,21 @@ object StoryBossDatabase {
         Boss(
             name = "Grondar Earthshaker",
             hp = 25000,
-            level = 40,
+            level = 35,
             rewardXp = 10000,
             rewardGold = 10000,
             defense = 280,
             moveset = listOf(
                 BossAttack("Mountain Crush", 2.8, "Crushes the target with stone.", "Normal", cooldown = 2),
                 BossAttack("QuakeStomp", 1.5, "Causes the earth to rise and stun.", "Stun", cooldown = 4),
-                BossAttack("Stone Armor", 0.0, "Coats itself in thick granite.", "Buff", cooldown = 5)
+                BossAttack("Stone Armor", 0.0, "Coats itself in thick granite.", "DefenseBuff", cooldown = 5)
             ),
             description = "A massive golem formed from the very bedrock of the world. Each of his steps causes the earth to tremble and mountains to bow."
         ),
         Boss(
             name = "Mirefang",
             hp = 25000,
-            level = 48,
+            level = 42,
             rewardXp = 20000,
             rewardGold = 20000,
             defense = 250,
@@ -90,13 +90,13 @@ object StoryBossDatabase {
         Boss(
             name = "Infernal Warden",
             hp = 45000,
-            level = 58,
+            level = 50,
             rewardXp = 40000,
             rewardGold = 40000,
             defense = 400,
             moveset = listOf(
                 BossAttack("Hellfire", 2.5, "Engulfs the battlefield in flames.", "Normal"),
-                BossAttack("Cinder Guard", 0.0, "Reduces damage with heat.", "Buff", cooldown = 3),
+                BossAttack("Cinder Guard", 0.0, "Reduces damage with heat.", "DefenseBuff", cooldown = 3),
                 BossAttack("Inferno Burst", 1.8, "A multi-hit fire blast.", "MultiHit", cooldown = 2)
             ),
             description = "A demon forged in the deepest pits of the underworld. He stands as a gatekeeper to the realms of fire and eternal suffering."
@@ -104,7 +104,7 @@ object StoryBossDatabase {
         Boss(
             name = "The Iron Juggernaut",
             hp = 75000,
-            level = 68,
+            level = 58,
             rewardXp = 60000,
             rewardGold = 60000,
             defense = 550,
@@ -118,7 +118,7 @@ object StoryBossDatabase {
         Boss(
             name = "War Chief Krag",
             hp = 120000,
-            level = 75,
+            level = 65,
             rewardXp = 100000,
             rewardGold = 100000,
             defense = 750,
@@ -132,7 +132,7 @@ object StoryBossDatabase {
         Boss(
             name = "King Maldrake",
             hp = 250000,
-            level = 85,
+            level = 72,
             rewardXp = 200000,
             rewardGold = 25000,
             defense = 1000,
@@ -144,23 +144,9 @@ object StoryBossDatabase {
             description = "The spectral remains of a monarch who refused to leave his throne. He rules over a kingdom of ghosts and forgotten memories."
         ),
         Boss(
-            name = "Elder Wyvern Tyrant",
-            hp = 500000,
-            level = 95,
-            rewardXp = 400000,
-            rewardGold = 250000,
-            defense = 1500,
-            moveset = listOf(
-                BossAttack("Sky Strike", 2.5, "Attacks from the clouds.", "Normal"),
-                BossAttack("Tail Swipe", 1.8, "A wide arc that stuns.", "Stun", cooldown = 3),
-                BossAttack("Dragon Roar", 0.0, "Greatly increases attack power.", "Buff", cooldown = 5)
-            ),
-            description = "The undisputed master of the high peaks. This ancient predator has reigned supreme for centuries, feared by all who fly."
-        ),
-        Boss(
             name = "Grand Magister Veyra",
             hp = 350000,
-            level = 90,
+            level = 78,
             rewardXp = 300000,
             rewardGold = 200000,
             defense = 800,
@@ -172,9 +158,23 @@ object StoryBossDatabase {
             description = "A prodigy of the arcane arts who delved too deep into forbidden knowledge. Her mastery over mana is both terrifying and beautiful."
         ),
         Boss(
+            name = "Elder Wyvern Tyrant",
+            hp = 500000,
+            level = 85,
+            rewardXp = 400000,
+            rewardGold = 250000,
+            defense = 1500,
+            moveset = listOf(
+                BossAttack("Sky Strike", 2.5, "Attacks from the clouds.", "Normal"),
+                BossAttack("Tail Swipe", 1.8, "A wide arc that stuns.", "Stun", cooldown = 3),
+                BossAttack("Dragon Roar", 0.0, "Greatly increases attack power.", "Buff", cooldown = 5)
+            ),
+            description = "The undisputed master of the high peaks. This ancient predator has reigned supreme for centuries, feared by all who fly."
+        ),
+        Boss(
             name = "Chrono Sentinel",
             hp = 750000,
-            level = 100,
+            level = 90,
             rewardXp = 600000,
             rewardGold = 500000,
             defense = 1200,
@@ -188,7 +188,7 @@ object StoryBossDatabase {
         Boss(
             name = "Lord Umbra",
             hp = 1200000,
-            level = 110,
+            level = 95,
             rewardXp = 1000000,
             rewardGold = 1000000,
             defense = 1800,
@@ -202,7 +202,7 @@ object StoryBossDatabase {
         Boss(
             name = "Aurelius",
             hp = 1800000,
-            level = 115,
+            level = 100,
             rewardXp = 1500000,
             rewardGold = 1500000,
             defense = 2200,
@@ -216,7 +216,7 @@ object StoryBossDatabase {
         Boss(
             name = "High Inquisitor Kael",
             hp = 2500000,
-            level = 120,
+            level = 105,
             rewardXp = 2500000,
             rewardGold = 2500000,
             defense = 3000,
@@ -230,13 +230,13 @@ object StoryBossDatabase {
         Boss(
             name = "Rift Sovereign",
             hp = 4000000,
-            level = 130,
+            level = 108,
             rewardXp = 5000000,
             rewardGold = 5000000,
             defense = 4000,
             moveset = listOf(
                 BossAttack("Rift Tear", 3.5, "Tears reality.", "MultiHit", cooldown = 3),
-                BossAttack("Dimension Shift", 0.0, "Becomes untouchable.", "Buff", cooldown = 4),
+                BossAttack("Dimension Shift", 0.0, "Becomes untouchable.", "EvasionBuff", cooldown = 4),
                 BossAttack("Singularity", 7.0, "Consumes everything.", "IgnoreArmor", cooldown = 6)
             ),
             description = "A being from between worlds that has clawed its way into our reality. It commands the very fabric of space to do its bidding."
@@ -244,7 +244,7 @@ object StoryBossDatabase {
         Boss(
             name = "Void Prophet",
             hp = 6000000,
-            level = 140,
+            level = 110,
             rewardXp = 10000000,
             rewardGold = 10000000,
             defense = 5000,
@@ -258,7 +258,7 @@ object StoryBossDatabase {
         Boss(
             name = "Ascended Xarthos",
             hp = 12000000,
-            level = 160,
+            level = 112,
             rewardXp = 25000000,
             rewardGold = 25000000,
             defense = 8000,
@@ -272,7 +272,7 @@ object StoryBossDatabase {
         Boss(
             name = "The World Eater",
             hp = 50000000,
-            level = 200,
+            level = 115,
             rewardXp = 100000000,
             rewardGold = 100000000,
             defense = 15000,
@@ -286,7 +286,7 @@ object StoryBossDatabase {
         Boss(
             name = "Void Reaper Prime",
             hp = 3000000,
-            level = 125,
+            level = 105,
             rewardXp = 3000000,
             rewardGold = 1000000,
             defense = 3500,
@@ -300,7 +300,7 @@ object StoryBossDatabase {
         Boss(
             name = "The Last Herald",
             hp = 8000000,
-            level = 145,
+            level = 108,
             rewardXp = 15000000,
             rewardGold = 5000000,
             defense = 6000,
@@ -314,7 +314,7 @@ object StoryBossDatabase {
         Boss(
             name = "Ascended Xarthos Remnant",
             hp = 15000000,
-            level = 170,
+            level = 112,
             rewardXp = 30000000,
             rewardGold = 10000000,
             defense = 10000,
@@ -328,7 +328,7 @@ object StoryBossDatabase {
         Boss(
             name = "World Eater Phase 1",
             hp = 20000000,
-            level = 185,
+            level = 110,
             rewardXp = 50000000,
             rewardGold = 25000000,
             defense = 12000,
@@ -342,7 +342,7 @@ object StoryBossDatabase {
         Boss(
             name = "World Eater Phase 2",
             hp = 35000000,
-            level = 195,
+            level = 112,
             rewardXp = 75000000,
             rewardGold = 40000000,
             defense = 14000,
@@ -357,7 +357,7 @@ object StoryBossDatabase {
         Boss(
             name = "World Eater Final Form",
             hp = 60000000,
-            level = 210,
+            level = 115,
             rewardXp = 150000000,
             rewardGold = 75000000,
             defense = 18000,
@@ -426,7 +426,7 @@ object StoryBossDatabase {
         Boss(
             name = "The Forgotten Creator",
             hp = 150000000,
-            level = 250,
+            level = 115,
             rewardXp = 0,
             rewardGold = 0,
             defense = 25000,

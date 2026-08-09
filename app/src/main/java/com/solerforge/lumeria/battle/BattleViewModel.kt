@@ -159,7 +159,7 @@ class BattleViewModel(
                 } else {
                     name = location.enemies.random()
                     level = (location.minLevel..location.maxLevel).random()
-                    hp = (level * 45) + 120 // Buffed HP scaling for mobs
+                    hp = Enemy.calculateMobHp(level)
                     isHuman = name.contains("Goblin", ignoreCase = true) || name.contains("Orc", ignoreCase = true) || name.contains("Knight", ignoreCase = true) || 
                               name.contains("Rogue", ignoreCase = true) || name.contains("Assassin", ignoreCase = true) || name.contains("Guard", ignoreCase = true) || 
                               name.contains("Squire", ignoreCase = true)
@@ -194,7 +194,7 @@ class BattleViewModel(
         if (canDouble && (Math.random() < 0.20)) {
             val name2 = location.enemies.random()
             val level2 = (location.minLevel..location.maxLevel).random()
-            val hp2 = (level2 * 25) + 30
+            val hp2 = Enemy.calculateMobHp(level2)
             val isHuman2 = name2.contains("Goblin", ignoreCase = true) || name2.contains("Orc", ignoreCase = true) || name2.contains("Knight", ignoreCase = true) || 
                           name2.contains("Rogue", ignoreCase = true) || name2.contains("Assassin", ignoreCase = true) || name2.contains("Guard", ignoreCase = true) || 
                           name2.contains("Squire", ignoreCase = true)
@@ -569,7 +569,7 @@ class BattleViewModel(
             enemy.name.contains("Swamp Horror", ignoreCase = true) || enemy.name.contains("Bog-Behemoth", ignoreCase = true) -> R.drawable.swamp_horror
             enemy.name.contains("Dread Mosquito", ignoreCase = true) || enemy.name.contains("Rot-Gnat", ignoreCase = true) -> R.drawable.dread_mosquito
             enemy.name.contains("Leech", ignoreCase = true) || enemy.name.contains("Prismatic Leech", ignoreCase = true) -> R.drawable.leech
-            enemy.name.contains("Will o the wisp", ignoreCase = true) || enemy.name.contains("Gloom-Wisp", ignoreCase = true) -> R.drawable.will_o_the_wisp
+            enemy.name.contains("Will-o'-the-Wisp", ignoreCase = true) || enemy.name.contains("Will o the wisp", ignoreCase = true) || enemy.name.contains("Gloom-Wisp", ignoreCase = true) -> R.drawable.will_o_the_wisp
             enemy.name.contains("Dark Spirit", ignoreCase = true) -> R.drawable.dark_spirit
             enemy.name.contains("Slime", ignoreCase = true) -> R.drawable.slime_001
             enemy.name.contains("Shade", ignoreCase = true) -> R.drawable.shade

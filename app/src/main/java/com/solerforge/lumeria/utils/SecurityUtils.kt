@@ -71,6 +71,8 @@ object SecurityUtils {
         val currentSignature = getAppSignature(context)
         Log.d("SecurityUtils", "Current App Signature: $currentSignature")
         
+        // IMPORTANT: Replace this with your actual Play App Signing SHA-256 fingerprint before production.
+        // You can find this in the Google Play Console under Setup -> App integrity.
         val RELEASE_SIGNATURE = "REPLACE_WITH_RELEASE_SIGNATURE"
         return currentSignature == RELEASE_SIGNATURE
     }

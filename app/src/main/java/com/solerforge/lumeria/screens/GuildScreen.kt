@@ -27,6 +27,7 @@ import com.solerforge.lumeria.models.Guild
 import com.solerforge.lumeria.models.GuildMember
 import com.solerforge.lumeria.utils.CurrencyUtils
 import com.solerforge.lumeria.viewmodels.GuildViewModel
+import kotlinx.coroutines.flow.StateFlow
 
 enum class GuildTab(val displayName: String) {
     DASHBOARD("DASHBOARD"),
@@ -39,12 +40,13 @@ enum class GuildTab(val displayName: String) {
 fun GuildScreen(
     playerData: PlayerData,
     guildViewModel: GuildViewModel,
-    deviceId: String,
+    deviceIdFlow: StateFlow<String?>,
     onPlayerUpdate: (PlayerData) -> Unit,
     onNavigateToIntro: () -> Unit,
     onStartExam: (com.solerforge.lumeria.database.GuildDatabase.GuildExam) -> Unit,
     onReturn: () -> Unit
 ) {
+    val deviceId by deviceIdFlow.collectAsState()
     val currentGuild by guildViewModel.currentGuild.collectAsState()
     val guildList by guildViewModel.guildList.collectAsState()
     val members by guildViewModel.guildMembers.collectAsState()
@@ -66,10 +68,11 @@ fun GuildScreen(
                 isLoading = isLoading,
                 playerData = playerData,
                 onCreateGuild = { name ->
+                    val id = deviceId ?: return@GuildBrowserScreen // Guard
                     if (playerData.gold >= 1000000L) {
-                        guildViewModel.createGuild(name, playerData, deviceId) { id, guildName ->
+                        guildViewModel.createGuild(name, playerData, id) { gid, guildName ->
                             onPlayerUpdate(playerData.copy(
-                                joinedGuildId = id, 
+                                joinedGuildId = gid, 
                                 joinedGuild = guildName,
                                 gold = playerData.gold - 1000000L
                             ))
@@ -77,8 +80,9 @@ fun GuildScreen(
                     }
                 },
                 onJoinGuild = { guild ->
-                    guildViewModel.joinGuild(guild.id, guild.name, playerData, deviceId) { id, guildName ->
-                        onPlayerUpdate(playerData.copy(joinedGuildId = id, joinedGuild = guildName))
+                    val id = deviceId ?: return@GuildBrowserScreen // Guard
+                    guildViewModel.joinGuild(guild.id, guild.name, playerData, id) { gid, guildName ->
+                        onPlayerUpdate(playerData.copy(joinedGuildId = gid, joinedGuild = guildName))
                     }
                 },
                 onReturn = onReturn
@@ -93,11 +97,12 @@ fun GuildScreen(
             )
         }
     } else if (playerData.joinedGuildId != null) {
+        val id = deviceId ?: "unknown" // Dashboard is mostly read-only, but donation needs ID
         GuildDashboardScreen(
             playerData = playerData,
             guild = currentGuild,
             members = members,
-            deviceId = deviceId,
+            deviceId = id,
             guildViewModel = guildViewModel,
             onPlayerUpdate = onPlayerUpdate,
             onReturn = onReturn
@@ -249,6 +254,7 @@ fun GuildDashboardScreen(
     onReturn: () -> Unit
 ) {
     var selectedTab by remember { mutableStateOf(GuildTab.DASHBOARD) }
+    val isLoading by guildViewModel.isLoading.collectAsState()
     val color = Color.Cyan
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -361,6 +367,7 @@ fun GuildDashboardScreen(
                                 Spacer(modifier = Modifier.height(32.dp))
                                 RpgButton(
                                     text = "Donate 5,000 Gold",
+                                    enabled = !isLoading && playerData.gold >= 5000,
                                     onClick = {
                                         if (playerData.gold >= 5000) {
                                             guildViewModel.donate(guild.id, 5000, deviceId) {

@@ -33,7 +33,7 @@ class PlayerDataRepository(
         encodeDefaults = true
     }
 
-    private val CURRENT_SAVE_VERSION = 3
+    private val CURRENT_SAVE_VERSION = 5
 
     // This is a secret key used for signing save files. 
     // In production, this is injected from local.properties via BuildConfig.
@@ -47,6 +47,8 @@ class PlayerDataRepository(
             currentData = when (currentData.saveVersion) {
                 1 -> migrateV1ToV2(currentData)
                 2 -> migrateV2ToV3(currentData)
+                3 -> currentData.copy(saveVersion = 4)
+                4 -> currentData.copy(saveVersion = 5)
                 else -> throw IllegalStateException("Unknown save version: ${currentData.saveVersion}")
             }
         }
@@ -110,7 +112,8 @@ class PlayerDataRepository(
         }
     }
 
-    suspend fun updatePlayer(slot: Int, transform: (PlayerData) -> PlayerData) {
+    suspend fun updatePlayer(slot: Int, transform: (PlayerData) -> PlayerData): PlayerData {
+        var finalData: PlayerData? = null
         context.dataStore.edit { preferences ->
             val jsonString = preferences[Keys.slotKey(slot)]
             var validJsonForBackup: String? = null
@@ -121,15 +124,12 @@ class PlayerDataRepository(
                     validJsonForBackup = jsonString
                     migrateIfNeeded(decoded)
                 } catch (e: Exception) {
-                    // If corrupted, try backup during update too
                     val backupJson = preferences[Keys.backupKey(slot)]
                     if (backupJson != null) {
                         try {
                             val decodedBackup = json.decodeFromString<PlayerData>(backupJson)
                             migrateIfNeeded(decodedBackup)
                         } catch (backupEx: Exception) {
-                            // BOTH PRIMARY AND BACKUP CORRUPT
-                            // We return a 'Corrupt' sentinel or throw
                             throw IllegalStateException("Save data for slot $slot is critically corrupted.")
                         }
                     } else {
@@ -146,7 +146,6 @@ class PlayerDataRepository(
             )
             val updatedJson = json.encodeToString(updatedData)
 
-            // Preserve current as backup before overwriting, only if it was valid
             if (validJsonForBackup != null) {
                 preferences[Keys.backupKey(slot)] = validJsonForBackup
             }
@@ -154,27 +153,26 @@ class PlayerDataRepository(
             preferences[Keys.slotKey(slot)] = updatedJson
             preferences[Keys.LAST_USED_SLOT] = slot
             
-            // Trigger Cloud Save if enabled (inside the edit block to ensure consistency if needed, 
-            // but cloudSaveManager calls are usually outside or handled via flows)
+            finalData = updatedData
         }
         
-        // Re-read for cloud sync after edit
+        val result = finalData ?: throw IllegalStateException("Update failed to produce final data")
+
+        // Trigger Cloud Save if enabled
         val settings = settingsFlow.first()
         if (settings.cloudSaveEnabled) {
-            val finalJson = context.dataStore.data.first()[Keys.slotKey(slot)]
-            if (finalJson != null) {
-                val finalData = json.decodeFromString<PlayerData>(finalJson)
-                cloudSaveManager?.saveToCloud(
-                    slot = slot,
-                    data = finalJson,
-                    description = "Lv. ${finalData.level} - ${finalData.currentLocation}"
-                )
-            }
+            cloudSaveManager?.saveToCloud(
+                slot = slot,
+                data = json.encodeToString(result),
+                description = "Lv. ${result.level} - ${result.currentLocation}"
+            )
         }
+
+        return result
     }
 
-    suspend fun savePlayerData(playerData: PlayerData, slot: Int) {
-        updatePlayer(slot) { playerData }
+    suspend fun savePlayerData(playerData: PlayerData, slot: Int): PlayerData {
+        return updatePlayer(slot) { playerData }
     }
 
     suspend fun syncFromCloud(slot: Int): Boolean {

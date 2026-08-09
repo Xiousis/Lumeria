@@ -57,7 +57,7 @@ fun DefeatedScreen(goldLost: Long = 0, onReturnToMenu: () -> Unit) {
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Text(
-                text = "Xious has been defeated. But a true warrior never gives up.",
+                text = "The journey is long and fraught with peril. A true warrior never gives up.",
                 style = MaterialTheme.typography.titleMedium,
                 color = Color.White.copy(alpha = 0.8f),
                 textAlign = TextAlign.Center,

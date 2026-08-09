@@ -19,15 +19,15 @@ object BattleLogic {
         val enemyHp: Int,
         val isCrit: Boolean,
         val isDodge: Boolean,
-        val playerDamage: Int,
-        val enemyDamage: Int,
-        val actualHeal: Int,
+        val playerDamage: Long,
+        val enemyDamage: Long,
+        val actualHeal: Long,
         val extraEnemyHits: Int = 0,
         val stunApplied: Boolean = false,
         val bleedApplied: Boolean = false,
         val multiHits: Int = 1,
         val secondWindTriggered: Boolean = false,
-        val reflectedDamage: Int = 0,
+        val reflectedDamage: Long = 0,
         val appliedStatus: StatusEffect = StatusEffect.None,
         val elementalMultiplier: Double = 1.0,
         val comboTriggered: Boolean = false,
@@ -39,7 +39,7 @@ object BattleLogic {
         armorDefense: Int,
         multiplier: Double = 1.0,
         ignoreArmor: Boolean = false,
-    ): Int {
+    ): Long {
         val baseEnemyDamage = when (enemyName) {
             "Slime", "Wild Rat", "Crystal Slime" -> 6
             "Training Goblin", "Goblin", "Goblin Archer" -> 10
@@ -49,11 +49,11 @@ object BattleLogic {
             "Swamp Horror", "Shadow Knight" -> 28
             "Void Reaper" -> 40
             else -> 12
-        } + (enemyLevel * 2.2).toInt()
+        } + (enemyLevel * 2.2).toLong()
         
         val effectiveArmor = if (ignoreArmor) 0 else armorDefense
-        val finalDmg = (baseEnemyDamage * multiplier).toInt()
-        return maxOf(1, finalDmg - (effectiveArmor / 2))
+        val finalDmg = (baseEnemyDamage * multiplier).toLong()
+        return maxOf(1L, finalDmg - (effectiveArmor / 2))
     }
 
     fun calculateBossDamage(
@@ -61,14 +61,14 @@ object BattleLogic {
         armorDefense: Int,
         multiplier: Double = 1.0,
         ignoreArmor: Boolean = false,
-    ): Int {
-        val baseDamage = (bossLevel * 5) + 30
+    ): Long {
+        val baseDamage = (bossLevel * 5L) + 30
         val effectiveArmor = if (ignoreArmor) 0 else armorDefense
-        val finalDmg = (baseDamage * multiplier).toInt()
+        val finalDmg = (baseDamage * multiplier).toLong()
         
         // If multiplier is 0 (Heal/Buff), damage is 0. Otherwise at least 1.
-        if (multiplier <= 0.0) return 0
-        return maxOf(1, finalDmg - (effectiveArmor / 2))
+        if (multiplier <= 0.0) return 0L
+        return maxOf(1L, finalDmg - (effectiveArmor / 2))
     }
 
     fun calculateDodgeChance(player: PlayerData, evasionBonus: Double): Double {
@@ -78,7 +78,7 @@ object BattleLogic {
         return dodgeChance.coerceIn(0.0, 0.90)
     }
 
-    fun getSkillDamage(player: PlayerData, skill: Skill): Int {
+    fun getSkillDamage(player: PlayerData, skill: Skill): Long {
         val weaponBonus = GameDatabase.getWeapon(player.equippedWeapon).attack
         
         val offHand1 = GameDatabase.getOffHand(player.equippedOffHand)
@@ -103,12 +103,12 @@ object BattleLogic {
 
         val baseDmg = if ((skill.elementType != ElementType.Physical) || (skill.name == "Magic Bolt")) {
             // Magic Damage: Scales heavily with Int, slightly with Wis
-            var dmg = 8 + (totalInt * 2.5) + (totalWis * 0.5)
+            var dmg = 8.0 + (totalInt * 2.5) + (totalWis * 0.5)
             if (hasEyesOfCreator) dmg *= 1.3
             dmg
         } else {
             // Physical Damage: Scales heavily with Str, slightly with Int (enchantment effect)
-            5 + weaponBonus + totalStr + (totalInt * 0.2)
+            5.0 + weaponBonus + totalStr + (totalInt * 0.2)
         }
         
         var multiplier = skill.multiplier
@@ -116,7 +116,7 @@ object BattleLogic {
             multiplier *= 1.02
         }
 
-        return (baseDmg * multiplier).toInt()
+        return (baseDmg * multiplier).toLong()
     }
 
     fun processTurn(
@@ -134,16 +134,16 @@ object BattleLogic {
     ): TurnResult {
         var nextEnemyHp = currentEnemyHp
         var nextPlayerHp = currentHp
-        var playerDmgDealt = 0
-        var actualHeal = 0
+        var playerDmgDealt = 0L
+        var actualHeal = 0L
         var isCrit = false
         var isDodge = false
-        var enemyDmgDealt = 0
+        var enemyDmgDealt = 0L
         var stunApplied = false
         var bleedApplied = false
         var multiHits = 1
         val secondWindTriggered = false
-        val reflectedDamage = 0
+        val reflectedDamage = 0L
         var comboTriggered = false
         var appliedStatus = StatusEffect.None
 
@@ -151,24 +151,8 @@ object BattleLogic {
         val canEnemyDodge = skill.skillType == "Attack"
         if (canEnemyDodge && Math.random() < enemyEvasionBonus) {
             isDodge = true
-            return TurnResult(
-                playerHp = currentHp,
-                playerMana = maxOf(0, currentMana - skill.manaCost),
-                enemyHp = currentEnemyHp,
-                isCrit = false,
-                isDodge = true,
-                playerDamage = 0,
-                enemyDamage = 0,
-                actualHeal = 0,
-                stunApplied = false,
-                bleedApplied = false,
-                multiHits = 1,
-                secondWindTriggered = false,
-                reflectedDamage = 0,
-                appliedStatus = StatusEffect.None,
-                elementalMultiplier = 1.0,
-                comboTriggered = false
-            )
+            // We return a TurnResult that indicates a dodge, but we ensure mana is still consumed.
+            // The BattleEngine will see playerDamage = 0 and handle the rest.
         }
 
         val bootsAgi = GameDatabase.getBoots(player.equippedBoots).agility
@@ -204,13 +188,13 @@ object BattleLogic {
         
         // 1. Player Action
         val manaCost = skill.manaCost
-        if (currentMana >= manaCost) {
+        if (currentMana >= manaCost && !isDodge) {
             when (skill.effectType) {
                 "Heal" -> {
                     val intellectBonus = offHand1.intelligence + offHand2.intelligence
                     val traitBonusInt = player.unlockedTraits.sumOf { com.solerforge.lumeria.database.TraitDatabase.getTrait(it)?.intBonus ?: 0 }
-                    val healAmount = (10 + ((player.intelligence + intellectBonus + traitBonusInt) * 2)) * skill.multiplier
-                    actualHeal = minOf(healAmount.toInt(), player.maxHp - nextPlayerHp)
+                    val healAmount = (10.0 + ((player.intelligence + intellectBonus + traitBonusInt) * 2)) * skill.multiplier
+                    actualHeal = minOf(healAmount.toLong(), (player.maxHp - nextPlayerHp).toLong())
                     nextPlayerHp = minOf(nextPlayerHp + healAmount.toInt(), player.maxHp)
                 }
                 "Parry" -> { /* Handled in Engine */ }
@@ -231,7 +215,7 @@ object BattleLogic {
                         else -> 1
                     }
                     
-                    var totalDmg = 0
+                    var totalDmg = 0L
                     repeat(multiHits) {
                         if (nextEnemyHp <= 0) return@repeat
                         
@@ -298,13 +282,13 @@ object BattleLogic {
                         if (skill.effectType == "IgnoreArmor") effectiveTargetDef /= 2
                         if ((skill.effectType == "LimitBreak") || (skill.effectType == "MultiHitIgnore")) effectiveTargetDef = 0
                         
-                        val hitDmg = if (skill.multiplier > 0) maxOf(1, (baseDmg - effectiveTargetDef).toInt()) else 0
+                        val hitDmg = if (skill.multiplier > 0) maxOf(1L, (baseDmg - effectiveTargetDef).toLong()) else 0L
                         
                         // Only deal damage up to remaining HP
-                        val actualDmg = if (hitDmg > nextEnemyHp) nextEnemyHp else hitDmg
+                        val actualDmg = if (hitDmg > nextEnemyHp) nextEnemyHp.toLong() else hitDmg
                         
                         totalDmg += actualDmg
-                        nextEnemyHp = maxOf(nextEnemyHp - hitDmg, 0)
+                        nextEnemyHp = maxOf(nextEnemyHp - hitDmg.toInt(), 0)
                         
                         // Lifesteal based on actual damage dealt
                         if (player.equippedWeapon == "Fang of Eternity") {

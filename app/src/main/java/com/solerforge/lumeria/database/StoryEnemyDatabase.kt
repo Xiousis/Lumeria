@@ -41,7 +41,7 @@ object StoryEnemyDatabase {
         
         // Dynamic fallback for common world enemies if seen in story
         val level = location?.let { (it.minLevel..it.maxLevel).random() } ?: 1
-        val hp = (level * 25) + 30
+        val hp = Enemy.calculateMobHp(level)
         val isHuman = name.contains("Goblin", ignoreCase = true) || name.contains("Orc", ignoreCase = true) || 
                       name.contains("Knight", ignoreCase = true) || name.contains("Guard", ignoreCase = true)
                       

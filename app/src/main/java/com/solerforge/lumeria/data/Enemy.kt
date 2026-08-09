@@ -21,4 +21,8 @@ data class Enemy(
     val elementalResistances: Map<ElementType, Double> = emptyMap(),
     val materialDrop: String? = null,
     val passive: EnemyPassive? = null,
-)
+) {
+    companion object {
+        fun calculateMobHp(level: Int): Int = (level * 45) + 120
+    }
+}

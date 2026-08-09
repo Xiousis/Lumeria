@@ -219,14 +219,15 @@ fun BattleScreen(
             ) {
                 Box(modifier = Modifier.weight(1f)) {
                     UnitCard(
-                        name = stringResource(R.string.battle_hero_name),
+                        name = if (playerData.isReborn) playerData.playerName else stringResource(R.string.battle_hero_name),
                         level = playerData.level,
                         hp = state.playerHp,
                         maxHp = playerData.maxHp,
                         mana = state.playerMana,
                         maxMana = playerData.maxMana,
                         gold = playerData.gold,
-                        portraitId = if (playerData.unlockedTraits.contains("Eyes of the Creator")) R.drawable.xious_battle_eyes else R.drawable.battle_xious,
+                        portraitId = if (playerData.isReborn) 0 else (if (playerData.unlockedTraits.contains("Eyes of the Creator")) R.drawable.xious_battle_eyes else R.drawable.battle_xious),
+                        rebornRace = if (playerData.isReborn) playerData.playerRace else null,
                         offsetX = pOffset,
                         shake = state.playerShake,
                         flashAlpha = state.playerFlashAlpha,

@@ -22,19 +22,33 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.solerforge.lumeria.R
 import com.solerforge.lumeria.components.RpgButton
+import com.solerforge.lumeria.database.ClassDatabase
+import com.solerforge.lumeria.database.RaceDatabase
 
 @Composable
 fun CharacterCreationScreen(
     title: String = "FORGE A NEW LEGACY",
     buttonText: String = "BEGIN JOURNEY",
     nameAvailability: Boolean?,
+    isIdentityReady: Boolean = true,
     onCheckName: (String) -> Unit,
-    onConfirm: (name: String, gender: String, className: String) -> Unit,
+    onConfirm: (name: String, gender: String, className: String, raceName: String) -> Unit,
     onCancel: () -> Unit
 ) {
     var name by remember { mutableStateOf("") }
     var gender by remember { mutableStateOf("Male") }
     var selectedClass by remember { mutableStateOf("Warrior") }
+    
+    var selectedRace by remember { mutableStateOf(RaceDatabase.getRace("Human")) }
+    var isRolling by remember { mutableStateOf(false) }
+
+    val classes = remember(selectedRace) { ClassDatabase.getAvailableClasses(selectedRace.name) }
+    
+    LaunchedEffect(selectedRace) {
+        if (classes.none { it.name == selectedClass }) {
+            selectedClass = classes.first().name
+        }
+    }
 
     LaunchedEffect(name) {
         if (name.length >= 3) {
@@ -42,19 +56,6 @@ fun CharacterCreationScreen(
         }
     }
     
-    val classes = listOf(
-        Triple("Warrior", "High Strength & Vitality. A master of the blade.", Color(0xFFD32F2F)),
-        Triple("Mage", "High Intelligence & Mana. Wielder of arcane arts.", Color(0xFF1976D2)),
-        Triple("Samurai", "High Agility & Luck. A swift and precise fighter.", Color(0xFF388E3C)),
-        Triple("Paladin", "Ultimate Defense & Holy Power. An unbreakable wall.", Color(0xFFFBC02D)),
-        Triple("Assassin", "Extreme Luck & Agility. Strikes from the shadows.", Color(0xFF7B1FA2)),
-        Triple("Monk", "High Vitality & Wisdom. Uses spirit and fists.", Color(0xFFE64A19)),
-        Triple("Archer", "Balanced Agility & Strength. Master of long range.", Color(0xFF689F38)),
-        Triple("Necromancer", "High Mana & Dark Power. Commands the void.", Color(0xFF424242)),
-        Triple("Bard", "High Luck & Wisdom. Inspires through music.", Color(0xFFF06292)),
-        Triple("Berserker", "Pure Strength & Speed. Reckless destruction.", Color(0xFFB71C1C))
-    )
-
     Box(modifier = Modifier.fillMaxSize()) {
         Image(
             painter = painterResource(id = R.drawable.menu_background),
@@ -139,16 +140,105 @@ fun CharacterCreationScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
+            // RACE SELECTION (ROLL BASED)
+            Text("HERO RACE", color = Color.Gray, style = MaterialTheme.typography.labelMedium)
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(Color.Black.copy(alpha = 0.3f))
+                    .border(1.dp, selectedRace.rarity.color.copy(alpha = 0.5f), RoundedCornerShape(12.dp))
+                    .padding(16.dp)
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
+                    Text(
+                        text = selectedRace.name.uppercase(),
+                        style = MaterialTheme.typography.headlineSmall,
+                        color = selectedRace.rarity.color,
+                        fontWeight = FontWeight.ExtraBold
+                    )
+                    Text(
+                        text = "[${selectedRace.rarity.label}]",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = selectedRace.rarity.color.copy(alpha = 0.7f)
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = selectedRace.description,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color.LightGray,
+                        textAlign = TextAlign.Center
+                    )
+                    
+                    val bonuses = buildString {
+                        if (selectedRace.strBonus > 0) append("+${selectedRace.strBonus} STR ")
+                        if (selectedRace.vitBonus > 0) append("+${selectedRace.vitBonus} VIT ")
+                        if (selectedRace.defBonus > 0) append("+${selectedRace.defBonus} DEF ")
+                        if (selectedRace.intBonus > 0) append("+${selectedRace.intBonus} INT ")
+                        if (selectedRace.agiBonus > 0) append("+${selectedRace.agiBonus} AGI ")
+                        if (selectedRace.luckBonus > 0) append("+${selectedRace.luckBonus} LCK ")
+                        if (selectedRace.wisBonus > 0) append("+${selectedRace.wisBonus} WIS ")
+                    }.trim()
+                    
+                    val debuffs = buildString {
+                        if (selectedRace.strBonus < 0) append("${selectedRace.strBonus} STR ")
+                        if (selectedRace.vitBonus < 0) append("${selectedRace.vitBonus} VIT ")
+                        if (selectedRace.defBonus < 0) append("${selectedRace.defBonus} DEF ")
+                        if (selectedRace.intBonus < 0) append("${selectedRace.intBonus} INT ")
+                        if (selectedRace.agiBonus < 0) append("${selectedRace.agiBonus} AGI ")
+                        if (selectedRace.luckBonus < 0) append("${selectedRace.luckBonus} LCK ")
+                        if (selectedRace.wisBonus < 0) append("${selectedRace.wisBonus} WIS ")
+                    }.trim()
+                    
+                    if (bonuses.isNotEmpty()) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "Bonuses: $bonuses",
+                            color = Color.Green,
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+
+                    if (debuffs.isNotEmpty()) {
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = "Debuffs: $debuffs",
+                            color = Color.Red,
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                    
+                    Spacer(modifier = Modifier.height(16.dp))
+                    
+                    RpgButton(
+                        text = if (isRolling) "ROLLING..." else "ROLL NEW RACE",
+                        onClick = {
+                            isRolling = true
+                            selectedRace = RaceDatabase.rollRace()
+                            isRolling = false
+                        },
+                        enabled = !isRolling,
+                        modifier = Modifier.height(40.dp).width(200.dp),
+                        containerColor = Color.DarkGray
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
             // CLASS SELECTION
             Text("STARTING CLASS", color = Color.Gray, style = MaterialTheme.typography.labelMedium)
             Column(modifier = Modifier.padding(top = 8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                classes.forEach { (className, desc, color) ->
+                classes.forEach { pc ->
                     ClassCard(
-                        name = className,
-                        description = desc,
-                        isSelected = selectedClass == className,
-                        accentColor = color,
-                        onClick = { selectedClass = className }
+                        name = pc.name,
+                        description = pc.description,
+                        isSelected = selectedClass == pc.name,
+                        accentColor = pc.color,
+                        onClick = { selectedClass = pc.name }
                     )
                 }
             }
@@ -157,8 +247,8 @@ fun CharacterCreationScreen(
 
             RpgButton(
                 text = buttonText,
-                enabled = name.isNotBlank() && nameAvailability == true,
-                onClick = { onConfirm(name, gender, selectedClass) },
+                enabled = name.isNotBlank() && nameAvailability == true && isIdentityReady && !isRolling,
+                onClick = { onConfirm(name, gender, selectedClass, selectedRace.name) },
                 containerColor = Color(0xFF6200EE),
                 modifier = Modifier.fillMaxWidth().height(64.dp)
             )

@@ -94,11 +94,13 @@ data class PlayerData(
     val activeKingdomLawId: Int? = null,
     val completedTutorialSteps: List<String> = emptyList(),
     val unlockedFeatures: Set<String> = setOf("WORLD MAP", "STORY MODE", "INVENTORY", "CHARACTER STATS", "SKILL BOOK", "STORY JOURNAL", "BILLY'S STORE", "THE INN"),
-    val saveVersion: Int = 4,
+    val totalStatPointsEarned: Int = 0,
+    val saveVersion: Int = 5,
     
     // Legacy / Rebirth System
     val playerName: String = "Xious",
     val gender: String = "Male",
+    val playerRace: String = "Human",
     val playerClass: String = "Warrior",
     val isReborn: Boolean = false,
     val legacyHeroStats: PlayerData? = null,
@@ -119,7 +121,8 @@ data class PlayerData(
         var currentData = this.copy(
             level = stats.level,
             xp = stats.xp,
-            statPoints = statPoints + (levelsGained * 5)
+            statPoints = statPoints + (levelsGained * 5),
+            totalStatPointsEarned = totalStatPointsEarned + (levelsGained * 5)
         )
         
         val newMaxHp = currentData.calculateMaxHp()
@@ -210,7 +213,7 @@ data class PlayerData(
     }
 
     fun respec(): PlayerData {
-        val totalInvested = (level - 1) * 5
+        val totalInvested = if (totalStatPointsEarned > 0) totalStatPointsEarned else (level - 1) * 5
         
         // Base stats from class definitions
         val baseStats = if (!isReborn) {

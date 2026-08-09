@@ -254,8 +254,14 @@ fun AdventureTab(
         modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        MenuCard("WORLD MAP", "Travel across Lumeria and clear regions.", onBattle, isLocked = !unlocked.contains("WORLD MAP"))
-        MenuCard("STORY MODE", "Progress through the epic Rise of Xious.", onStory, isLocked = !unlocked.contains("STORY MODE"))
+        if (playerData.isReborn) {
+            MenuCard("DIMENSIONAL RIFTS", "Travel between realms and face otherworldly threats.", onBattle)
+            MenuCard("CHRONICLES OF XIOUS", "Relive the legendary journey of the first hero.", onStory)
+        } else {
+            MenuCard("WORLD MAP", "Travel across Lumeria and clear regions.", onBattle, isLocked = !unlocked.contains("WORLD MAP"))
+            MenuCard("STORY MODE", "Progress through the epic Rise of Xious.", onStory, isLocked = !unlocked.contains("STORY MODE"))
+        }
+        
         MenuCard("BOUNTY BOARD", "Hunt down dangerous outlaws for big rewards.", onBounty, isLocked = !unlocked.contains("BOUNTY BOARD"))
         MenuCard("GRAND ARENA", "Challenge the realm's strongest humans.", onArena, isLocked = !unlocked.contains("GRAND ARENA"))
         
@@ -290,26 +296,53 @@ fun PlayerTab(
         verticalArrangement = Arrangement.spacedBy(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        val portraitId = when {
-            playerData.hp.toFloat() / playerData.maxHp <= 0.20f -> R.drawable.xious_hp_20
-            playerData.hp.toFloat() / playerData.maxHp <= 0.50f -> R.drawable.xious_hp_50
-            playerData.hp.toFloat() / playerData.maxHp <= 0.75f -> R.drawable.xious_hp_75
-            else -> R.drawable.xious_hp_100
-        }
+        if (playerData.isReborn) {
+            // MULTIPLAYER AVATAR CARD
+            val race = com.solerforge.lumeria.database.RaceDatabase.getRace(playerData.playerRace)
+            Box(
+                modifier = Modifier
+                    .size(260.dp)
+                    .clip(RoundedCornerShape(32.dp))
+                    .background(
+                        Brush.radialGradient(
+                            colors = listOf(race.rarity.color.copy(alpha = 0.4f), Color.Black)
+                        )
+                    )
+                    .border(4.dp, race.rarity.color, RoundedCornerShape(32.dp)),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = playerData.playerName.take(1).uppercase(),
+                        color = Color.White,
+                        style = MaterialTheme.typography.displayLarge,
+                        fontWeight = FontWeight.Black
+                    )
+                    Text(
+                        text = race.name.uppercase(),
+                        color = race.rarity.color,
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+        } else {
+            val portraitId = when {
+                playerData.hp.toFloat() / playerData.maxHp <= 0.20f -> R.drawable.xious_hp_20
+                playerData.hp.toFloat() / playerData.maxHp <= 0.50f -> R.drawable.xious_hp_50
+                playerData.hp.toFloat() / playerData.maxHp <= 0.75f -> R.drawable.xious_hp_75
+                else -> R.drawable.xious_hp_100
+            }
 
-        Image(
-            painter = painterResource(id = portraitId),
-            contentDescription = "Hero Portrait",
-            modifier = Modifier
-                .size(260.dp)
-                .clip(RoundedCornerShape(32.dp))
-                .then(
-                    if (playerData.isReborn) {
-                        Modifier.border(4.dp, Color(0xFFFFD600), RoundedCornerShape(32.dp))
-                    } else Modifier
-                ),
-            contentScale = ContentScale.Fit
-        )
+            Image(
+                painter = painterResource(id = portraitId),
+                contentDescription = "Hero Portrait",
+                modifier = Modifier
+                    .size(260.dp)
+                    .clip(RoundedCornerShape(32.dp)),
+                contentScale = ContentScale.Fit
+            )
+        }
         
         Spacer(modifier = Modifier.height(8.dp))
 

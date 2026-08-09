@@ -187,7 +187,7 @@ fun CharacterCreationPreview() {
         CharacterCreationScreen(
             nameAvailability = true,
             onCheckName = {},
-            onConfirm = { _, _, _ -> },
+            onConfirm = { _, _, _, _ -> },
             onCancel = {}
         )
     }

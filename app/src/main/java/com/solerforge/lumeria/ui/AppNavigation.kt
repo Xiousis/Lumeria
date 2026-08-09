@@ -47,7 +47,9 @@ fun AppNavigation(
 
     LaunchedEffect(Unit) {
         val deviceId = android.provider.Settings.Secure.getString(context.contentResolver, android.provider.Settings.Secure.ANDROID_ID)
-        mainViewModel.deviceId = deviceId
+        if (deviceId != null) {
+            mainViewModel.setDeviceId(deviceId)
+        }
     }
 
     Box(modifier = modifier) {
@@ -315,7 +317,7 @@ fun AppNavigation(
                     Screen.Guild -> GuildScreen(
                         playerData = playerData,
                         guildViewModel = guildViewModel,
-                        deviceId = mainViewModel.deviceId ?: "unknown",
+                        deviceIdFlow = mainViewModel.deviceId,
                         onPlayerUpdate = { mainViewModel.updatePlayer(it) },
                         onNavigateToIntro = { mainViewModel.navigateTo(Screen.GuildIntro) },
                         onStartExam = { exam -> mainViewModel.onStartGuildExam(exam) },
@@ -441,13 +443,15 @@ fun AppNavigation(
 
                     Screen.RebirthSelection -> {
                         val nameAvailability by mainViewModel.nameAvailability.collectAsState()
+                        val deviceId by mainViewModel.deviceId.collectAsState()
                         CharacterCreationScreen(
                             title = "FORGE A NEW LEGACY",
                             buttonText = "CONFIRM REBIRTH",
                             nameAvailability = nameAvailability,
+                            isIdentityReady = deviceId != null,
                             onCheckName = { mainViewModel.checkNameAvailability(it) },
-                            onConfirm = { name, gender, className -> 
-                                mainViewModel.onPerformRebirth(name, gender, className)
+                            onConfirm = { name, gender, className, raceName -> 
+                                mainViewModel.onPerformRebirth(name, gender, className, raceName)
                             },
                             onCancel = { mainViewModel.popBackstack() }
                         )

@@ -48,9 +48,15 @@ class GuildManager(private val context: Context) {
     suspend fun joinGuild(guildId: String, player: PlayerData, deviceId: String): Result<Unit> {
         return try {
             val guildDoc = guildsCollection.document(guildId)
+            val memberDoc = guildDoc.collection("members").document(deviceId)
             db.runTransaction { transaction ->
                 val snapshot = transaction.get(guildDoc)
                 val guild = snapshot.toObject(Guild::class.java) ?: throw Exception("Guild not found")
+                
+                // HIGH: Prevent member count inflation
+                if (transaction.get(memberDoc).exists()) {
+                    throw Exception("Already a member of this guild")
+                }
                 
                 if (guild.membersCount >= guild.maxMembers) throw Exception("Guild is full")
                 
@@ -61,7 +67,7 @@ class GuildManager(private val context: Context) {
                     rank = "Member"
                 )
                 
-                transaction.set(guildDoc.collection("members").document(deviceId), member)
+                transaction.set(memberDoc, member)
                 transaction.update(guildDoc, "membersCount", guild.membersCount + 1)
             }.await()
             Result.success(Unit)
@@ -98,6 +104,8 @@ class GuildManager(private val context: Context) {
     }
 
     suspend fun donateToVault(guildId: String, amount: Long, deviceId: String): Result<Unit> {
+        if (amount <= 0) return Result.failure(Exception("Invalid donation amount"))
+        
         return try {
             val guildDoc = guildsCollection.document(guildId)
             val memberDoc = guildDoc.collection("members").document(deviceId)

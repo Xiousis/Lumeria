@@ -24,6 +24,7 @@ object BattleEngine {
     ): PlayerTurnResult {
         val skill = SkillDatabase.resolveSkill(skillName) ?: SkillDatabase.skills[0]
         val newLogs = mutableListOf<LogEntry>()
+        val pName = state.currentPlayerSnapshot.playerName
 
         // 0. COOLDOWN VALIDATION
         val remainingCooldown = state.skillCooldowns[skill.name] ?: 0
@@ -93,11 +94,11 @@ object BattleEngine {
 
         // 2. CHECK STUN / FREEZE
         if (state.playerStunnedTurns > 0) {
-            newLogs.add(LogEntry("Xious is stunned and cannot move!", Color.Red))
+            newLogs.add(LogEntry("$pName is stunned and cannot move!", Color.Red))
             return PlayerTurnResult(currentState.copy(playerStunnedTurns = state.playerStunnedTurns - 1), newLogs, true)
         }
         if (state.playerFrozenTurns > 0) {
-            newLogs.add(LogEntry("Xious is frozen in ice and cannot move!", Color.Cyan))
+            newLogs.add(LogEntry("$pName is frozen in ice and cannot move!", Color.Cyan))
             return PlayerTurnResult(currentState.copy(playerFrozenTurns = state.playerFrozenTurns - 1), newLogs, true)
         }
 
@@ -126,36 +127,36 @@ object BattleEngine {
             "Buff" -> {
                 activeDamageMultiplier = 1.25
                 attackBuffTurns = 3
-                newLogs.add(LogEntry("Xious uses ${skill.name}! Attack increased!", Color.Green))
+                newLogs.add(LogEntry("$pName uses ${skill.name}! Attack increased!", Color.Green))
             }
             "DefenseBuff" -> {
                 activeDefenseMultiplier = 1.5
                 defenseBuffTurns = 3
-                newLogs.add(LogEntry("Xious uses ${skill.name}! Defense increased!", Color.Green))
+                newLogs.add(LogEntry("$pName uses ${skill.name}! Defense increased!", Color.Green))
             }
             "EvasionBuff" -> {
                 activeEvasionBonus = 0.25
                 evasionBuffTurns = 3
-                newLogs.add(LogEntry("Xious uses ${skill.name}! Evasion increased!", Color.Green))
+                newLogs.add(LogEntry("$pName uses ${skill.name}! Evasion increased!", Color.Green))
             }
             "CritBuff" -> {
                 critBuffTurns = 3
-                newLogs.add(LogEntry("Xious uses ${skill.name}! Critical chance increased!", Color.Green))
+                newLogs.add(LogEntry("$pName uses ${skill.name}! Critical chance increased!", Color.Green))
             }
             "SuperBuff" -> {
                 activeDamageMultiplier = 1.5
                 superBuffTurns = 5
-                newLogs.add(LogEntry("Xious uses ${skill.name}! Entering a state of high power!", Color.Green))
+                newLogs.add(LogEntry("$pName uses ${skill.name}! Entering a state of high power!", Color.Green))
             }
             "AgilityBuff" -> {
                 activeEvasionBonus = 0.20
                 evasionBuffTurns = 3
                 critBuffTurns = 3
-                newLogs.add(LogEntry("Xious uses ${skill.name}! Agility increased!", Color.Green))
+                newLogs.add(LogEntry("$pName uses ${skill.name}! Agility increased!", Color.Green))
             }
             "Parry" -> {
                 parryActive = true
-                newLogs.add(LogEntry("Xious assumes a parry stance!", Color.Green))
+                newLogs.add(LogEntry("$pName assumes a parry stance!", Color.Green))
             }
         }
 
@@ -270,8 +271,10 @@ object BattleEngine {
         }
 
         // Handle HP change from Heal/Lifesteal (ensure it never goes down during player turn)
-        var finalEnemy1Hp = if (state.enemyHp > 0) result.enemyHp else state.enemyHp
-        var finalEnemy2Hp = if (state.enemyHp <= 0) result.enemyHp else enemy2Hp
+        val activeTarget = if (mainTargetWasEnemy1) state.enemy else state.enemy2 ?: state.enemy
+        
+        var finalEnemy1Hp = if (mainTargetWasEnemy1) result.enemyHp else state.enemyHp
+        var finalEnemy2Hp = if (!mainTargetWasEnemy1) result.enemyHp else enemy2Hp
         
         var playerHp = maxOf(state.playerHp, result.playerHp) 
         var playerMana = result.playerMana
@@ -291,46 +294,46 @@ object BattleEngine {
         if (skill.name == "None") {
             val restRegen = (state.currentPlayerSnapshot.wisdom / 2).coerceAtLeast(5)
             playerMana = minOf(playerMana + restRegen, state.currentPlayerSnapshot.maxMana)
-            newLogs.add(LogEntry("Xious rests and recovers $restRegen Mana.", Color.Cyan))
+            newLogs.add(LogEntry("$pName rests and recovers $restRegen Mana.", Color.Cyan))
         } else if ((skill.skillType != "Support") && (skill.skillType != "Buff")) {
-            newLogs.add(LogEntry("Xious used ${skill.name} for ${result.playerDamage} damage.", Color.Cyan))
+            newLogs.add(LogEntry("$pName used ${skill.name} for ${result.playerDamage} damage.", Color.Cyan))
             if (result.isCrit) {
                 newLogs.add(LogEntry("CRITICAL HIT!", Color.Cyan))
             }
             
             // Reflected damage back to enemy
             if (result.reflectedDamage > 0) {
-                newLogs.add(LogEntry("Reflected ${result.reflectedDamage} damage back to ${state.enemy.name}!", Color.Cyan))
+                newLogs.add(LogEntry("Reflected ${result.reflectedDamage} damage back to ${activeTarget.name}!", Color.Cyan))
             }
 
-            // --- Enemy Passive: Physical Counter ---
-            if (state.enemy.passive == com.solerforge.lumeria.data.EnemyPassive.PHYSICAL_COUNTER && skill.elementType == ElementType.Physical && result.playerDamage > 0) {
+            // --- Enemy Passive: Physical Counter (Target Aware) ---
+            if (activeTarget.passive == com.solerforge.lumeria.data.EnemyPassive.PHYSICAL_COUNTER && skill.elementType == ElementType.Physical && result.playerDamage > 0) {
                 val counterDmg = (result.playerDamage * 0.1).toInt().coerceAtLeast(1)
                 playerHp = maxOf(0, playerHp - counterDmg)
-                newLogs.add(LogEntry("${state.enemy.name} counters for $counterDmg damage!", Color.Red))
+                newLogs.add(LogEntry("${activeTarget.name} counters for $counterDmg damage!", Color.Red))
             }
 
-            // --- Status Effects for Enemy 1 ---
+            // --- Status Effects for Primary Target (Target Aware) ---
             when (result.appliedStatus) {
                 StatusEffect.Bleed -> {
-                    bleedTurns = 3
-                    newLogs.add(LogEntry("${state.enemy.name} is bleeding!", Color.Yellow))
+                    if (mainTargetWasEnemy1) bleedTurns = 3 else enemy2BleedTurns = 3
+                    newLogs.add(LogEntry("${activeTarget.name} is bleeding!", Color.Yellow))
                 }
                 StatusEffect.Stun -> {
-                    newLogs.add(LogEntry("${state.enemy.name} was stunned!", Color.Yellow))
-                    enemyStunnedTurns = 1
+                    newLogs.add(LogEntry("${activeTarget.name} was stunned!", Color.Yellow))
+                    if (mainTargetWasEnemy1) enemyStunnedTurns = 1 else enemy2StunnedTurns = 1
                 }
                 StatusEffect.Freeze -> {
-                    newLogs.add(LogEntry("${state.enemy.name} was frozen!", Color.Cyan))
-                    enemyFrozenTurns = 1
+                    newLogs.add(LogEntry("${activeTarget.name} was frozen!", Color.Cyan))
+                    if (mainTargetWasEnemy1) enemyFrozenTurns = 1 else enemy2FrozenTurns = 1
                 }
                 StatusEffect.Burn -> {
-                    burnTurns = 3
-                    newLogs.add(LogEntry("${state.enemy.name} caught on fire!", Color(0xFFFF5722)))
+                    if (mainTargetWasEnemy1) burnTurns = 3 else enemy2BurnTurns = 3
+                    newLogs.add(LogEntry("${activeTarget.name} caught on fire!", Color(0xFFFF5722)))
                 }
                 StatusEffect.Poison -> {
-                    poisonTurns = 4
-                    newLogs.add(LogEntry("${state.enemy.name} was poisoned!", Color(0xFF4CAF50)))
+                    if (mainTargetWasEnemy1) poisonTurns = 4 else enemy2PoisonTurns = 4
+                    newLogs.add(LogEntry("${activeTarget.name} was poisoned!", Color(0xFF4CAF50)))
                 }
                 else -> {}
             }
@@ -366,7 +369,7 @@ object BattleEngine {
                 }
             }
         } else if (skill.effectType == "Heal") {
-            newLogs.add(LogEntry("Xious healed for ${result.actualHeal} HP.", Color.Green))
+            newLogs.add(LogEntry("$pName healed for ${result.actualHeal} HP.", Color.Green))
         }
 
         if (skill.cooldown > 0) {
@@ -463,7 +466,7 @@ object BattleEngine {
         )
 
         // Check for enemy sounds/speech after damage
-        val (chatState, chatLogs) = checkEnemyChat(currentState, storyEnemyName)
+        val (chatState, chatLogs) = checkEnemyChat(currentState, storyEnemyName, mainTargetWasEnemy1)
         currentState = chatState
         newLogs.addAll(chatLogs)
         newLogs.addAll(enemy2Logs)
@@ -476,6 +479,7 @@ object BattleEngine {
         isBossBattle: Boolean,
     ): Pair<BattleUiState, List<LogEntry>> {
         val newLogs = mutableListOf<LogEntry>()
+        val pName = state.currentPlayerSnapshot.playerName
         
         // 1. Start of Turn Housekeeping (Decrement enemy cooldowns and buffs)
         val workingCooldowns = state.enemySkillCooldowns.toMutableMap()
@@ -534,7 +538,7 @@ object BattleEngine {
                 val isDodge = Math.random() < dodgeChance
                 
                 if (isDodge) {
-                    newLogs.add(LogEntry("Xious dodged the ${currentState.enemy2?.name ?: "enemy"}'s attack!", Color.Cyan))
+                    newLogs.add(LogEntry("$pName dodged the ${currentState.enemy2?.name ?: "enemy"}'s attack!", Color.Cyan))
                 } else {
                     val enemyDmgDealt = calculateIncomingEnemyDamage(
                         state = currentState,
@@ -543,7 +547,7 @@ object BattleEngine {
                         isBoss = false
                     )
                     
-                    val playerHp = maxOf(0, currentState.playerHp - enemyDmgDealt)
+                    val playerHp = maxOf(0, currentState.playerHp - enemyDmgDealt.toInt())
                     currentState = currentState.copy(playerHp = playerHp)
                     newLogs.add(LogEntry("${currentState.enemy2?.name ?: "Enemy"} attacks for $enemyDmgDealt damage.", Color.Red))
                 }
@@ -565,21 +569,25 @@ object BattleEngine {
         return Pair(currentState, newLogs)
     }
 
-    private fun checkEnemyChat(state: BattleUiState, storyEnemyName: String?): Pair<BattleUiState, List<LogEntry>> {
+    private fun checkEnemyChat(state: BattleUiState, storyEnemyName: String?, isEnemy1: Boolean): Pair<BattleUiState, List<LogEntry>> {
         // Skip story mobs as requested (they have their own logic or we want standard ones here)
         if (storyEnemyName != null) return Pair(state, emptyList())
 
-        val hpPercent = state.enemyHp.toFloat() / state.enemy.maxHp
+        val target = if (isEnemy1) state.enemy else state.enemy2 ?: return Pair(state, emptyList())
+        val currentHp = if (isEnemy1) state.enemyHp else state.enemy2Hp
+        val hpPercent = currentHp.toFloat() / target.maxHp
+        
+        // Thresholds tracking is currently shared, which is okay for now but ideally separate.
+        // We'll prefix the threshold key with slot to separate them.
         val thresholds = listOf(0.75f, 0.50f, 0.25f)
         
-        // Find the highest threshold that hasn't been hit yet but is now reached
         val hitThreshold = thresholds.find { (hpPercent <= it) && (!state.chatThresholdsHit.contains(it)) }
 
-        if (hitThreshold != null) {
-            val message = if (state.enemy.isHumanoid) {
-                EnemyChatDatabase.getHumanoidQuote(state.enemy.name, hpPercent)
+        if (hitThreshold != null && isEnemy1) { // Only main enemy chats for now to maintain state compatibility
+            val message = if (target.isHumanoid) {
+                EnemyChatDatabase.getHumanoidQuote(target.name, hpPercent)
             } else {
-                EnemyChatDatabase.getMonsterSound(state.enemy.name, hpPercent)
+                EnemyChatDatabase.getMonsterSound(target.name, hpPercent)
             }
 
             if (message != null) {
@@ -650,13 +658,14 @@ object BattleEngine {
 
     private fun processNormalEnemyAction(state: BattleUiState): Pair<BattleUiState, List<LogEntry>> {
         val newLogs = mutableListOf<LogEntry>()
+        val pName = state.currentPlayerSnapshot.playerName
         
         // Centralized dodge calculation
         val dodgeChance = BattleLogic.calculateDodgeChance(state.currentPlayerSnapshot, state.evasionBuffBonus)
         val isDodge = Math.random() < dodgeChance
         
         if (isDodge) {
-            newLogs.add(LogEntry("Xious dodged the ${state.enemy.name}'s attack!", Color.Cyan))
+            newLogs.add(LogEntry("$pName dodged the ${state.enemy.name}'s attack!", Color.Cyan))
             return Pair(
                 state.copy(battleMessage = "DODGED!"),
                 newLogs
@@ -671,12 +680,12 @@ object BattleEngine {
             isBoss = false
         )
         
-        var playerHp = maxOf(0, state.playerHp - enemyDmgDealt)
+        var playerHp = maxOf(0, state.playerHp - enemyDmgDealt.toInt())
         var enemyHp = state.enemyHp
 
         if (state.parryActive && state.lastSkillName == "Absolute Counter") {
-            val reflected = (enemyDmgDealt * 0.75).toInt()
-            enemyHp = maxOf(0, enemyHp - reflected)
+            val reflected = (enemyDmgDealt * 0.75).toLong()
+            enemyHp = maxOf(0, enemyHp - reflected.toInt())
             newLogs.add(LogEntry("ABSOLUTE COUNTER! Reflected $reflected damage!", Color.Cyan))
         }
         
@@ -684,7 +693,7 @@ object BattleEngine {
         if (playerHp <= 0 && !secondWindUsed && state.currentPlayerSnapshot.equippedArmor == "Mantle of Perseverance") {
             playerHp = 1
             secondWindUsed = true
-            newLogs.add(LogEntry("SECOND WIND! Xious survived a lethal blow!", Color.Cyan))
+            newLogs.add(LogEntry("SECOND WIND! $pName survived a lethal blow!", Color.Cyan))
         }
         
         newLogs.add(LogEntry("${state.enemy.name} attacks for $enemyDmgDealt damage.", Color.Red))
@@ -693,7 +702,7 @@ object BattleEngine {
         var poisonTurns = state.poisonTurns
         if (state.enemy.passive == com.solerforge.lumeria.data.EnemyPassive.POISON_TOUCH && enemyDmgDealt > 0 && !isDodge) {
             poisonTurns = 3
-            newLogs.add(LogEntry("Xious was poisoned by ${state.enemy.name}!", Color(0xFF4CAF50)))
+            newLogs.add(LogEntry("$pName was poisoned by ${state.enemy.name}!", Color(0xFF4CAF50)))
         }
         
         return Pair(
@@ -796,6 +805,7 @@ object BattleEngine {
         enrageTurns: Int = 0,
         shieldTurns: Int = 0
     ): Pair<BattleUiState, List<LogEntry>> {
+        val pName = state.currentPlayerSnapshot.playerName
         // Centralized dodge calculation
         val player = state.currentPlayerSnapshot
         val dodgeChance = BattleLogic.calculateDodgeChance(player, state.evasionBuffBonus)
@@ -805,7 +815,7 @@ object BattleEngine {
         val isDodge = if (isSelfTarget) false else Math.random() < dodgeChance
         
         if (isDodge) {
-            newLogs.add(LogEntry("Xious dodged the ${state.enemy.name}'s attack!", Color.Cyan))
+            newLogs.add(LogEntry("$pName dodged the ${state.enemy.name}'s attack!", Color.Cyan))
             return Pair(
                 state.copy(battleMessage = "DODGED!"),
                 newLogs
@@ -832,8 +842,8 @@ object BattleEngine {
         )
 
         if (state.parryActive && state.lastSkillName == "Absolute Counter" && baseDmg > 0) {
-            val reflected = (baseDmg * 0.75).toInt()
-            enemyHp = maxOf(0, enemyHp - reflected)
+            val reflected = (baseDmg * 0.75).toLong()
+            enemyHp = maxOf(0, enemyHp - reflected.toInt())
             newLogs.add(LogEntry("ABSOLUTE COUNTER! Reflected $reflected damage!", Color.Cyan))
         }
 
@@ -845,7 +855,7 @@ object BattleEngine {
         var poisonTurns = state.poisonTurns
         if (state.enemy.passive == com.solerforge.lumeria.data.EnemyPassive.POISON_TOUCH && baseDmg > 0 && !isDodge) {
             poisonTurns = 3
-            newLogs.add(LogEntry("Xious was poisoned by ${state.enemy.name}!", Color(0xFF4CAF50)))
+            newLogs.add(LogEntry("$pName was poisoned by ${state.enemy.name}!", Color(0xFF4CAF50)))
         }
 
         // 4. APPLY EFFECTS
@@ -855,39 +865,39 @@ object BattleEngine {
             "Stun" -> {
                 if (Math.random() < 0.25 && !hasAbsoluteResistance) {
                     playerStunnedTurns = 1
-                    newLogs.add(LogEntry("Xious was stunned by the impact!", Color.Yellow))
+                    newLogs.add(LogEntry("$pName was stunned by the impact!", Color.Yellow))
                 } else if (hasAbsoluteResistance) {
                     newLogs.add(LogEntry("Will of the Ancients resists the stun!", Color.Cyan))
                 }
-                playerHp = maxOf(0, playerHp - baseDmg)
+                playerHp = maxOf(0, playerHp - baseDmg.toInt())
             }
             "Heal" -> {
                 val heal = (state.enemy.maxHp * 0.10).toInt()
                 enemyHp = minOf(enemyHp + heal, state.enemy.maxHp)
                 newLogs.add(LogEntry("${state.enemy.name} regains composure and heals for $heal HP!", Color.Yellow))
-                playerHp = maxOf(0, playerHp - baseDmg)
+                playerHp = maxOf(0, playerHp - baseDmg.toInt())
             }
             "DefenseDown" -> {
                 if (!hasAbsoluteResistance) {
                     playerDefenseDebuffTurns = 4
-                    newLogs.add(LogEntry("Xious's defense was lowered!", Color.Yellow))
+                    newLogs.add(LogEntry("$pName's defense was lowered!", Color.Yellow))
                 } else {
                     newLogs.add(LogEntry("Will of the Ancients resists the debuff!", Color.Cyan))
                 }
-                playerHp = maxOf(0, playerHp - baseDmg)
+                playerHp = maxOf(0, playerHp - baseDmg.toInt())
             }
             "Lifesteal" -> {
-                playerHp = maxOf(0, playerHp - baseDmg)
-                val drain = (baseDmg * 0.5).toInt()
-                enemyHp = minOf(enemyHp + drain, state.enemy.maxHp)
+                playerHp = maxOf(0, playerHp - baseDmg.toInt())
+                val drain = (baseDmg * 0.5).toLong()
+                enemyHp = minOf(enemyHp + drain.toInt(), state.enemy.maxHp)
                 newLogs.add(LogEntry("${state.enemy.name} drained $drain HP!", Color.Red))
             }
             "MultiHit" -> {
-                var totalEnemyDmg = 0
+                var totalEnemyDmg = 0L
                 repeat(attack.hitCount) {
                     if (playerHp > 0) {
-                        val hitDmg = if (it == 0) baseDmg else maxOf(1, (baseDmg * 0.5).toInt())
-                        playerHp = maxOf(0, playerHp - hitDmg)
+                        val hitDmg: Long = if (it == 0) baseDmg else maxOf(1L, (baseDmg * 0.5).toLong())
+                        playerHp = maxOf(0, playerHp - hitDmg.toInt())
                         totalEnemyDmg += hitDmg
                     }
                 }
@@ -896,21 +906,21 @@ object BattleEngine {
             "Buff", "DamageBuff" -> {
                 currentEnrageTurns = 3
                 newLogs.add(LogEntry("${state.enemy.name} is enraged! (+25% DMG)", Color.Yellow))
-                playerHp = maxOf(0, playerHp - baseDmg)
+                playerHp = maxOf(0, playerHp - baseDmg.toInt())
             }
             "EvasionBuff" -> {
                 enemyEvasionBonus = 0.20
                 enemyEvasionBuffTurns = 3
                 newLogs.add(LogEntry("${state.enemy.name} is shrouded in mist! Evasion increased!", Color.Cyan))
-                playerHp = maxOf(0, playerHp - baseDmg)
+                playerHp = maxOf(0, playerHp - baseDmg.toInt())
             }
             "Shield", "DefenseBuff" -> {
                 currentShieldTurns = 3
                 newLogs.add(LogEntry("${state.enemy.name} raises a defensive barrier!", Color.Cyan))
-                playerHp = maxOf(0, playerHp - baseDmg)
+                playerHp = maxOf(0, playerHp - baseDmg.toInt())
             }
             else -> {
-                playerHp = maxOf(0, playerHp - baseDmg)
+                playerHp = maxOf(0, playerHp - baseDmg.toInt())
             }
         }
 
@@ -918,7 +928,7 @@ object BattleEngine {
         if (playerHp <= 0 && !secondWindUsed && state.currentPlayerSnapshot.equippedArmor == "Mantle of Perseverance") {
             playerHp = 1
             secondWindUsed = true
-            newLogs.add(LogEntry("SECOND WIND! Xious survived a lethal blow!", Color.Cyan))
+            newLogs.add(LogEntry("SECOND WIND! $pName survived a lethal blow!", Color.Cyan))
         }
 
         return Pair(
@@ -947,7 +957,7 @@ object BattleEngine {
         isBoss: Boolean,
         multiplier: Double = 1.0,
         ignoreArmor: Boolean = false
-    ): Int {
+    ): Long {
         val armorDef = GameDatabase.getArmor(state.currentPlayerSnapshot.equippedArmor).defense
         val headDef = GameDatabase.getHeadGear(state.currentPlayerSnapshot.equippedHead).defense
         val shieldDef = GameDatabase.getShield(state.currentPlayerSnapshot.equippedShield).defense
@@ -978,24 +988,24 @@ object BattleEngine {
         if (state.enemy.passive == com.solerforge.lumeria.data.EnemyPassive.DESPERATION) {
             val hpPercent = state.enemyHp.toFloat() / state.enemy.maxHp
             if (hpPercent < 0.3) {
-                baseDmg = (baseDmg * 1.5).toInt()
+                baseDmg = (baseDmg * 1.5).toLong()
             }
         }
         
-        baseDmg = (baseDmg * state.enemyDamageMultiplier).toInt()
+        baseDmg = (baseDmg * state.enemyDamageMultiplier).toLong()
 
         // --- KINGDOM LAWS ---
         when (state.currentPlayerSnapshot.activeKingdomLawId) {
-            2 -> baseDmg = (baseDmg * 1.15).toInt() // Warrior's Draft: +15% Enemy Dmg
+            2 -> baseDmg = (baseDmg * 1.15).toLong() // Warrior's Draft: +15% Enemy Dmg
             3 -> {
                 if (isBoss && (enemyName.contains("Void") || enemyName.contains("Xarthos") || enemyName.contains("Umbra"))) {
-                    baseDmg = (baseDmg * 0.8).toInt()
+                    baseDmg = (baseDmg * 0.8).toLong()
                 }
             }
         }
 
         if (state.parryActive) baseDmg /= 2
         
-        return if (multiplier <= 0.0) 0 else maxOf(1, baseDmg)
+        return if (multiplier <= 0.0) 0L else maxOf(1L, baseDmg)
     }
 }

@@ -84,7 +84,15 @@ class MainActivity : ComponentActivity() {
                 ) { innerPadding ->
                     BackHandler(enabled = mainViewModel.backstack.size > 1) {
                         val current = mainViewModel.currentScreen
-                        if (current != Screen.Battle && current != Screen.Defeated && current != Screen.GamblingHouse) {
+                        val criticalScreens = listOf(
+                            Screen.Battle, 
+                            Screen.Defeated, 
+                            Screen.GamblingHouse,
+                            Screen.RebirthIntro,
+                            Screen.ArcCompletion,
+                            Screen.StoryDialogue
+                        )
+                        if (current !in criticalScreens) {
                             mainViewModel.popBackstack()
                         }
                     }

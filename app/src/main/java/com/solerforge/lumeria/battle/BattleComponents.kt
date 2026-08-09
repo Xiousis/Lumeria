@@ -177,6 +177,7 @@ fun UnitCard(
     activeBuffs: List<PlayerBuff> = emptyList(),
     showNumbers: Boolean = true,
     isBoss: Boolean = false,
+    rebornRace: String? = null,
     footer: @Composable () -> Unit = {},
 ) {
     val borderColor = if (isActive) Color.Yellow else if (isHero) MaterialTheme.colorScheme.primary else Color.Red
@@ -261,21 +262,44 @@ fun UnitCard(
                 )
             }
 
-            Image(
-                painter = painterResource(id = portraitId),
-                contentDescription = "$name Portrait",
-                modifier = Modifier
-                    .fillMaxSize()
-                    .then(
-                        if (isHero) Modifier else Modifier.graphicsLayer(
-                            scaleX = if (isBoss) 1.4f else 1.25f, 
-                            scaleY = if (isBoss) 1.4f else 1.25f, 
-                            translationY = if (isBoss) -12f else -6f
+            if (rebornRace != null) {
+                val race = com.solerforge.lumeria.database.RaceDatabase.getRace(rebornRace)
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(
+                            Brush.radialGradient(
+                                colors = listOf(race.rarity.color.copy(alpha = 0.4f), Color.Black)
+                            )
                         )
-                    ),
-                contentScale = ContentScale.Fit,
-                alignment = if (isHero) Alignment.Center else Alignment.BottomCenter
-            )
+                        .border(2.dp, race.rarity.color, RoundedCornerShape(16.dp)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = name.take(1).uppercase(),
+                        color = Color.White,
+                        style = MaterialTheme.typography.displayMedium,
+                        fontWeight = FontWeight.Black
+                    )
+                }
+            } else {
+                Image(
+                    painter = painterResource(id = portraitId),
+                    contentDescription = "$name Portrait",
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .then(
+                            if (isHero) Modifier else Modifier.graphicsLayer(
+                                scaleX = if (isBoss) 1.4f else 1.25f, 
+                                scaleY = if (isBoss) 1.4f else 1.25f, 
+                                translationY = if (isBoss) -12f else -6f
+                            )
+                        ),
+                    contentScale = ContentScale.Fit,
+                    alignment = if (isHero) Alignment.Center else Alignment.BottomCenter
+                )
+            }
             
             // Status Overlays on Portrait
             Box(

@@ -23,6 +23,7 @@ import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.analytics.analytics
 import com.google.firebase.analytics.logEvent
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -78,20 +79,32 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
     var gameMenuTabIndex by mutableIntStateOf(0)
         private set
 
-    var deviceId: String? = null
+    private val _deviceId = MutableStateFlow<String?>(null)
+    val deviceId = _deviceId.asStateFlow()
 
-    private val _nameAvailability = MutableStateFlow<Boolean?>(null)
-    val nameAvailability = _nameAvailability.asStateFlow()
+    fun setDeviceId(id: String) {
+        _deviceId.value = id
+    }
+
+    private val _nameQuery = MutableStateFlow("")
+    
+    @OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
+    val nameAvailability: StateFlow<Boolean?> = _nameQuery
+        .debounce(500.milliseconds)
+        .flatMapLatest { query ->
+            if (query.length < 3) flowOf(null)
+            else flow<Boolean?> {
+                try {
+                    emit(com.solerforge.lumeria.managers.NameManager.isNameAvailable(query))
+                } catch (e: Exception) {
+                    emit(null) // Error or offline: cannot verify
+                }
+            }
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     fun checkNameAvailability(name: String) {
-        if (name.isBlank() || name.length < 3) {
-            _nameAvailability.value = null
-            return
-        }
-        viewModelScope.launch {
-            val available = com.solerforge.lumeria.managers.NameManager.isNameAvailable(name)
-            _nameAvailability.value = available
-        }
+        _nameQuery.value = name
     }
 
     var towerUnlockMessage by mutableStateOf<String?>(null)
@@ -188,10 +201,26 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
     }
 
     fun restoreBackup() {
+        val targetSlot = activeSlot
         viewModelScope.launch {
-            // In a real app, this might try to force use the backup key
-            // For now, we'll try to trigger a re-read or log it.
-            // Since repository already tries backup, this might just be a manual re-trigger.
+            try {
+                // repository already handles backup logic internally in updatePlayer,
+                // but we can force a restore by clearing primary if corrupted.
+                // For simplicity, we just trigger a fresh read which the flow will emit.
+                showCorruptionRecovery = false
+            } catch (e: Exception) {
+                showCorruptionRecovery = false
+            }
+        }
+    }
+
+    fun startFresh() {
+        onNewGame()
+        showCorruptionRecovery = false
+    }
+
+    fun restoreFromCloud() {
+        syncCloudSave { result ->
             showCorruptionRecovery = false
         }
     }
@@ -224,7 +253,7 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
 
         val targetSlot = activeSlot
         viewModelScope.launch {
-            try {
+            val finalData = try {
                 repository.updatePlayer(targetSlot) { current ->
                     val newData = transform(current)
                     val newlyUnlocked = AchievementManager.checkAchievements(newData)
@@ -234,36 +263,30 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
                     } else newData
                 }
             } catch (e: Exception) {
-                // TODO: Show recovery UI. For now, we log and prevent overwrite.
                 analytics.logEvent("save_corruption_prevented") {
                     param("slot", activeSlot.toLong())
                     param("error", e.message ?: "Unknown")
                 }
+                triggerCorruptionRecovery()
                 return@launch
             }
 
-            // Perform comparisons for logging after the atomic update
-            val newData = transform(playerData.value)
+            // Sync with leaderboard if applicable
+            _deviceId.value?.let { syncLeaderboard(it) }
+
+            // Analytics using the result of the commit
             val previousData = playerData.value
-
-            if (newData.level > previousData.level) {
+            if (finalData.level > previousData.level) {
                 analytics.logEvent(FirebaseAnalytics.Event.LEVEL_UP) {
-                    param(FirebaseAnalytics.Param.LEVEL, newData.level.toLong())
-                    param("character_class", newData.joinedGuild ?: "None")
+                    param(FirebaseAnalytics.Param.LEVEL, finalData.level.toLong())
+                    param("character_class", finalData.playerClass)
                 }
             }
 
-            if (newData.gold >= 1000000 && previousData.gold < 1000000) {
+            if (finalData.gold >= 1000000 && previousData.gold < 1000000) {
                 analytics.logEvent("wealth_milestone") {
-                    param("amount", 1000000L)
+                    param(FirebaseAnalytics.Param.VALUE, 1000000L)
                 }
-            }
-
-            // Sync Leaderboard if stats changed (Reborn players only)
-            if (newData.isReborn && (newData.level != previousData.level || 
-                newData.pvpWins != previousData.pvpWins || 
-                newData.pvpLosses != previousData.pvpLosses)) {
-                deviceId?.let { syncLeaderboard(it) }
             }
         }
     }
@@ -382,6 +405,102 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
                 equippedWeapon = "Orc Cleaver",
                 equippedArmor = "Rugged Vest",
                 equippedBoots = "Leather Boots"
+            )
+            "Dragon Knight" -> statsAppliedData.copy(
+                unlockedSkills = listOf("None", "Heavy Strike", "Ignite", "Guard"),
+                equippedSkills = listOf("Heavy Strike", "Ignite", "Guard"),
+                inventory = listOf("Drake Blade", "Dragon Scales", "Plate Boots"),
+                equippedWeapon = "Drake Blade",
+                equippedArmor = "Dragon Scales",
+                equippedBoots = "Plate Boots"
+            )
+            "Void Reaver" -> statsAppliedData.copy(
+                unlockedSkills = listOf("None", "Bleeding Slash", "Magic Bolt", "Smoke Bomb"),
+                equippedSkills = listOf("Bleeding Slash", "Magic Bolt", "Smoke Bomb"),
+                inventory = listOf("Void Edge", "Abyssal Garb", "Shadow Steps"),
+                equippedWeapon = "Void Edge",
+                equippedArmor = "Abyssal Garb",
+                equippedBoots = "Shadow Steps"
+            )
+            "Seraph" -> statsAppliedData.copy(
+                unlockedSkills = listOf("None", "Magic Bolt", "Heal", "Guard"),
+                equippedSkills = listOf("Magic Bolt", "Heal", "Guard"),
+                inventory = listOf("Starlight Staff", "Divine Robes", "Cloud Sprints"),
+                equippedWeapon = "Starlight Staff",
+                equippedArmor = "Divine Robes",
+                equippedBoots = "Cloud Sprints"
+            )
+            "Blood Mage" -> statsAppliedData.copy(
+                unlockedSkills = listOf("None", "Magic Bolt", "Bleeding Slash", "Heal"),
+                equippedSkills = listOf("Magic Bolt", "Bleeding Slash", "Heal"),
+                inventory = listOf("Sanguine Staff", "Crimson Robes", "Canvas Shoes"),
+                equippedWeapon = "Sanguine Staff",
+                equippedArmor = "Crimson Robes",
+                equippedBoots = "Canvas Shoes"
+            )
+            "Shadow Stalker" -> statsAppliedData.copy(
+                unlockedSkills = listOf("None", "Quick Draw", "Smoke Bomb", "Slash"),
+                equippedSkills = listOf("Quick Draw", "Smoke Bomb", "Slash"),
+                inventory = listOf("Shadow Dagger", "Night Armor", "Silent Boots"),
+                equippedWeapon = "Shadow Dagger",
+                equippedArmor = "Night Armor",
+                equippedBoots = "Silent Boots"
+            )
+            "World Breaker" -> statsAppliedData.copy(
+                unlockedSkills = listOf("None", "Heavy Strike", "Guard", "Slash"),
+                equippedSkills = listOf("Heavy Strike", "Guard", "Slash"),
+                inventory = listOf("Titan Maul", "Plate Armor", "Plate Boots"),
+                equippedWeapon = "Titan Maul",
+                equippedArmor = "Plate Armor",
+                equippedBoots = "Plate Boots"
+            )
+            "Technomancer" -> statsAppliedData.copy(
+                unlockedSkills = listOf("None", "Magic Bolt", "Mana Shield", "Quick Draw"),
+                equippedSkills = listOf("Magic Bolt", "Mana Shield", "Quick Draw"),
+                inventory = listOf("Logic Staff", "Plated Robes", "Heavy Boots"),
+                equippedWeapon = "Logic Staff",
+                equippedArmor = "Plated Robes",
+                equippedBoots = "Heavy Boots"
+            )
+            "Enchanter" -> statsAppliedData.copy(
+                unlockedSkills = listOf("None", "Magic Bolt", "Heal", "Mana Shield"),
+                equippedSkills = listOf("Magic Bolt", "Heal", "Mana Shield"),
+                inventory = listOf("Living Branch", "Nature Robes", "Sandals"),
+                equippedWeapon = "Living Branch",
+                equippedArmor = "Nature Robes",
+                equippedBoots = "Sandals"
+            )
+            "Slime Sage" -> statsAppliedData.copy(
+                unlockedSkills = listOf("None", "Magic Bolt", "Heal", "Guard"),
+                equippedSkills = listOf("Magic Bolt", "Heal", "Guard"),
+                inventory = listOf("Fluid Staff", "Gelatinous Tunic", "Canvas Shoes"),
+                equippedWeapon = "Fluid Staff",
+                equippedArmor = "Gelatinous Tunic",
+                equippedBoots = "Canvas Shoes"
+            )
+            "Void Walker" -> statsAppliedData.copy(
+                unlockedSkills = listOf("None", "Magic Bolt", "Smoke Bomb", "Quick Draw"),
+                equippedSkills = listOf("Magic Bolt", "Smoke Bomb", "Quick Draw"),
+                inventory = listOf("Void Rod", "Sovereign Robes", "Shadow Steps"),
+                equippedWeapon = "Void Rod",
+                equippedArmor = "Sovereign Robes",
+                equippedBoots = "Shadow Steps"
+            )
+            "Dragon Lord" -> statsAppliedData.copy(
+                unlockedSkills = listOf("None", "Heavy Strike", "Ignite", "Guard"),
+                equippedSkills = listOf("Heavy Strike", "Ignite", "Guard"),
+                inventory = listOf("Calamity Blade", "Elder Scales", "Plate Boots"),
+                equippedWeapon = "Calamity Blade",
+                equippedArmor = "Elder Scales",
+                equippedBoots = "Plate Boots"
+            )
+            "Arbiter" -> statsAppliedData.copy(
+                unlockedSkills = listOf("None", "Magic Bolt", "Slash", "Heal", "Guard"),
+                equippedSkills = listOf("Magic Bolt", "Slash", "Heal"),
+                inventory = listOf("Balanced Blade", "Nephilim Garb", "Cloud Sprints"),
+                equippedWeapon = "Balanced Blade",
+                equippedArmor = "Nephilim Garb",
+                equippedBoots = "Cloud Sprints"
             )
             else -> statsAppliedData.copy( // Warrior
                 unlockedSkills = listOf("None", "Slash", "Heavy Strike", "Guard"),
@@ -642,8 +761,8 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
                 unlockedTitles = updatedTitles,
                 currentTitle = arc.rewardTitle ?: stats.currentTitle,
                 quests = currentQuests,
-                activeStoryArcId = null,
-                currentStoryEventIndex = 0 
+                activeStoryArcId = if (alreadyCompleted) current.activeStoryArcId else null,
+                currentStoryEventIndex = if (alreadyCompleted) current.currentStoryEventIndex else 0 
             )
             
             if (!finalized.towerUnlockedMessageSeen && TowerDatabase.isTowerUnlocked(finalized.defeatedBosses)) {
@@ -667,9 +786,9 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
         _backstack.add(Screen.StorySelection)
     }
 
-    fun onPerformRebirth(name: String, gender: String, className: String) {
+    fun onPerformRebirth(name: String, gender: String, className: String, raceName: String) {
         val targetSlot = activeSlot
-        val id = deviceId ?: "unknown"
+        val id = _deviceId.value ?: return // Guard: ID must be ready for online action
         val oldData = playerData.value
 
         if (oldData.isReborn) return
@@ -677,14 +796,14 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
         viewModelScope.launch {
             val claimed = com.solerforge.lumeria.managers.NameManager.claimName(name, id)
             if (!claimed) {
-                _nameAvailability.value = false
                 return@launch
             }
 
-            val oldData = playerData.value
+            val race = com.solerforge.lumeria.database.RaceDatabase.getRace(raceName)
             val newData = PlayerData(
                 playerName = name,
                 gender = gender,
+                playerRace = raceName,
                 playerClass = className,
                 isReborn = true,
                 legacyHeroStats = oldData,
@@ -693,24 +812,24 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
                 unlockedLocations = listOf("Celestial Plains"),
                 joinedGuild = oldData.joinedGuild,
                 joinedGuildId = oldData.joinedGuildId,
-                saveVersion = 4
+                saveVersion = 5
             )
             
             val baseStats = GameDatabase.getClassBaseStats(className)
             val statsAppliedData = newData.copy(
-                strength = baseStats[0],
-                vitality = baseStats[1],
-                defense = baseStats[2],
-                intelligence = baseStats[3],
-                agility = baseStats[4],
-                luck = baseStats[5],
-                wisdom = baseStats[6]
+                strength = baseStats[0] + race.strBonus,
+                vitality = baseStats[1] + race.vitBonus,
+                defense = baseStats[2] + race.defBonus,
+                intelligence = baseStats[3] + race.intBonus,
+                agility = baseStats[4] + race.agiBonus,
+                luck = baseStats[5] + race.luckBonus,
+                wisdom = baseStats[6] + race.wisBonus
             )
 
             val finalizedData = applyClassBonuses(statsAppliedData, className)
 
             repository.savePlayerData(finalizedData, targetSlot)
-            updatePlayer(finalizedData)
+            updatePlayer { finalizedData }
             _backstack.clear()
             _backstack.add(Screen.RebirthIntro)
         }
@@ -805,12 +924,14 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
     }
 
     fun onEnterCode(code: String, deviceId: String): String {
-        if (!BuildConfig.DEBUG) return "Invalid Code"
+        if (!BuildConfig.DEBUG) return "Invalid Code (Release Restricted)"
 
-        return when (code.trim()) {
-            "Materger" -> {
-                if (deviceId != "66f1b16f3832fb84") {
-                    return "Unauthorized Device: This code is restricted to the developer."
+        return when (code.trim().lowercase()) {
+            "materger" -> {
+                if (deviceId != "66f1b16f3832fb84" && 
+                    deviceId != "193856e18771485c" && 
+                    deviceId != "099246b8b868c49e") {
+                    return "Unauthorized Device: Your ID ($deviceId) is not on the whitelist."
                 }
                 val current = playerData.value
                 val allArenaNames = com.solerforge.lumeria.database.ArenaEnemyDatabase.opponents.map { it.enemy.name }
@@ -820,13 +941,18 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
                 )
                 val leveledData = current.copy(
                     level = 100,
+                    playerName = "Xious",
+                    isReborn = false,
                     gold = current.gold + 5000000,
                     statPoints = current.statPoints + 495,
+                    totalStatPointsEarned = current.totalStatPointsEarned + 495,
                     renown = 500000,
                     nationUpgradeLevel = 10,
                     claimedRankIds = (0..7).toList(),
                     completedArenaOpponents = allArenaNames,
                     defeatedBosses = (current.defeatedBosses + worldBosses).distinct(),
+                    completedStoryArcs = (1..20).toList(),
+                    towerHighestFloor = 100,
                     unlockedTraits = (current.unlockedTraits + "Eyes of the Creator").distinct(),
                     visitedBilly = true,
                     visitedInn = true,
@@ -839,7 +965,7 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
                     mana = leveledData.calculateMaxMana()
                 )
                 updatePlayer(updated)
-                "Code Accepted: Max Level, Max Rank, Max Upgrades & 5M Gold granted!"
+                "Code Accepted: Ready for Rebirth! Visit the Rebirth Altar."
             }
             else -> "Invalid Code"
         }

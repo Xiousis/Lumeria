@@ -138,12 +138,25 @@ fun StatsScreen(
                     ) {
                         Text(playerData.currentTitle, color = Color.Yellow, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.ExtraBold)
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text("Xious", color = Color.White, style = MaterialTheme.typography.headlineSmall)
+                            Text(playerData.playerName, color = Color.White, style = MaterialTheme.typography.headlineSmall)
                             if (playerData.level >= 100) {
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text("🏆", style = MaterialTheme.typography.headlineSmall)
                             }
                         }
+                        
+                        if (playerData.isReborn) {
+                            val race = com.solerforge.lumeria.database.RaceDatabase.getRace(playerData.playerRace)
+                            Text(
+                                text = "${race.name} ${playerData.playerClass}",
+                                color = race.rarity.color,
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold
+                            )
+                        } else {
+                            Text(playerData.playerClass, color = Color.LightGray, style = MaterialTheme.typography.titleMedium)
+                        }
+
                         Spacer(modifier = Modifier.height(8.dp))
                         
                         Text("Level: ${playerData.level}", color = Color.White, style = MaterialTheme.typography.titleMedium)
