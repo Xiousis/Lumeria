@@ -47,7 +47,7 @@ object SkillDatabase {
         // --- DWARF HEROES ---
         Skill("Stone Strike", "Heavy mountain-like blow.", 5, 2, 1, "Attack", 2.4, requiredClasses = listOf("Mountain Thane")),
         Skill("Earthbreaker", "Foundation-shattering strike.", 145, 15, 190, "Attack", 48.0, requiredClasses = listOf("Mountain Thane")),
-        Skill("Rune of Power", "Ancient inscribed energy.", 4, 2, 1, "Buff", 2.0, requiredClasses = listOf("Runekeeper")),
+        Skill("Rune of Power", "Ancient inscribed energy.", 4, 2, 1, "Buff", 2.0, "DamageBuff", requiredClasses = listOf("Runekeeper")),
         Skill("Master Rune", "Ultimate runic manifestation.", 135, 12, 190, "Attack", 44.0, requiredClasses = listOf("Runekeeper")),
         Skill("Steel Bastion", "Immovable metal wall.", 6, 3, 1, "Buff", 1.0, "DefenseBuff", requiredClasses = listOf("Iron Guard")),
         Skill("Iron Fortress", "Ultimate dwarven steel defense.", 150, 20, 195, "Buff", 48.0, "DefenseBuff", requiredClasses = listOf("Iron Guard")),
@@ -72,7 +72,7 @@ object SkillDatabase {
 
         // --- HALF-GIANT HEROES ---
         Skill("Giant's Grip", "Immense crushing hand strength.", 5, 2, 1, "Attack", 2.5, requiredClasses = listOf("Colossus")),
-        Skill("Titan's Awakening", "True titan power gain.", 160, 20, 195, "Buff", 45.0, requiredClasses = listOf("Colossus")),
+        Skill("Titan's Awakening", "True titan power gain.", 160, 20, 195, "Buff", 45.0, "SuperBuff", requiredClasses = listOf("Colossus")),
 
         // --- ANGEL HEROES ---
         Skill("Holy Bolt", "Pure celestial light beam.", 3, 1, 1, "Attack", 1.9, elementType = ElementType.Holy, requiredClasses = listOf("Seraph")),
@@ -99,7 +99,7 @@ object SkillDatabase {
         // --- VAMPIRE MONSTERS ---
         Skill("Blood Needle", "Hardened blood projectile.", 3, 1, 1, "Attack", 1.8, statusEffect = StatusEffect.Bleed, requiredClasses = listOf("Blood Mage")),
         Skill("Blood God's Descent", "Blood deity avatar manifestation.", 145, 12, 195, "Attack", 45.0, statusEffect = StatusEffect.Bleed, requiredClasses = listOf("Blood Mage")),
-        Skill("Bloodlust", "Undead juggernaut fury.", 6, 2, 1, "Buff", 3.0, requiredClasses = listOf("Dread Knight")),
+        Skill("Bloodlust", "Undead juggernaut fury.", 6, 2, 1, "Buff", 3.0, "DamageBuff", requiredClasses = listOf("Dread Knight")),
         Skill("Vampiric Dominance", "Absolute blood control.", 160, 20, 195, "Attack", 50.0, "Lifesteal", requiredClasses = listOf("Dread Knight")),
 
         // --- WEREWOLF MONSTERS ---
@@ -147,7 +147,7 @@ object SkillDatabase {
         // --- SHADOW MONARCH MONSTERS ---
         Skill("Shadow Extraction", "Fallen foe shadow draw.", 5, 0, 1, "Support", 1.5, requiredClasses = listOf("Monarch of Shadows")),
         Skill("Shadow Army", "Endless shadow summons.", 150, 20, 190, "Attack", 50.0, "MultiHit", requiredClasses = listOf("Monarch of Shadows")),
-        Skill("Dark Domain", "Shadow realm rule.", 6, 2, 1, "Buff", 1.0, requiredClasses = listOf("Shadow Sovereign")),
+        Skill("Dark Domain", "Shadow realm rule.", 6, 2, 1, "Buff", 1.0, "DamageBuff", requiredClasses = listOf("Shadow Sovereign")),
         Skill("Absolute Darkness", "Total light extinction.", 180, 25, 195, "Attack", 50.0, elementType = ElementType.Dark, requiredClasses = listOf("Shadow Sovereign")),
 
         // --- TITAN MONSTERS ---
@@ -186,7 +186,7 @@ object SkillDatabase {
         Skill("Gelatinous Wall", "Immovable slime barrier.", 40, 6, 115, "Buff", 1.0, "DefenseBuff", requiredClasses = listOf("Amorphous Tank")),
         Skill("World Eater Slime", "Consuming all in path.", 160, 20, 200, "Attack", 50.0, "Lifesteal", requiredClasses = listOf("Amorphous Tank")),
         Skill("Mimic Strike", "Replicating enemy move.", 4, 1, 1, "Attack", 2.1, requiredClasses = listOf("Mimic Master")),
-        Skill("Perfect Copy", "Assuming true form.", 50, 10, 105, "Buff", 5.0, requiredClasses = listOf("Mimic Master")),
+        Skill("Perfect Copy", "Assuming true form.", 50, 10, 105, "Buff", 5.0, "DamageBuff", requiredClasses = listOf("Mimic Master")),
         Skill("Mirror of Souls", "Final mimicry.", 175, 25, 195, "Attack", 52.0, requiredClasses = listOf("Mimic Master")),
 
         // Fairy
@@ -210,7 +210,7 @@ object SkillDatabase {
         Skill("Barrage", "Multi-missile strike.", 45, 8, 105, "Attack", 1.5, "MultiHit", requiredClasses = listOf("Cyber Commando")),
         Skill("Tactical Nuke", "Final orbital strike.", 180, 35, 195, "Attack", 65.0, "IgnoreArmor", requiredClasses = listOf("Cyber Commando")),
         Skill("Analyze", "Scanning enemy weak.", 2, 1, 1, "Buff", 1.0, "CritBuff", requiredClasses = listOf("Logic Core")),
-        Skill("Efficiency Mode", "Optimized combat state.", 35, 6, 62, "Buff", 3.0, requiredClasses = listOf("Logic Core")),
+        Skill("Efficiency Mode", "Optimized combat state.", 35, 6, 62, "Buff", 3.0, "DamageBuff", requiredClasses = listOf("Logic Core")),
         Skill("Absolute Logic", "Calculated destruction.", 150, 20, 185, "Attack", 45.0, requiredClasses = listOf("Logic Core")),
         Skill("Mech Smash", "Heavy armor blow.", 6, 3, 1, "Attack", 2.6, requiredClasses = listOf("Mecha Pilot")),
         Skill("Shield Overload", "Massive energy wall.", 55, 10, 118, "Buff", 1.0, "DefenseBuff", requiredClasses = listOf("Mecha Pilot")),
@@ -236,7 +236,7 @@ object SkillDatabase {
         Skill("Royal Guard", "Summoning protectors.", 5, 2, 1, "Buff", 1.0, "DefenseBuff", requiredClasses = listOf("Hell King")),
         Skill("Throne Crush", "Heavier gravity blow.", 55, 10, 110, "Attack", 14.0, requiredClasses = listOf("Hell King")),
         Skill("King of the Abyss", "Supreme demon rule.", 195, 45, 200, "Attack", 70.0, "LimitBreak", requiredClasses = listOf("Hell King")),
-        Skill("Dark Pact", "Sacrifice for power.", 6, 3, 1, "Buff", 4.0, requiredClasses = listOf("Demon Prince")),
+        Skill("Dark Pact", "Sacrifice for power.", 6, 3, 1, "Buff", 4.0, "DamageBuff", requiredClasses = listOf("Demon Prince")),
         Skill("Princely Strike", "Noble demonic blow.", 48, 8, 108, "Attack", 12.0, requiredClasses = listOf("Demon Prince")),
         Skill("Cursed Heritage", "Unleashed royal fury.", 185, 25, 195, "Attack", 58.0, requiredClasses = listOf("Demon Prince")),
         Skill("Ruin Strike", "Basic destructive blow.", 5, 2, 1, "Attack", 2.4, requiredClasses = listOf("Archduke of Ruin")),
@@ -248,11 +248,11 @@ object SkillDatabase {
         Skill("Black Sun", "Consuming all hope.", 60, 10, 115, "Attack", 16.0, elementType = ElementType.Dark, requiredClasses = listOf("Lord of Darkness")),
         Skill("Eternal Night", "Final light death.", 200, 40, 200, "Attack", 75.0, elementType = ElementType.Dark, requiredClasses = listOf("Lord of Darkness")),
         Skill("Conqueror's Edge", "Basic ruling strike.", 5, 2, 1, "Attack", 2.3, requiredClasses = listOf("Umbral Conqueror")),
-        Skill("Shadow Domain", "Expanding the empire.", 58, 9, 112, "Buff", 5.0, requiredClasses = listOf("Umbral Conqueror")),
+        Skill("Shadow Domain", "Expanding the empire.", 58, 9, 112, "Buff", 5.0, "DamageBuff", requiredClasses = listOf("Umbral Conqueror")),
         Skill("World of Shadows", "Total umbral rule.", 190, 35, 195, "Attack", 65.0, requiredClasses = listOf("Umbral Conqueror")),
 
         // Titan
-        Skill("Stone Molder", "Shaping the earth.", 3, 1, 1, "Buff", 2.0, requiredClasses = listOf("Earth Shaper")),
+        Skill("Stone Molder", "Shaping the earth.", 3, 1, 1, "Buff", 2.0, "DamageBuff", requiredClasses = listOf("Earth Shaper")),
         Skill("Terraform", "Massive landscape alt.", 55, 10, 110, "Attack", 14.0, requiredClasses = listOf("Earth Shaper")),
         Skill("Planet Shaper", "Ultimate titan will.", 185, 30, 190, "Attack", 60.0, requiredClasses = listOf("Earth Shaper")),
         Skill("Mountain Guard", "Unbreakable defense.", 6, 3, 1, "Buff", 1.0, "DefenseBuff", requiredClasses = listOf("Colossal Guardian")),
@@ -294,6 +294,47 @@ object SkillDatabase {
         Skill("Vanguard Edge", "Elite hybrid blow.", 5, 2, 1, "Attack", 2.5, requiredClasses = listOf("Nephilim Vanguard")),
         Skill("Sentinel Rush", "Unstoppable charge.", 62, 12, 115, "Attack", 16.0, "MultiHit", requiredClasses = listOf("Nephilim Vanguard")),
         Skill("Shield of the Void-Light", "Final hybrid guard.", 205, 50, 200, "Buff", 1.0, "SuperBuff", requiredClasses = listOf("Nephilim Vanguard")),
+
+        // --- MYTHIC SKILLS ---
+        // Cosmic Envoy
+        Skill("Stellar Flare", "Cosmic energy burst.", 15, 2, 1, "Attack", 4.5, "MultiHit", elementType = ElementType.Fire, requiredClasses = listOf("Cosmic Envoy")),
+        Skill("Nebula Shield", "Barrier of star dust.", 45, 6, 80, "Buff", 1.0, "DefenseBuff", requiredClasses = listOf("Cosmic Envoy")),
+        Skill("Cosmic Ray", "Pure beam of starlight.", 180, 20, 195, "Attack", 55.0, "IgnoreArmor", elementType = ElementType.Holy, requiredClasses = listOf("Cosmic Envoy")),
+
+        // Sun Lord
+        Skill("Solar Supernova", "Heat of a dying star.", 18, 3, 1, "Attack", 5.0, elementType = ElementType.Fire, statusEffect = StatusEffect.Burn, requiredClasses = listOf("Sun Lord")),
+        Skill("True Solar Flare", "Blinding solar radiation.", 50, 8, 90, "Support", 1.0, "Stun", statusEffect = StatusEffect.Stun, requiredClasses = listOf("Sun Lord")),
+        Skill("Radiant Aegis", "Supreme sun protection.", 190, 25, 198, "Buff", 1.0, "DefenseBuff", requiredClasses = listOf("Sun Lord")),
+
+        // Moon Goddess
+        Skill("Lunar Eclipse", "Blotting out the light.", 16, 2, 1, "Attack", 4.2, elementType = ElementType.Dark, statusEffect = StatusEffect.Stun, requiredClasses = listOf("Moon Goddess")),
+        Skill("Moonlight Prayer", "Gentle lunar healing.", 48, 5, 85, "Support", 3.5, "Heal", requiredClasses = listOf("Moon Goddess")),
+        Skill("Silver Arrow", "Translucent moon-shot.", 175, 18, 190, "Attack", 52.0, requiredClasses = listOf("Moon Goddess")),
+
+        // World Weaver
+        Skill("Matter Deconstruction", "Breaking down atoms.", 20, 4, 1, "Attack", 6.0, "IgnoreArmor", requiredClasses = listOf("World Weaver")),
+        Skill("Reality Warp", "Bending space time.", 55, 10, 100, "Support", 1.0, "Parry", requiredClasses = listOf("World Weaver")),
+        Skill("Genesis Spark", "The spark of creation.", 200, 30, 200, "Buff", 1.0, "SuperBuff", requiredClasses = listOf("World Weaver")),
+
+        // Eldritch Terror
+        Skill("Void Tentacles", "Lashing out from void.", 14, 2, 1, "Attack", 2.0, "MultiHit", requiredClasses = listOf("Eldritch Terror")),
+        Skill("Mind Shatter", "Destroying mental sanity.", 42, 6, 75, "Support", 1.0, "Stun", statusEffect = StatusEffect.Stun, requiredClasses = listOf("Eldritch Terror")),
+        Skill("Abyssal Gaze", "Looking into the abyss.", 185, 25, 195, "Attack", 58.0, "Lifesteal", elementType = ElementType.Dark, requiredClasses = listOf("Eldritch Terror")),
+
+        // Entropic God
+        Skill("Entropy Burst", "Spreading pure decay.", 17, 3, 1, "Attack", 4.8, "MultiHit", statusEffect = StatusEffect.Poison, requiredClasses = listOf("Entropic God")),
+        Skill("Chaos Domain", "Where disorder rules.", 52, 9, 110, "Buff", 1.0, "DamageBuff", requiredClasses = listOf("Entropic God")),
+        Skill("Reality Unravel", "Deconstructing existence.", 195, 35, 198, "Attack", 65.0, "IgnoreArmor", requiredClasses = listOf("Entropic God")),
+
+        // Planet Eater
+        Skill("World Gulp", "Consuming entire lands.", 22, 5, 1, "Attack", 7.5, requiredClasses = listOf("Planet Eater")),
+        Skill("Abyssal Hunger", "Never ending starvation.", 60, 12, 115, "Support", 1.0, "Heal", requiredClasses = listOf("Planet Eater")),
+        Skill("Crushing Maw", "The weight of worlds.", 210, 40, 200, "Attack", 72.0, "Stun", statusEffect = StatusEffect.Stun, requiredClasses = listOf("Planet Eater")),
+
+        // Singularity Core
+        Skill("Event Horizon Core", "No light can escape.", 18, 4, 1, "Support", 1.0, "Stun", statusEffect = StatusEffect.Stun, requiredClasses = listOf("Singularity Core")),
+        Skill("Gravitational Pull", "Crushing gravity well.", 58, 10, 105, "Attack", 12.0, requiredClasses = listOf("Singularity Core")),
+        Skill("Black Hole Singularity", "Absolute space death.", 215, 50, 200, "Attack", 80.0, "IgnoreArmor", elementType = ElementType.Dark, requiredClasses = listOf("Singularity Core")),
 
         // --- TRANSCENDENT / BOSS TIER ---
         Skill("Ichor Surge", "Draw upon the blood of gods to deal massive damage and recover HP.", 40, 5, 999, "Attack", 15.0, "HealAttack"),

@@ -7,21 +7,41 @@ data class PlayerClass(
     val description: String,
     val color: Color,
     val isMonsterClass: Boolean = false,
-    val requiredRaces: List<String> = emptyList() // Empty means all races in that faction
+    val requiredRaces: List<String> = emptyList(), // Empty means all races in that faction
+    val startingSkills: List<String> = listOf("None", "Slash", "Heavy Strike", "Guard"),
+    val startingGear: List<String> = listOf("Iron Sword", "Leather Armor", "Leather Boots")
 )
 
 object ClassDatabase {
     val classes = listOf(
         PlayerClass("Warrior", "High Strength & Vitality. A master of the blade.", Color(0xFFD32F2F)),
-        PlayerClass("Mage", "High Intelligence & Mana. Wielder of arcane arts.", Color(0xFF1976D2)),
-        PlayerClass("Samurai", "High Agility & Luck. A swift and precise fighter.", Color(0xFF388E3C)),
-        PlayerClass("Paladin", "Ultimate Defense & Holy Power. An unbreakable wall.", Color(0xFFFBC02D)),
-        PlayerClass("Assassin", "Extreme Luck & Agility. Strikes from the shadows.", Color(0xFF7B1FA2)),
-        PlayerClass("Monk", "High Vitality & Wisdom. Uses spirit and fists.", Color(0xFFE64A19)),
-        PlayerClass("Archer", "Balanced Agility & Strength. Master of long range.", Color(0xFF689F38)),
-        PlayerClass("Necromancer", "High Mana & Dark Power. Commands the void.", Color(0xFF424242)),
-        PlayerClass("Bard", "High Luck & Wisdom. Inspires through music.", Color(0xFFF06292)),
-        PlayerClass("Berserker", "Pure Strength & Speed. Reckless destruction.", Color(0xFFB71C1C)),
+        PlayerClass("Mage", "High Intelligence & Mana. Wielder of arcane arts.", Color(0xFF1976D2),
+            startingSkills = listOf("None", "Magic Bolt", "Mana Shield", "Heal"),
+            startingGear = listOf("Apprentice Staff", "Mage Robes", "Canvas Shoes", "Mana Potion")),
+        PlayerClass("Samurai", "High Agility & Luck. A swift and precise fighter.", Color(0xFF388E3C),
+            startingSkills = listOf("None", "Slash", "Quick Draw", "Parry"),
+            startingGear = listOf("Training Katana", "Shinobi Garb", "Sandals")),
+        PlayerClass("Paladin", "Ultimate Defense & Holy Power. An unbreakable wall.", Color(0xFFFBC02D),
+            startingSkills = listOf("None", "Guard", "Shield Bash", "Heal"),
+            startingGear = listOf("Knight Blade", "Knight Armor", "Knight Shield", "Leather Boots")),
+        PlayerClass("Assassin", "Extreme Luck & Agility. Strikes from the shadows.", Color(0xFF7B1FA2),
+            startingSkills = listOf("None", "Slash", "Quick Draw", "Smoke Bomb"),
+            startingGear = listOf("Squire Dagger", "Scout Armor", "Scout Boots")),
+        PlayerClass("Monk", "High Vitality & Wisdom. Uses spirit and fists.", Color(0xFFE64A19),
+            startingSkills = listOf("None", "Heavy Strike", "Guard", "Heal"),
+            startingGear = listOf("None", "Padded Tunic", "Canvas Shoes")),
+        PlayerClass("Archer", "Balanced Agility & Strength. Master of long range.", Color(0xFF689F38),
+            startingSkills = listOf("None", "Slash", "Quick Draw", "Heavy Strike"),
+            startingGear = listOf("Nomad Bow", "Rugged Vest", "Leather Boots")),
+        PlayerClass("Necromancer", "High Mana & Dark Power. Commands the void.", Color(0xFF424242),
+            startingSkills = listOf("None", "Magic Bolt", "Bleeding Slash"),
+            startingGear = listOf("Traveler's Staff", "Mage Robes", "Canvas Shoes")),
+        PlayerClass("Bard", "High Luck & Wisdom. Inspires through music.", Color(0xFFF06292),
+            startingSkills = listOf("None", "Heal", "Lion's Roar"),
+            startingGear = listOf("Wanderer's Gladius", "Explorer Jacket", "Cloud Sprints")),
+        PlayerClass("Berserker", "Pure Strength & Speed. Reckless destruction.", Color(0xFFB71C1C),
+            startingSkills = listOf("None", "Heavy Strike", "Whirlwind Slash"),
+            startingGear = listOf("Orc Cleaver", "Rugged Vest", "Leather Boots")),
 
         // UNIQUE RACE CLASSES (Heroes)
         // Human
@@ -70,19 +90,25 @@ object ClassDatabase {
         
         // UNIQUE RACE CLASSES (Monsters)
         // Dragonkin
-        PlayerClass("Dragon Knight", "Draconic might and fire. A master of draconic combat.", Color(0xFFFF5722), true, listOf("Dragonkin")),
+        PlayerClass("Dragon Knight", "Draconic might and fire. A master of draconic combat.", Color(0xFFFF5722), true, listOf("Dragonkin"),
+            startingSkills = listOf("None", "Heavy Strike", "Ignite", "Guard"),
+            startingGear = listOf("Drake Blade", "Dragon Scales", "Plate Boots")),
         PlayerClass("Flame Breather", "Commands the searing heat of dragon fire.", Color(0xFFFF7043), true, listOf("Dragonkin")),
         PlayerClass("Scaled Vanguard", "An unbreakable shield of dragon scales.", Color(0xFFBF360C), true, listOf("Dragonkin")),
         PlayerClass("Wyrm Stalker", "A swift predator that hunts like a flying drake.", Color(0xFFD84315), true, listOf("Dragonkin")),
 
         // Dark Elf
-        PlayerClass("Shadow Stalker", "Strikes from the deepest shadows with precision.", Color(0xFF2D3436), true, listOf("Dark Elf")),
+        PlayerClass("Shadow Stalker", "Strikes from the deepest shadows with precision.", Color(0xFF2D3436), true, listOf("Dark Elf"),
+            startingSkills = listOf("None", "Quick Draw", "Smoke Bomb", "Slash"),
+            startingGear = listOf("Shadow Dagger", "Night Armor", "Silent Boots")),
         PlayerClass("Nightblade", "A master of silent lethality and dark steel.", Color(0xFF37474F), true, listOf("Dark Elf")),
         PlayerClass("Void Weaver", "Manipulates the essence of the void into deadly spells.", Color(0xFF4527A0), true, listOf("Dark Elf")),
         PlayerClass("Obsidian Archer", "Fires arrows tipped with soul-piercing obsidian.", Color(0xFF212121), true, listOf("Dark Elf")),
 
         // Vampire
-        PlayerClass("Blood Mage", "Sacrifices vitality for absolute hemomantic power.", Color(0xFF8B0000), true, listOf("Vampire")),
+        PlayerClass("Blood Mage", "Sacrifices vitality for absolute hemomantic power.", Color(0xFF8B0000), true, listOf("Vampire"),
+            startingSkills = listOf("None", "Magic Bolt", "Bleeding Slash", "Heal"),
+            startingGear = listOf("Sanguine Staff", "Crimson Robes", "Canvas Shoes")),
         PlayerClass("Night Stalker", "A relentless predator of the eternal night.", Color(0xFF4A148C), true, listOf("Vampire")),
         PlayerClass("Thrall Master", "Commands the weak-willed through dark charisma.", Color(0xFF311B92), true, listOf("Vampire")),
         PlayerClass("Dread Knight", "An undead juggernaut clad in blood-soaked plate.", Color(0xFF1A237E), true, listOf("Vampire")),
@@ -100,13 +126,17 @@ object ClassDatabase {
         PlayerClass("Reality Warper", "Distorts the fabric of space with sheer will.", Color(0xFF3E2723), true, listOf("Beholder")),
 
         // Slime
-        PlayerClass("Slime Sage", "Uses its fluid form to adapt to any threat.", Color(0xFF55EFC4), true, listOf("Slime")),
+        PlayerClass("Slime Sage", "Uses its fluid form to adapt to any threat.", Color(0xFF55EFC4), true, listOf("Slime"),
+            startingSkills = listOf("None", "Magic Bolt", "Heal", "Guard"),
+            startingGear = listOf("Fluid Staff", "Gelatinous Tunic", "Canvas Shoes")),
         PlayerClass("Amorphous Tank", "Absorbs all damage into its gelatinous mass.", Color(0xFF00B894), true, listOf("Slime")),
         PlayerClass("Corrosive Striker", "Dissolves armor and bone with acidic strikes.", Color(0xFF00D2D3), true, listOf("Slime")),
         PlayerClass("Mimic Master", "Shapes its body to replicate any foe.", Color(0xFF01CBCB), true, listOf("Slime")),
 
         // Fairy
-        PlayerClass("Enchanter", "Commands the beauty of the natural world.", Color(0xFFFAB1A0), true, listOf("Fairy")),
+        PlayerClass("Enchanter", "Commands the beauty of the natural world.", Color(0xFFFAB1A0), true, listOf("Fairy"),
+            startingSkills = listOf("None", "Magic Bolt", "Heal", "Mana Shield"),
+            startingGear = listOf("Living Branch", "Nature Robes", "Sandals")),
         PlayerClass("Pixie Trickster", "Confuses enemies with illusions and dust.", Color(0xFFFF8A65), true, listOf("Fairy")),
         PlayerClass("Nature Guardian", "Defends the woods with thorns and vines.", Color(0xFF81C784), true, listOf("Fairy")),
         PlayerClass("Luminous Sprite", "A beacon of pure, blinding magical light.", Color(0xFFFFF176), true, listOf("Fairy")),
@@ -118,19 +148,25 @@ object ClassDatabase {
         PlayerClass("Phantasm Lord", "Rules over the spirits of the long deceased.", Color(0xFF37474F), true, listOf("Ghost")),
 
         // Cyborg
-        PlayerClass("Technomancer", "Uses ancient logic to manipulate mana.", Color(0xFF00CEC9), true, listOf("Cyborg")),
+        PlayerClass("Technomancer", "Uses ancient logic to manipulate mana.", Color(0xFF00CEC9), true, listOf("Cyborg"),
+            startingSkills = listOf("None", "Magic Bolt", "Mana Shield", "Quick Draw"),
+            startingGear = listOf("Logic Staff", "Plated Robes", "Heavy Boots")),
         PlayerClass("Cyber Commando", "Integrated weaponry for maximum efficiency.", Color(0xFF00ACC1), true, listOf("Cyborg")),
         PlayerClass("Logic Core", "Processes combat scenarios with mechanical precision.", Color(0xFF00838F), true, listOf("Cyborg")),
         PlayerClass("Mecha Pilot", "Commands a massive suit of ancient technology.", Color(0xFF006064), true, listOf("Cyborg")),
 
         // Demon
-        PlayerClass("Void Reaver", "Devours the essence of the void.", Color(0xFFA855F7), true, listOf("Demon")),
+        PlayerClass("Void Reaver", "Devours the essence of the void.", Color(0xFFA855F7), true, listOf("Demon"),
+            startingSkills = listOf("None", "Bleeding Slash", "Magic Bolt", "Smoke Bomb"),
+            startingGear = listOf("Void Edge", "Abyssal Garb", "Shadow Steps")),
         PlayerClass("Abyssal Juggernaut", "An unstoppable force of demonic destruction.", Color(0xFF7E57C2), true, listOf("Demon")),
         PlayerClass("Hellfire Sorcerer", "Wields flames that burn even the soul.", Color(0xFFD32F2F), true, listOf("Demon")),
         PlayerClass("Chaos Bringer", "A herald of the end times, thriving in disorder.", Color(0xFFB71C1C), true, listOf("Demon")),
 
         // Angel
-        PlayerClass("Seraph", "Celestial judge of the high heavens.", Color(0xFFFFD600), false, listOf("Angel")),
+        PlayerClass("Seraph", "Celestial judge of the high heavens.", Color(0xFFFFD600), false, listOf("Angel"),
+            startingSkills = listOf("None", "Magic Bolt", "Heal", "Guard"),
+            startingGear = listOf("Starlight Staff", "Divine Robes", "Cloud Sprints")),
         PlayerClass("Archangel", "A supreme commander of the divine host.", Color(0xFFFFEA00), false, listOf("Angel")),
         PlayerClass("Divine Shield", "An unbreakable barrier of holy light.", Color(0xFFFDD835), false, listOf("Angel")),
         PlayerClass("Celestial Archer", "Fires beams of light with divine accuracy.", Color(0xFFFFEE58), false, listOf("Angel")),
@@ -154,28 +190,63 @@ object ClassDatabase {
         PlayerClass("Umbral Conqueror", "Expands the domain of shadows across all lands.", Color(0xFF616161), true, listOf("Shadow Monarch")),
 
         // Titan
-        PlayerClass("World Breaker", "Crushes planets with a single blow.", Color(0xFF636E72), true, listOf("Titan")),
+        PlayerClass("World Breaker", "Crushes planets with a single blow.", Color(0xFF636E72), true, listOf("Titan"),
+            startingSkills = listOf("None", "Heavy Strike", "Guard", "Slash"),
+            startingGear = listOf("Titan Maul", "Plate Armor", "Plate Boots")),
         PlayerClass("Earth Shaper", "Molds the world to its monumental will.", Color(0xFF4E342E), true, listOf("Titan")),
         PlayerClass("Colossal Guardian", "A living mountain that protects the earth.", Color(0xFF3E2723), true, listOf("Titan")),
         PlayerClass("Mountain King", "The ancient ruler of the deepest peaks.", Color(0xFF2D3436), true, listOf("Titan")),
 
         // Void Sovereign
-        PlayerClass("Void Walker", "Master of the space between stars.", Color(0xFF6C5CE7), true, listOf("Void Sovereign")),
+        PlayerClass("Void Walker", "Master of the space between stars.", Color(0xFF6C5CE7), true, listOf("Void Sovereign"),
+            startingSkills = listOf("None", "Magic Bolt", "Smoke Bomb", "Quick Draw"),
+            startingGear = listOf("Void Rod", "Sovereign Robes", "Shadow Steps")),
         PlayerClass("Rift Master", "Tears holes in reality to summon void energy.", Color(0xFF5E35B1), true, listOf("Void Sovereign")),
         PlayerClass("Singularity Lord", "Contains the power of a collapsing star.", Color(0xFF4527A0), true, listOf("Void Sovereign")),
         PlayerClass("Cosmic Devourer", "Consumes entire galaxies to fuel its hunger.", Color(0xFF311B92), true, listOf("Void Sovereign")),
 
         // Elder Dragon
-        PlayerClass("Dragon Lord", "The ultimate peak of draconic power.", Color(0xFFD63031), true, listOf("Elder Dragon")),
+        PlayerClass("Dragon Lord", "The ultimate peak of draconic power.", Color(0xFFD63031), true, listOf("Elder Dragon"),
+            startingSkills = listOf("None", "Heavy Strike", "Ignite", "Guard"),
+            startingGear = listOf("Calamity Blade", "Elder Scales", "Plate Boots")),
         PlayerClass("Ancient Wyrm", "A creature of legend that has seen aeons pass.", Color(0xFFC62828), true, listOf("Elder Dragon")),
         PlayerClass("Sky Emperor", "Rules the heavens with wings that blot out the sun.", Color(0xFFB71C1C), true, listOf("Elder Dragon")),
         PlayerClass("Primal Guardian", "The first dragon, protector of all life and death.", Color(0xFF8E0000), true, listOf("Elder Dragon")),
 
         // Nephilim
-        PlayerClass("Arbiter", "Enforcer of the cosmic balance.", Color(0xFFFDCB6E), true, listOf("Nephilim")),
+        PlayerClass("Arbiter", "Enforcer of the cosmic balance.", Color(0xFFFDCB6E), true, listOf("Nephilim"),
+            startingSkills = listOf("None", "Magic Bolt", "Slash", "Heal", "Guard"),
+            startingGear = listOf("Balanced Blade", "Nephilim Garb", "Cloud Sprints")),
         PlayerClass("Divine Hybrid", "Possesses the strengths of both light and dark.", Color(0xFFFFB300), true, listOf("Nephilim")),
         PlayerClass("Chaos Balancer", "Maintains order by weaponizing absolute chaos.", Color(0xFFFFA000), true, listOf("Nephilim")),
-        PlayerClass("Nephilim Vanguard", "The elite soldier of the celestial middle-ground.", Color(0xFFFF8F00), true, listOf("Nephilim"))
+        PlayerClass("Nephilim Vanguard", "The elite soldier of the celestial middle-ground.", Color(0xFFFF8F00), true, listOf("Nephilim")),
+
+        // MYTHIC CLASSES
+        PlayerClass("Cosmic Envoy", "A messenger from the edge of the universe.", Color(0xFFB71C1C), false, listOf("Astral Celestial"),
+            startingSkills = listOf("None", "Magic Bolt", "Mana Shield", "Heal"),
+            startingGear = listOf("Cosmic Staff", "Astral Robes", "Star-Step Boots")),
+        PlayerClass("Sun Lord", "Wielder of the supreme power of the sun.", Color(0xFFB71C1C), false, listOf("Solar Archon"),
+            startingSkills = listOf("None", "Slash", "Ignite", "Guard"),
+            startingGear = listOf("Sol Blade", "Archon Plate", "Sun-Forged Boots")),
+        PlayerClass("Moon Goddess", "A divine ruler of the lunar cycles.", Color(0xFFB71C1C), false, listOf("Lunar Sovereign"),
+            startingSkills = listOf("None", "Quick Draw", "Smoke Bomb", "Heal"),
+            startingGear = listOf("Lunar Bow", "Sovereign Silk", "Mist Treads")),
+        PlayerClass("World Weaver", "One who constructs and deconstructs reality.", Color(0xFFB71C1C), false, listOf("Genesis Primordial"),
+            startingSkills = listOf("None", "Slash", "Magic Bolt", "Guard"),
+            startingGear = listOf("Genesis Core", "Primordial Garb", "World-Walker Boots")),
+        
+        PlayerClass("Eldritch Terror", "An unspeakable horror from the deepest void.", Color(0xFFB71C1C), true, listOf("Void Abomination"),
+            startingSkills = listOf("None", "Bleeding Slash", "Magic Bolt", "Smoke Bomb"),
+            startingGear = listOf("Eldritch Claw", "Void Carapace", "Shadow Steps")),
+        PlayerClass("Entropic God", "A deity that thrives on the decay of all things.", Color(0xFFB71C1C), true, listOf("Chaos Overlord"),
+            startingSkills = listOf("None", "Ignite", "Magic Bolt", "Parry"),
+            startingGear = listOf("Entropy Scepter", "Chaos Shroud", "Decay Walkers")),
+        PlayerClass("Planet Eater", "A gargantuan beast that devours planetary cores.", Color(0xFFB71C1C), true, listOf("Abyssal Devourer"),
+            startingSkills = listOf("None", "Heavy Strike", "Guard", "Slash"),
+            startingGear = listOf("Abyssal Maw", "World-Eater Hide", "Crusher Treads")),
+        PlayerClass("Singularity Core", "The conscious center of a black hole.", Color(0xFFB71C1C), true, listOf("Eternal Singularity"),
+            startingSkills = listOf("None", "Magic Bolt", "Mana Shield", "Guard"),
+            startingGear = listOf("Singularity Shard", "Event Horizon Plate", "Gravitational Boots"))
     )
 
     fun getAvailableClasses(raceName: String): List<PlayerClass> {

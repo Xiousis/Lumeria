@@ -17,14 +17,18 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.solerforge.lumeria.R
 import com.solerforge.lumeria.components.RpgButton
+import com.solerforge.lumeria.database.RaceDatabase
 import kotlinx.coroutines.delay
 
 @Composable
 fun RebirthIntroScreen(
     playerName: String,
+    playerRace: String,
     onContinue: () -> Unit
 ) {
     var step by remember { mutableIntStateOf(0) }
+    
+    val isMonster = RaceDatabase.getRace(playerRace).isMonster
     
     LaunchedEffect(Unit) {
         delay(1000)
@@ -83,7 +87,7 @@ fun RebirthIntroScreen(
                 )
                 
                 Text(
-                    text = "Rise, $playerName, as a new hero of the land.",
+                    text = if (isMonster) "Rise, $playerName, and let the world tremble." else "Rise, $playerName, as a new hero of the land.",
                     style = MaterialTheme.typography.titleMedium,
                     color = Color.Cyan,
                     textAlign = TextAlign.Center

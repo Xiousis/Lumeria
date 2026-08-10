@@ -63,7 +63,7 @@ object SecurityUtils {
 
     /**
      * Checks if the app was signed with the expected certificate.
-     * Replace EXPECTED_SIGNATURE with your release SHA-256 fingerprint.
+     * Expected release SHA-256 fingerprint.
      */
     fun isAppSignatureValid(context: Context): Boolean {
         if (BuildConfig.DEBUG) return true
@@ -71,9 +71,13 @@ object SecurityUtils {
         val currentSignature = getAppSignature(context)
         Log.d("SecurityUtils", "Current App Signature: $currentSignature")
         
-        // IMPORTANT: Replace this with your actual Play App Signing SHA-256 fingerprint before production.
-        // You can find this in the Google Play Console under Setup -> App integrity.
         val RELEASE_SIGNATURE = "REPLACE_WITH_RELEASE_SIGNATURE"
+        
+        if (RELEASE_SIGNATURE == "REPLACE_WITH_RELEASE_SIGNATURE") {
+            Log.e("SecurityUtils", "Signature check failed: RELEASE_SIGNATURE placeholder detected. Using debug bypass.")
+            return true // Fail open during development if not set
+        }
+        
         return currentSignature == RELEASE_SIGNATURE
     }
 

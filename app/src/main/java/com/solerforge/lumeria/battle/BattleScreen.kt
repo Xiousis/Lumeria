@@ -240,6 +240,7 @@ fun BattleScreen(
                         statusIcons = {
                             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                                 if (state.playerStunnedTurns > 0) StatusBadge("💫", Color.Yellow)
+                                if (state.playerPoisonTurns > 0) StatusBadge("🤢", Color(0xFF4CAF50))
                                 if ((state.attackBuffTurns > 0) || (state.superBuffTurns > 0)) StatusBadge("🔥", Color.Red)
                                 if (state.critBuffTurns > 0) StatusBadge("🎯", Color.Cyan)
                                 if (state.parryActive) StatusBadge("🛡️", Color.White)

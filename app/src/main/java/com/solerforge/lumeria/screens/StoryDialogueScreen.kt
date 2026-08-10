@@ -40,6 +40,7 @@ import com.solerforge.lumeria.models.StoryEvent
 @Composable
 fun StoryDialogueScreen(
     arc: StoryArc,
+    playerName: String = "Xious",
     eventIndex: Int,
     onNext: () -> Unit,
     onChoiceSelected: (com.solerforge.lumeria.models.StoryChoiceOption) -> Unit,
@@ -105,14 +106,17 @@ fun StoryDialogueScreen(
                         .border(2.dp, Color.Cyan.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
                         .padding(20.dp)
                 ) {
-                    val messageToDisplay = outcomeMessage ?: currentEvent.text
-                    val speakerToDisplay = if (outcomeMessage != null) "Outcome" else currentEvent.speaker
+                    val rawMessage = outcomeMessage ?: currentEvent.text
+                    val rawSpeaker = if (outcomeMessage != null) "Outcome" else currentEvent.speaker
+                    
+                    val messageToDisplay = rawMessage.replace("{PLAYER_NAME}", playerName)
+                    val speakerToDisplay = rawSpeaker.replace("{PLAYER_NAME}", playerName)
 
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        if (currentEvent.speaker == "Xious" && outcomeMessage == null) {
+                        if ((currentEvent.speaker == "Xious" || currentEvent.speaker == "{PLAYER_NAME}") && outcomeMessage == null) {
                             XiousPortrait(mood = currentEvent.mood)
                             Spacer(modifier = Modifier.width(16.dp))
                         } else if (outcomeMessage == null) {
@@ -141,7 +145,7 @@ fun StoryDialogueScreen(
 
                         Column(modifier = Modifier.weight(1f)) {
                             val speakerColor = when (speakerToDisplay) {
-                                "Xious" -> Color.Cyan
+                                "Xious", playerName -> Color.Cyan
                                 "Village Elder" -> Color.Yellow
                                 "Kaela", "Kaela Flameheart" -> Color(0xFFFF5722)
                                 "The Void" -> Color.Magenta

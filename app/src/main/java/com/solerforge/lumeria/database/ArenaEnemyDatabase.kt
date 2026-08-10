@@ -35,7 +35,7 @@ object ArenaEnemyDatabase {
             rewardXp = 200,
             moveset = listOf(
                 BossAttack("Warrior Art: Squire Strike", 1.3, "A basic overhead swing.", "Normal"),
-                BossAttack("Warrior Art: Focus", 0.0, "Gathers strength for next turn.", "Buff", cooldown = 2)
+                BossAttack("Warrior Art: Focus", 0.0, "Gathers strength for next turn.", "DamageBuff", cooldown = 2)
             )
         ),
         ArenaOpponent(
@@ -58,7 +58,7 @@ object ArenaEnemyDatabase {
             rewardXp = 500,
             moveset = listOf(
                 BossAttack("Warrior Art: Spark", 1.5, "A small burst of electricity.", "Normal"),
-                BossAttack("Warrior Art: Mana Shield", 0.0, "Protects himself with energy.", "Buff", cooldown = 4)
+                BossAttack("Warrior Art: Mana Shield", 0.0, "Protects himself with energy.", "DefenseBuff", cooldown = 4)
             )
         ),
         ArenaOpponent(
@@ -69,7 +69,7 @@ object ArenaEnemyDatabase {
             rewardXp = 600,
             moveset = listOf(
                 BossAttack("Warrior Art: Stumble Kick", 1.4, "An awkward but powerful kick.", "Normal"),
-                BossAttack("Warrior Art: Swaying Guard", 0.0, "Becomes hard to hit.", "Buff", cooldown = 2),
+                BossAttack("Warrior Art: Swaying Guard", 0.0, "Becomes hard to hit.", "DefenseBuff", cooldown = 2),
                 BossAttack("Warrior Art: Gourd Gulp", 0.0, "Heals while drinking.", "Heal", cooldown = 4)
             )
         ),
@@ -85,7 +85,7 @@ object ArenaEnemyDatabase {
             moveset = listOf(
                 BossAttack("Warrior Art: Iaido Strike", 2.2, "An incredibly fast draw.", "Normal", cooldown = 1),
                 BossAttack("Warrior Art: Hilt Bash", 1.0, "Stuns the opponent with the handle.", "Stun", cooldown = 3),
-                BossAttack("Warrior Art: Focus Breathing", 0.0, "Prepares for a counter.", "Buff", cooldown = 4)
+                BossAttack("Warrior Art: Focus Breathing", 0.0, "Prepares for a counter.", "DamageBuff", cooldown = 4)
             )
         ),
         ArenaOpponent(
@@ -96,7 +96,7 @@ object ArenaEnemyDatabase {
             rewardXp = 3500,
             moveset = listOf(
                 BossAttack("Warrior Art: Tactical Strike", 1.6, "A professional sword lunge.", "Normal"),
-                BossAttack("Warrior Art: Shield Wall", 0.0, "Greatly increases defense.", "Buff", cooldown = 3),
+                BossAttack("Warrior Art: Shield Wall", 0.0, "Greatly increases defense.", "DefenseBuff", cooldown = 3),
                 BossAttack("Warrior Art: Second Wind", 0.0, "Refuses to fall.", "Heal", cooldown = 5)
             )
         ),
@@ -110,7 +110,7 @@ object ArenaEnemyDatabase {
             moveset = listOf(
                 BossAttack("Warrior Art: Fire Pillar", 2.0, "Erupts flames under the feet.", "Normal"),
                 BossAttack("Warrior Art: Frost Nova", 1.2, "Freezes the area, potentially stunning.", "Stun", cooldown = 3),
-                BossAttack("Warrior Art: Arcane Surge", 0.0, "Increases magic power.", "Buff", cooldown = 4)
+                BossAttack("Warrior Art: Arcane Surge", 0.0, "Increases magic power.", "DamageBuff", cooldown = 4)
             )
         ),
         ArenaOpponent(
@@ -122,7 +122,7 @@ object ArenaEnemyDatabase {
             moveset = listOf(
                 BossAttack("Warrior Art: Backstab", 3.0, "Strikes from the shadows.", "Normal", cooldown = 2),
                 BossAttack("Warrior Art: Twin Daggers", 1.0, "Hits twice in rapid succession.", "MultiHit"),
-                BossAttack("Warrior Art: Smoke Bomb", 0.0, "Vanish to dodge next turn.", "Buff", cooldown = 5)
+                BossAttack("Warrior Art: Smoke Bomb", 0.0, "Vanish to dodge next turn.", "DefenseBuff", cooldown = 5)
             )
         ),
         ArenaOpponent(
@@ -160,7 +160,7 @@ object ArenaEnemyDatabase {
             rewardXp = 25000,
             moveset = listOf(
                 BossAttack("Warrior Art: Avalanche Slam", 2.8, "A crushing hammer blow that can stun.", "Stun", cooldown = 3),
-                BossAttack("Warrior Art: Stone Skin", 0.0, "Body becomes hard as rock, boosting defense.", "Buff", cooldown = 4)
+                BossAttack("Warrior Art: Stone Skin", 0.0, "Body becomes hard as rock, boosting defense.", "DefenseBuff", cooldown = 4)
             )
         ),
         ArenaOpponent(
@@ -173,7 +173,7 @@ object ArenaEnemyDatabase {
             moveset = listOf(
                 BossAttack("Warrior Art: Holy Smite", 3.5, "Divine energy strikes from above.", "Normal", cooldown = 2),
                 BossAttack("Warrior Art: Consecration", 0.0, "Holy light heals and cleanses.", "Heal", cooldown = 5),
-                BossAttack("Warrior Art: Aegis Aura", 0.0, "A shield of light that reduces damage.", "Buff", cooldown = 6)
+                BossAttack("Warrior Art: Aegis Aura", 0.0, "A shield of light that reduces damage.", "DefenseBuff", cooldown = 6)
             )
         ),
         ArenaOpponent(
@@ -185,7 +185,7 @@ object ArenaEnemyDatabase {
             rewardXp = 50000,
             moveset = listOf(
                 BossAttack("Warrior Art: Wild Rend", 4.0, "Inaccurate but devastating strike.", "Normal", cooldown = 1),
-                BossAttack("Warrior Art: Blood Frenzy", 0.0, "Trades defense for raw power.", "Buff", cooldown = 3),
+                BossAttack("Warrior Art: Blood Frenzy", 0.0, "Trades defense for raw power.", "DamageBuff", cooldown = 3),
                 BossAttack("Warrior Art: Rampage", 1.5, "Repeatedly bashes the target with force.", "MultiHit")
             )
         ),
@@ -212,7 +212,7 @@ object ArenaEnemyDatabase {
             moveset = listOf(
                 BossAttack("Warrior Art: Arcane Edge", 2.0, "A magical blade that ignores all armor.", "IgnoreArmor"),
                 BossAttack("Warrior Art: Blink Strike", 1.5, "Teleports and strikes instantly.", "Normal", cooldown = 2),
-                BossAttack("Warrior Art: Mana Barrier", 0.0, "A shield of raw magical energy.", "Buff", cooldown = 4)
+                BossAttack("Warrior Art: Mana Barrier", 0.0, "A shield of raw magical energy.", "DefenseBuff", cooldown = 4)
             )
         ),
         ArenaOpponent(
@@ -239,7 +239,7 @@ object ArenaEnemyDatabase {
             moveset = listOf(
                 BossAttack("Warrior Art: Void Palm", 6.0, "The legendary killing strike that bypasses all defense.", "IgnoreArmor", cooldown = 4),
                 BossAttack("Warrior Art: Gale Kick", 2.5, "A swift airborne attack that strikes like a storm.", "Normal"),
-                BossAttack("Warrior Art: Transcendence", 0.0, "Enters a state of perfect focus, increasing damage.", "Buff", cooldown = 5)
+                BossAttack("Warrior Art: Transcendence", 0.0, "Enters a state of perfect focus, increasing damage.", "DamageBuff", cooldown = 5)
             )
         ),
         ArenaOpponent(
@@ -264,7 +264,7 @@ object ArenaEnemyDatabase {
             moveset = listOf(
                 BossAttack("Warrior Art: Lightning Lunge", 4.5, "A strike as fast as a lightning bolt.", "Normal", cooldown = 1),
                 BossAttack("Warrior Art: Grand Parry", 1.2, "Deflects and stuns the opponent with finesse.", "Stun", cooldown = 3),
-                BossAttack("Warrior Art: Noble Dance", 0.0, "Masterful footwork that increases speed and damage.", "Buff", cooldown = 3)
+                BossAttack("Warrior Art: Noble Dance", 0.0, "Masterful footwork that increases speed and damage.", "DamageBuff", cooldown = 3)
             )
         ),
         ArenaOpponent(
@@ -289,7 +289,7 @@ object ArenaEnemyDatabase {
             moveset = listOf(
                 BossAttack("Warrior Art: Inferno Lance", 6.0, "A flaming pierce that burns through anything.", "Normal", cooldown = 2),
                 BossAttack("Warrior Art: Wyvern Roar", 1.2, "A deafening roar that stuns the hero.", "Stun", cooldown = 4),
-                BossAttack("Warrior Art: Dragon Heart", 0.0, "Surrounds himself in an aura of pure dragon-fire.", "Buff", cooldown = 5)
+                BossAttack("Warrior Art: Dragon Heart", 0.0, "Surrounds himself in an aura of pure dragon-fire.", "DamageBuff", cooldown = 5)
             )
         ),
 

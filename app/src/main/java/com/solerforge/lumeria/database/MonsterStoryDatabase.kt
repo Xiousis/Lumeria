@@ -17,7 +17,7 @@ object MonsterStoryDatabase {
             events = listOf(
                 StoryEvent.Dialogue("Dark Voice", "Awaken, my servant. The age of humans is ending."),
                 StoryEvent.Battle("Scared Villager"),
-                StoryEvent.Dialogue("Xious", "The light... it burns, but their fear is delicious."),
+                StoryEvent.Dialogue("{PLAYER_NAME}", "The light... it burns, but their fear is delicious."),
                 StoryEvent.Battle("City Guard Trainee"),
                 StoryEvent.Battle("Sergeant Miller", isBoss = true)
             ),
@@ -26,7 +26,7 @@ object MonsterStoryDatabase {
         StoryArc(
             id = 5002,
             title = "Chaos in the Market",
-            requiredLevel = 20,
+            requiredLevel = 21,
             description = "Disrupt the kingdom's economy and spread terror.",
             locationName = "Market District",
             events = listOf(
@@ -46,7 +46,7 @@ object MonsterStoryDatabase {
         StoryArc(
             id = 5003,
             title = "Pruning the Gardens",
-            requiredLevel = 40,
+            requiredLevel = 41,
             description = "The Royal Gardens are a symbol of human vanity. Burn them.",
             locationName = "Royal Gardens",
             events = listOf(
@@ -59,7 +59,7 @@ object MonsterStoryDatabase {
         StoryArc(
             id = 5004,
             title = "Desecrating the Temple",
-            requiredLevel = 60,
+            requiredLevel = 61,
             description = "The gods of men cannot save them from you.",
             locationName = "Temple District",
             events = listOf(
@@ -72,7 +72,7 @@ object MonsterStoryDatabase {
         StoryArc(
             id = 5005,
             title = "Storming the Court",
-            requiredLevel = 80,
+            requiredLevel = 81,
             description = "The King's defenders stand between you and the throne.",
             locationName = "The Royal Court",
             events = listOf(
@@ -85,7 +85,7 @@ object MonsterStoryDatabase {
         StoryArc(
             id = 5006,
             title = "The King's End",
-            requiredLevel = 100,
+            requiredLevel = 101,
             description = "Face the King of Lumeria in his final refuge.",
             locationName = "King's Bedroom",
             events = listOf(
@@ -108,7 +108,7 @@ object MonsterStoryDatabase {
             events = listOf(
                 StoryEvent.Dialogue("Dark Voice", "The ritual requires essence. Bring it to me."),
                 StoryEvent.Battle("Drunkard"),
-                StoryEvent.Dialogue("Xious", "One more soul for the collection.")
+                StoryEvent.Dialogue("{PLAYER_NAME}", "One more soul for the collection.")
             ),
             rewardXp = 8000, rewardGold = 15000
         )

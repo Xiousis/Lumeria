@@ -95,7 +95,10 @@ data class PlayerData(
     val completedTutorialSteps: List<String> = emptyList(),
     val unlockedFeatures: Set<String> = setOf("WORLD MAP", "STORY MODE", "INVENTORY", "CHARACTER STATS", "SKILL BOOK", "STORY JOURNAL", "BILLY'S STORE", "THE INN"),
     val totalStatPointsEarned: Int = 0,
-    val saveVersion: Int = 5,
+    val villagesPlundered: Int = 0,
+    val soulsHarvested: Long = 0,
+    val heroPartiesDefeated: Int = 0,
+    val saveVersion: Int = 6,
     
     // Legacy / Rebirth System
     val playerName: String = "Xious",
@@ -111,6 +114,8 @@ data class PlayerData(
     val battleBuffsConsumed: Boolean = false,
     val lastSavedAt: Long = 0L
 ) {
+    fun hasOffhand(name: String): Boolean = equippedOffHand == name || equippedOffHand2 == name
+
     fun getLevelCap(): Int = if (isReborn) 200 else 100
 
     fun gainExperience(amount: Long): PlayerData {
@@ -193,22 +198,29 @@ data class PlayerData(
         if (level >= 30) {
             newFeatures.add("THE GAMBLING HOUSE")
         }
-        if (!isReborn && level >= 50) {
-            newFeatures.add("REBIRTH ALTAR")
+        if (killCounts.isNotEmpty() || level >= 5) {
+            newFeatures.add("BESTIARY")
         }
 
         return if (newFeatures.size > unlockedFeatures.size) copy(unlockedFeatures = newFeatures) else this
     }
 
     fun recalculateVitals(): PlayerData {
-        val hpMax = calculateMaxHp()
-        val manaMax = calculateMaxMana()
+        val hpMax = calculateMaxHp().coerceAtLeast(1)
+        val manaMax = calculateMaxMana().coerceAtLeast(1)
 
         return copy(
+            strength = strength.coerceAtLeast(1),
+            vitality = vitality.coerceAtLeast(1),
+            defense = defense.coerceAtLeast(1),
+            intelligence = intelligence.coerceAtLeast(1),
+            agility = agility.coerceAtLeast(1),
+            luck = luck.coerceAtLeast(1),
+            wisdom = wisdom.coerceAtLeast(1),
             maxHp = hpMax,
             maxMana = manaMax,
-            hp = hp.coerceAtMost(hpMax),
-            mana = mana.coerceAtMost(manaMax)
+            hp = hp.coerceIn(0, hpMax),
+            mana = mana.coerceIn(0, manaMax)
         )
     }
 
@@ -222,14 +234,16 @@ data class PlayerData(
             GameDatabase.getClassBaseStats(playerClass)
         }
 
+        val race = com.solerforge.lumeria.database.RaceDatabase.getRace(playerRace)
+
         return copy(
-            strength = baseStats[0],
-            vitality = baseStats[1],
-            defense = baseStats[2],
-            intelligence = baseStats[3],
-            agility = baseStats[4],
-            luck = baseStats[5],
-            wisdom = baseStats[6],
+            strength = maxOf(1, baseStats[0] + race.strBonus),
+            vitality = maxOf(1, baseStats[1] + race.vitBonus),
+            defense = maxOf(1, baseStats[2] + race.defBonus),
+            intelligence = maxOf(1, baseStats[3] + race.intBonus),
+            agility = maxOf(1, baseStats[4] + race.agiBonus),
+            luck = maxOf(1, baseStats[5] + race.luckBonus),
+            wisdom = maxOf(1, baseStats[6] + race.wisBonus),
             statPoints = totalInvested,
             respecCount = respecCount + 1
         ).recalculateVitals()
@@ -260,7 +274,7 @@ data class PlayerData(
         if (joinedGuild == "House of Water") multiplier += 0.02
         multiplier += (consumedGodFishCount * 0.02)
         
-        return (base * multiplier).toInt()
+        return maxOf(1, (base * multiplier).toInt())
     }
 
     fun calculateMaxMana(): Int {
@@ -272,6 +286,7 @@ data class PlayerData(
         val itemInt = offHand1.intelligence + offHand2.intelligence
         
         val base = 20 + ((level - 1) * 10) + ((intelligence + traitBonusInt + itemInt) * 5) + traitBonusMana
-        return if (joinedGuild == "House of Water") (base * 1.02).toInt() else base
+        val finalMana = if (joinedGuild == "House of Water") (base * 1.02).toInt() else base
+        return maxOf(1, finalMana)
     }
 }

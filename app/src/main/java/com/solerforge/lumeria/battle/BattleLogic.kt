@@ -181,7 +181,7 @@ object BattleLogic {
         }
 
         // God Tier: Eye of Creation (OffHand) stats
-        val hasEyeOfCreation = player.equippedOffHand == "Eye of Creation"
+        val hasEyeOfCreation = player.hasOffhand("Eye of Creation")
         
         // God Tier Trait: Eyes of the Creator
         val hasEyesOfCreatorTrait = player.unlockedTraits.contains("Eyes of the Creator")
@@ -416,7 +416,7 @@ object BattleLogic {
         }
 
         // Apply Gold Bonuses
-        if (player.equippedOffHand == "Coin of the Tyrant") {
+        if (player.hasOffhand("Coin of the Tyrant")) {
             goldGain *= 2
         }
         
@@ -507,15 +507,14 @@ object BattleLogic {
 
         if (isReplay) {
             return updatedPlayer.copy(
-                gold = updatedPlayer.gold + totalGoldGain,
-                currentStoryEventIndex = updatedEventIndex
+                gold = updatedPlayer.gold + totalGoldGain
             )
         }
 
         // Quest Update Logic (Common for all)
         val currentQuests = updatedPlayer.quests.toMutableList()
         val updatedQuests = currentQuests.asSequence().map { quest ->
-            if ((!quest.isCompleted) && (quest.targetEnemy == enemy.name)) {
+            if ((!quest.isCompleted) && (quest.targetEnemy == enemy.baseName)) {
                 val newCount = minOf(quest.currentCount + 1, quest.targetCount)
                 quest.copy(currentCount = newCount, isCompleted = newCount >= quest.targetCount)
             } else {

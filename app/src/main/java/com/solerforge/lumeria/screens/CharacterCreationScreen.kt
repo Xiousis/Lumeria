@@ -261,7 +261,7 @@ fun CharacterCreationScreen(
 
             RpgButton(
                 text = buttonText,
-                enabled = name.isNotBlank() && nameAvailability == true && isIdentityReady && !isRolling,
+                enabled = name.length in 3..12 && nameAvailability == true && isIdentityReady && !isRolling,
                 onClick = { 
                     if (selectedRace.isMonster) {
                         showMonsterWarning = true

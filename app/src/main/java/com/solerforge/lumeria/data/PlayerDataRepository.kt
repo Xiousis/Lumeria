@@ -53,7 +53,7 @@ class PlayerDataRepository(
             }
         }
         
-        return currentData
+        return currentData.checkFeatureUnlocks().recalculateVitals()
     }
 
     private fun migrateV1ToV2(data: PlayerData): PlayerData {
@@ -218,6 +218,26 @@ class PlayerDataRepository(
         val settings = settingsFlow.first()
         if (settings.cloudSaveEnabled) {
             cloudSaveManager?.deleteFromCloud(slot)
+        }
+    }
+
+    suspend fun restoreBackup(slot: Int): Boolean {
+        return try {
+            var restored = false
+            context.dataStore.edit { preferences ->
+                val backupJson = preferences[Keys.backupKey(slot)]
+                if (backupJson != null) {
+                    // Validate backup before restoring
+                    val decoded = json.decodeFromString<PlayerData>(backupJson)
+                    if (decoded.playerName.isNotEmpty()) {
+                        preferences[Keys.slotKey(slot)] = backupJson
+                        restored = true
+                    }
+                }
+            }
+            restored
+        } catch (e: Exception) {
+            false
         }
     }
 

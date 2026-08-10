@@ -8,6 +8,7 @@ enum class RaceRarity(val label: String, val color: Color) {
     Rare("Rare", Color(0xFF2196F3)),
     Epic("Epic", Color(0xFFE67E22)),
     Legendary("Legendary", Color(0xFFA855F7)),
+    Mythic("Mythic", Color(0xFFB71C1C)),
     GodTier("God Tier", Color(0xFFFFD700))
 }
 

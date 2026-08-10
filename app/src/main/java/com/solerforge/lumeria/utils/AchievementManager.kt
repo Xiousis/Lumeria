@@ -8,7 +8,7 @@ object AchievementManager {
         val current = playerData.unlockedAchievements
 
         // --- CORE PROGRESSION ---
-        if ("first_win" !in current && (playerData.xp > 0 || playerData.level > 1)) newlyUnlocked.add("first_win")
+        if ("first_win" !in current && playerData.killCounts.values.sum() > 0) newlyUnlocked.add("first_win")
         if ("reach_lvl_5" !in current && playerData.level >= 5) newlyUnlocked.add("reach_lvl_5")
         if ("reach_lvl_100" !in current && playerData.level >= 100) newlyUnlocked.add("reach_lvl_100")
         if ("defeat_boss" !in current && playerData.defeatedBosses.isNotEmpty()) newlyUnlocked.add("defeat_boss")

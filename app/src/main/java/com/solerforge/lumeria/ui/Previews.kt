@@ -238,8 +238,6 @@ fun GameMenuPreview() {
             onSettings = {},
             onRebirth = {},
             onRaid = {},
-            selectedTabIndex = 0,
-            onTabSelected = {},
             onReturnToMain = {},
             playerData = PlayerData(),
             towerUnlockMessage = null,

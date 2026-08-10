@@ -55,6 +55,10 @@ class GuildViewModel(private val guildManager: GuildManager) : ViewModel() {
     }
 
     fun createGuild(name: String, player: PlayerData, deviceId: String, onComplete: (String, String) -> Unit) {
+        if (deviceId.isBlank() || deviceId == "unknown") {
+            _error.value = "Cannot create guild: Device identity unknown. Please check your connection."
+            return
+        }
         viewModelScope.launch {
             _isLoading.value = true
             guildManager.createGuild(name, player, deviceId).onSuccess { guildId ->
@@ -67,6 +71,10 @@ class GuildViewModel(private val guildManager: GuildManager) : ViewModel() {
     }
 
     fun joinGuild(guildId: String, guildName: String, player: PlayerData, deviceId: String, onComplete: (String, String) -> Unit) {
+        if (deviceId.isBlank() || deviceId == "unknown") {
+            _error.value = "Cannot join guild: Device identity unknown. Please check your connection."
+            return
+        }
         viewModelScope.launch {
             _isLoading.value = true
             guildManager.joinGuild(guildId, player, deviceId).onSuccess {
@@ -79,6 +87,10 @@ class GuildViewModel(private val guildManager: GuildManager) : ViewModel() {
     }
 
     fun donate(guildId: String, amount: Long, deviceId: String, onComplete: () -> Unit) {
+        if (deviceId.isBlank() || deviceId == "unknown") {
+            _error.value = "Cannot donate: Device identity unknown. Please check your connection."
+            return
+        }
         viewModelScope.launch {
             _isLoading.value = true
             guildManager.donateToVault(guildId, amount, deviceId).onSuccess {

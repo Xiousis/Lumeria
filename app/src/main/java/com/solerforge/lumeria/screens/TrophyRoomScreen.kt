@@ -37,15 +37,18 @@ fun TrophyRoomScreen(
     onReturn: () -> Unit
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
+    val race = com.solerforge.lumeria.database.RaceDatabase.getRace(playerData.playerRace)
+    val isMonster = playerData.isReborn && race.isMonster
     
     androidx.compose.runtime.LaunchedEffect(Unit) {
-        com.solerforge.lumeria.utils.MusicManager.playMusic(context, R.raw.lumeria_main_menu_theme)
+        val music = if (isMonster) R.raw.echoes_of_lumeria_title else R.raw.lumeria_main_menu_theme
+        com.solerforge.lumeria.utils.MusicManager.playMusic(context, music)
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
         Image(
-            painter = painterResource(id = R.drawable.hall_of_heroes_bg),
-            contentDescription = "Hall of Heroes Background",
+            painter = painterResource(id = if (isMonster) R.drawable.menu_background else R.drawable.hall_of_heroes_bg),
+            contentDescription = "Trophy Room Background",
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Crop,
         )
@@ -53,7 +56,7 @@ fun TrophyRoomScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.Black.copy(alpha = 0.35f)),
+                .background(if (isMonster) Color.Black.copy(alpha = 0.7f) else Color.Black.copy(alpha = 0.35f)),
         )
 
         Column(
@@ -63,16 +66,16 @@ fun TrophyRoomScreen(
                 .padding(16.dp)
         ) {
             Text(
-                text = "Hall of Heroes",
+                text = if (isMonster) "Vault of Victories" else "Hall of Heroes",
                 style = MaterialTheme.typography.headlineMedium,
-                color = Color(0xFFFFD700),
+                color = if (isMonster) Color.Red else Color(0xFFFFD700),
                 fontWeight = FontWeight.Black,
                 modifier = Modifier.fillMaxWidth(),
                 textAlign = TextAlign.Center
             )
 
             Text(
-                text = "A testament to the legend of Xious.",
+                text = if (isMonster) "A record of destruction and dark influence." else "A testament to the legend of Xious.",
                 style = MaterialTheme.typography.bodySmall,
                 color = Color.Gray,
                 modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp),
@@ -85,13 +88,21 @@ fun TrophyRoomScreen(
                     .weight(1f)
                     .verticalScroll(scrollState)
             ) {
-                TrophySection("World Boss Spoils", getWorldBossTrophies(playerData))
+                if (isMonster) {
+                    TrophySection("Conquest Medals", getMonsterTrophies(playerData))
+                    Spacer(modifier = Modifier.height(24.dp))
+                } else {
+                    TrophySection("Heroic Feats", getHeroTrophies(playerData))
+                    Spacer(modifier = Modifier.height(24.dp))
+                }
+
+                TrophySection(if (isMonster) "Abyssal Spoils" else "World Boss Spoils", getWorldBossTrophies(playerData))
                 Spacer(modifier = Modifier.height(24.dp))
                 
-                TrophySection("Bounty Tokens", getBountyTrophies(playerData))
+                TrophySection(if (isMonster) "Bounty Skulls" else "Bounty Tokens", getBountyTrophies(playerData))
                 Spacer(modifier = Modifier.height(24.dp))
                 
-                TrophySection("Grand Mastery Medals", getMasteryTrophies(playerData))
+                TrophySection(if (isMonster) "Dark Mastery Seals" else "Grand Mastery Medals", getMasteryTrophies(playerData))
                 Spacer(modifier = Modifier.height(24.dp))
             }
 
@@ -174,6 +185,58 @@ fun TrophyPedestal(trophy: Trophy) {
             textAlign = TextAlign.Center,
             maxLines = 2,
             minLines = 2
+        )
+    }
+}
+
+fun getMonsterTrophies(playerData: PlayerData): List<Trophy> {
+    val monsterAchievements = listOf(
+        Triple("villages_plundered_1", "Village Raider", "🏘️"),
+        Triple("villages_plundered_10", "Scourge of the Coast", "🔥"),
+        Triple("souls_harvested_100", "Soul Collector", "👻"),
+        Triple("souls_harvested_1000", "Reaper of Lumeria", "💀"),
+        Triple("hero_parties_defeated_5", "Party Crasher", "⚔️"),
+        Triple("hero_parties_defeated_25", "Bane of Legends", "🏆")
+    )
+    
+    return monsterAchievements.map { (id, name, icon) ->
+        Trophy(
+            id = id,
+            name = name,
+            description = "Unlocked via dark deeds.",
+            icon = icon,
+            color = Color.Red,
+            isUnlocked = when(id) {
+                "villages_plundered_1" -> playerData.villagesPlundered >= 1
+                "villages_plundered_10" -> playerData.villagesPlundered >= 10
+                "souls_harvested_100" -> playerData.soulsHarvested >= 100
+                "souls_harvested_1000" -> playerData.soulsHarvested >= 1000
+                "hero_parties_defeated_5" -> playerData.heroPartiesDefeated >= 5
+                "hero_parties_defeated_25" -> playerData.heroPartiesDefeated >= 25
+                else -> false
+            }
+        )
+    }
+}
+
+fun getHeroTrophies(playerData: PlayerData): List<Trophy> {
+    val heroAchievements = listOf(
+        Triple("first_win", "First Blood", "⚔️"),
+        Triple("reach_lvl_100", "Immortal Legend", "👑"),
+        Triple("defeat_xarthos", "God-Slayer", "🌌"),
+        Triple("max_prosperity", "Nation Builder", "🏰"),
+        Triple("tower_100", "Tower Conqueror", "🌋"),
+        Triple("catch_god_fish", "Mythical Catch", "✨")
+    )
+    
+    return heroAchievements.map { (id, name, icon) ->
+        Trophy(
+            id = id,
+            name = name,
+            description = "Unlocked via heroic acts.",
+            icon = icon,
+            color = Color.Cyan,
+            isUnlocked = playerData.unlockedAchievements.contains(id)
         )
     }
 }

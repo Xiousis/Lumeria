@@ -100,7 +100,7 @@ object BossDatabase {
             moveset = listOf(
                 BossAttack("Dragon Breath", 4.5, "A massive fire attack.", "Normal", cooldown = 4),
                 BossAttack("Wing Buffet", 1.0, "A wind attack that hits twice.", "MultiHit", cooldown = 0, hitCount = 2),
-                BossAttack("Ancient Fury", 0.0, "Dragon becomes enraged!", "Buff", cooldown = 6)
+                BossAttack("Ancient Fury", 0.0, "Dragon becomes enraged!", "DamageBuff", cooldown = 6)
             )
         ),
         Boss(
@@ -233,6 +233,7 @@ object BossDatabase {
 
     fun resolveBoss(name: String): Boss? {
         return StoryBossDatabase.bosses.find { it.name == name }
+            ?: MonsterBossDatabase.bosses.find { it.name == name }
             ?: bosses.find { it.name == name }
     }
 }

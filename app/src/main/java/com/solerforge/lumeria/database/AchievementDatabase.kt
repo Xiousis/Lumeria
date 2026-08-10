@@ -60,6 +60,14 @@ object AchievementDatabase {
         Achievement("titles_10", "Title Collector", "Unlock 10 different legendary titles.", "🏷️"),
         Achievement("bank_100k", "Safe & Sound", "Store 100,000 gold safely in the Ironclad Bank.", "🏦"),
         Achievement("respec_once", "Self-Reflection", "Ritual of Rebirth: Reset your stats for the first time.", "🔮"),
-        Achievement("legendary_gear", "Forged in Fire", "Possess an item upgraded to its maximum (+5).", "🔥")
+        Achievement("legendary_gear", "Forged in Fire", "Possess an item upgraded to its maximum (+5).", "🔥"),
+
+        // --- MONSTER ACHIEVEMENTS ---
+        Achievement("villages_plundered_1", "Village Raider", "Plunder your first village.", "🏘️"),
+        Achievement("villages_plundered_10", "Scourge of the Coast", "Plunder 10 villages.", "🔥"),
+        Achievement("souls_harvested_100", "Soul Collector", "Harvest 100 souls from fallen heroes.", "👻"),
+        Achievement("souls_harvested_1000", "Reaper of Lumeria", "Harvest 1,000 souls.", "💀"),
+        Achievement("hero_parties_defeated_5", "Party Crasher", "Defeat 5 parties of aspiring heroes.", "⚔️"),
+        Achievement("hero_parties_defeated_25", "Bane of Legends", "Defeat 25 parties of legendary heroes.", "🏆")
     )
 }

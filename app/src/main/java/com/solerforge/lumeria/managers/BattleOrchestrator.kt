@@ -103,14 +103,14 @@ class BattleOrchestrator(
     }
 
     fun handleBattleAgain(newData: PlayerData): PlayerData {
-        grindingPlayerData = newData.copy(battleBuffsConsumed = false)
+        val nextData = newData.consumeBattleBuffs()
+        grindingPlayerData = nextData.copy(battleBuffsConsumed = false)
         if (isRiftBattle) {
-            isBossBattle = (newData.riftStep >= 3)
+            isBossBattle = (nextData.riftStep >= 3)
         }
         battleSeed++
         
-        val buffedData = newData.consumeBattleBuffs()
-        return checkSpawnVoidIncursion(buffedData)
+        return checkSpawnVoidIncursion(nextData)
     }
 
     private fun checkSpawnVoidIncursion(current: PlayerData): PlayerData {
@@ -193,9 +193,11 @@ class BattleOrchestrator(
         arenaOpponent = null
         currentGuildExam = null
         
-        onNavigate(Screen.Defeated)
         val buffedResult = result.consumeBattleBuffs()
-        return checkSpawnVoidIncursion(buffedResult)
+        val finalResult = checkSpawnVoidIncursion(buffedResult)
+        
+        onNavigate(Screen.Defeated)
+        return finalResult
     }
 
     fun handleLeave(newData: PlayerData): PlayerData {

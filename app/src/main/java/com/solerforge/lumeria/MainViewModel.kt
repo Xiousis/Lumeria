@@ -97,7 +97,7 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
                 try {
                     emit(com.solerforge.lumeria.managers.NameManager.isNameAvailable(query, _deviceId.value))
                 } catch (e: Exception) {
-                    emit(true) // Fallback to true on error to allow testing
+                    emit(null) // Network/error -> cannot verify
                 }
             }
         }
@@ -213,9 +213,13 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
         val targetSlot = activeSlot
         viewModelScope.launch {
             try {
-                // repository already handles backup logic internally in updatePlayer,
-                // but we can force a restore by clearing primary if corrupted.
-                // For simplicity, we just trigger a fresh read which the flow will emit.
+                val success = repository.restoreBackup(targetSlot)
+                if (success) {
+                    analytics.logEvent("backup_restored") {
+                        param("slot", targetSlot.toLong())
+                    }
+                    // The DataStore flow will automatically emit the new data after the edit in repository.restoreBackup.
+                }
                 showCorruptionRecovery = false
             } catch (e: Exception) {
                 showCorruptionRecovery = false
@@ -341,194 +345,30 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
 
     private fun applyClassBonuses(data: PlayerData, className: String): PlayerData {
         val race = com.solerforge.lumeria.database.RaceDatabase.getRace(data.playerRace)
-        val canWear = race.canWearGear
-        val statsAppliedData = data
+        val canWearNormalGear = race.canWearGear
+        val playerClass = ClassDatabase.classes.find { it.name == className } ?: ClassDatabase.classes.first()
         
-        val finalized = when (className) {
-            "Mage" -> statsAppliedData.copy(
-                unlockedSkills = listOf("None", "Magic Bolt", "Mana Shield", "Heal"),
-                equippedSkills = listOf("Magic Bolt", "Mana Shield", "Heal"),
-                inventory = listOf("Apprentice Staff", "Mage Robes", "Canvas Shoes", "Mana Potion"),
-                equippedWeapon = "Apprentice Staff",
-                equippedArmor = "Mage Robes",
-                equippedBoots = "Canvas Shoes"
-            )
-            "Samurai" -> statsAppliedData.copy(
-                unlockedSkills = listOf("None", "Slash", "Quick Draw", "Parry"),
-                equippedSkills = listOf("Slash", "Quick Draw", "Parry"),
-                inventory = listOf("Training Katana", "Shinobi Garb", "Sandals"),
-                equippedWeapon = "Training Katana",
-                equippedArmor = "Shinobi Garb",
-                equippedBoots = "Sandals"
-            )
-            "Paladin" -> statsAppliedData.copy(
-                unlockedSkills = listOf("None", "Guard", "Shield Bash", "Heal"),
-                equippedSkills = listOf("Guard", "Shield Bash", "Heal"),
-                inventory = listOf("Knight Blade", "Knight Armor", "Knight Shield", "Leather Boots"),
-                equippedWeapon = "Knight Blade",
-                equippedArmor = "Knight Armor",
-                equippedShield = "Knight Shield",
-                equippedBoots = "Leather Boots"
-            )
-            "Assassin" -> statsAppliedData.copy(
-                unlockedSkills = listOf("None", "Slash", "Quick Draw", "Smoke Bomb"),
-                equippedSkills = listOf("Slash", "Quick Draw", "Smoke Bomb"),
-                inventory = listOf("Squire Dagger", "Scout Armor", "Scout Boots"),
-                equippedWeapon = "Squire Dagger",
-                equippedArmor = "Scout Armor",
-                equippedBoots = "Scout Boots"
-            )
-            "Monk" -> statsAppliedData.copy(
-                unlockedSkills = listOf("None", "Heavy Strike", "Guard", "Heal"),
-                equippedSkills = listOf("Heavy Strike", "Guard", "Heal"),
-                inventory = listOf("None", "Padded Tunic", "Canvas Shoes"),
-                equippedWeapon = "None",
-                equippedArmor = "Padded Tunic",
-                equippedBoots = "Canvas Shoes"
-            )
-            "Archer" -> statsAppliedData.copy(
-                unlockedSkills = listOf("None", "Slash", "Quick Draw", "Heavy Strike"),
-                equippedSkills = listOf("Slash", "Quick Draw", "Heavy Strike"),
-                inventory = listOf("Nomad Bow", "Rugged Vest", "Leather Boots"),
-                equippedWeapon = "Nomad Bow",
-                equippedArmor = "Rugged Vest",
-                equippedBoots = "Leather Boots"
-            )
-            "Necromancer" -> statsAppliedData.copy(
-                unlockedSkills = listOf("None", "Magic Bolt", "Bleeding Slash"),
-                equippedSkills = listOf("Magic Bolt", "Bleeding Slash"),
-                inventory = listOf("Traveler's Staff", "Mage Robes", "Canvas Shoes"),
-                equippedWeapon = "Traveler's Staff",
-                equippedArmor = "Mage Robes",
-                equippedBoots = "Canvas Shoes"
-            )
-            "Bard" -> statsAppliedData.copy(
-                unlockedSkills = listOf("None", "Heal", "Lion's Roar"),
-                equippedSkills = listOf("Heal", "Lion's Roar"),
-                inventory = listOf("Wanderer's Gladius", "Explorer Jacket", "Cloud Sprints"),
-                equippedWeapon = "Wanderer's Gladius",
-                equippedArmor = "Explorer Jacket",
-                equippedBoots = "Cloud Sprints"
-            )
-            "Berserker" -> statsAppliedData.copy(
-                unlockedSkills = listOf("None", "Heavy Strike", "Whirlwind Slash"),
-                equippedSkills = listOf("Heavy Strike", "Whirlwind Slash"),
-                inventory = listOf("Orc Cleaver", "Rugged Vest", "Leather Boots"),
-                equippedWeapon = "Orc Cleaver",
-                equippedArmor = "Rugged Vest",
-                equippedBoots = "Leather Boots"
-            )
-            "Dragon Knight" -> statsAppliedData.copy(
-                unlockedSkills = listOf("None", "Heavy Strike", "Ignite", "Guard"),
-                equippedSkills = listOf("Heavy Strike", "Ignite", "Guard"),
-                inventory = listOf("Drake Blade", "Dragon Scales", "Plate Boots"),
-                equippedWeapon = "Drake Blade",
-                equippedArmor = "Dragon Scales",
-                equippedBoots = "Plate Boots"
-            )
-            "Void Reaver" -> statsAppliedData.copy(
-                unlockedSkills = listOf("None", "Bleeding Slash", "Magic Bolt", "Smoke Bomb"),
-                equippedSkills = listOf("Bleeding Slash", "Magic Bolt", "Smoke Bomb"),
-                inventory = listOf("Void Edge", "Abyssal Garb", "Shadow Steps"),
-                equippedWeapon = "Void Edge",
-                equippedArmor = "Abyssal Garb",
-                equippedBoots = "Shadow Steps"
-            )
-            "Seraph" -> statsAppliedData.copy(
-                unlockedSkills = listOf("None", "Magic Bolt", "Heal", "Guard"),
-                equippedSkills = listOf("Magic Bolt", "Heal", "Guard"),
-                inventory = listOf("Starlight Staff", "Divine Robes", "Cloud Sprints"),
-                equippedWeapon = "Starlight Staff",
-                equippedArmor = "Divine Robes",
-                equippedBoots = "Cloud Sprints"
-            )
-            "Blood Mage" -> statsAppliedData.copy(
-                unlockedSkills = listOf("None", "Magic Bolt", "Bleeding Slash", "Heal"),
-                equippedSkills = listOf("Magic Bolt", "Bleeding Slash", "Heal"),
-                inventory = listOf("Sanguine Staff", "Crimson Robes", "Canvas Shoes"),
-                equippedWeapon = "Sanguine Staff",
-                equippedArmor = "Crimson Robes",
-                equippedBoots = "Canvas Shoes"
-            )
-            "Shadow Stalker" -> statsAppliedData.copy(
-                unlockedSkills = listOf("None", "Quick Draw", "Smoke Bomb", "Slash"),
-                equippedSkills = listOf("Quick Draw", "Smoke Bomb", "Slash"),
-                inventory = listOf("Shadow Dagger", "Night Armor", "Silent Boots"),
-                equippedWeapon = "Shadow Dagger",
-                equippedArmor = "Night Armor",
-                equippedBoots = "Silent Boots"
-            )
-            "World Breaker" -> statsAppliedData.copy(
-                unlockedSkills = listOf("None", "Heavy Strike", "Guard", "Slash"),
-                equippedSkills = listOf("Heavy Strike", "Guard", "Slash"),
-                inventory = listOf("Titan Maul", "Plate Armor", "Plate Boots"),
-                equippedWeapon = "Titan Maul",
-                equippedArmor = "Plate Armor",
-                equippedBoots = "Plate Boots"
-            )
-            "Technomancer" -> statsAppliedData.copy(
-                unlockedSkills = listOf("None", "Magic Bolt", "Mana Shield", "Quick Draw"),
-                equippedSkills = listOf("Magic Bolt", "Mana Shield", "Quick Draw"),
-                inventory = listOf("Logic Staff", "Plated Robes", "Heavy Boots"),
-                equippedWeapon = "Logic Staff",
-                equippedArmor = "Plated Robes",
-                equippedBoots = "Heavy Boots"
-            )
-            "Enchanter" -> statsAppliedData.copy(
-                unlockedSkills = listOf("None", "Magic Bolt", "Heal", "Mana Shield"),
-                equippedSkills = listOf("Magic Bolt", "Heal", "Mana Shield"),
-                inventory = listOf("Living Branch", "Nature Robes", "Sandals"),
-                equippedWeapon = "Living Branch",
-                equippedArmor = "Nature Robes",
-                equippedBoots = "Sandals"
-            )
-            "Slime Sage" -> statsAppliedData.copy(
-                unlockedSkills = listOf("None", "Magic Bolt", "Heal", "Guard"),
-                equippedSkills = listOf("Magic Bolt", "Heal", "Guard"),
-                inventory = listOf("Fluid Staff", "Gelatinous Tunic", "Canvas Shoes"),
-                equippedWeapon = "Fluid Staff",
-                equippedArmor = "Gelatinous Tunic",
-                equippedBoots = "Canvas Shoes"
-            )
-            "Void Walker" -> statsAppliedData.copy(
-                unlockedSkills = listOf("None", "Magic Bolt", "Smoke Bomb", "Quick Draw"),
-                equippedSkills = listOf("Magic Bolt", "Smoke Bomb", "Quick Draw"),
-                inventory = listOf("Void Rod", "Sovereign Robes", "Shadow Steps"),
-                equippedWeapon = "Void Rod",
-                equippedArmor = "Sovereign Robes",
-                equippedBoots = "Shadow Steps"
-            )
-            "Dragon Lord" -> statsAppliedData.copy(
-                unlockedSkills = listOf("None", "Heavy Strike", "Ignite", "Guard"),
-                equippedSkills = listOf("Heavy Strike", "Ignite", "Guard"),
-                inventory = listOf("Calamity Blade", "Elder Scales", "Plate Boots"),
-                equippedWeapon = "Calamity Blade",
-                equippedArmor = "Elder Scales",
-                equippedBoots = "Plate Boots"
-            )
-            "Arbiter" -> statsAppliedData.copy(
-                unlockedSkills = listOf("None", "Magic Bolt", "Slash", "Heal", "Guard"),
-                equippedSkills = listOf("Magic Bolt", "Slash", "Heal"),
-                inventory = listOf("Balanced Blade", "Nephilim Garb", "Cloud Sprints"),
-                equippedWeapon = "Balanced Blade",
-                equippedArmor = "Nephilim Garb",
-                equippedBoots = "Cloud Sprints"
-            )
-            else -> statsAppliedData.copy( // Warrior
-                unlockedSkills = listOf("None", "Slash", "Heavy Strike", "Guard"),
-                equippedSkills = listOf("Slash", "Heavy Strike", "Guard"),
-                inventory = listOf("Iron Sword", "Leather Armor", "Leather Boots"),
-                equippedWeapon = "Iron Sword",
-                equippedArmor = "Leather Armor",
-                equippedBoots = "Leather Boots"
-            )
-        }
+        val finalized = data.copy(
+            unlockedSkills = playerClass.startingSkills,
+            equippedSkills = playerClass.startingSkills.filter { it != "None" },
+            inventory = (data.inventory + playerClass.startingGear).distinct(),
+            equippedWeapon = (data.inventory + playerClass.startingGear).find { GameDatabase.getWeapon(it).name != "None" } ?: "None",
+            equippedArmor = (data.inventory + playerClass.startingGear).find { GameDatabase.getArmor(it).name != "None" } ?: "None",
+            equippedBoots = (data.inventory + playerClass.startingGear).find { GameDatabase.getBoots(it).name != "None" } ?: "None",
+            equippedShield = (data.inventory + playerClass.startingGear).find { GameDatabase.getShield(it).name != "None" } ?: "None"
+        )
         
-        return if (!canWear) {
+        return if (!canWearNormalGear) {
             finalized.copy(
-                inventory = finalized.inventory.filter { it.contains("Potion") || it.contains("Elixir") || it.contains("Vial") },
-                equippedWeapon = "None",
-                equippedArmor = "None",
+                inventory = finalized.inventory.filter { 
+                    val weapon = GameDatabase.getWeapon(it)
+                    val armor = GameDatabase.getArmor(it)
+                    it.contains("Potion") || it.contains("Elixir") || it.contains("Vial") || 
+                    weapon.requiredRaces.contains(data.playerRace) || 
+                    armor.requiredRaces.contains(data.playerRace)
+                },
+                equippedWeapon = if (GameDatabase.getWeapon(finalized.equippedWeapon).requiredRaces.contains(data.playerRace)) finalized.equippedWeapon else "None",
+                equippedArmor = if (GameDatabase.getArmor(finalized.equippedArmor).requiredRaces.contains(data.playerRace)) finalized.equippedArmor else "None",
                 equippedHead = "None",
                 equippedBoots = "None",
                 equippedShield = "None",
@@ -864,18 +704,19 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
             
             val baseStats = GameDatabase.getClassBaseStats(className)
             val statsAppliedData = newData.copy(
-                strength = baseStats[0] + race.strBonus,
-                vitality = baseStats[1] + race.vitBonus,
-                defense = baseStats[2] + race.defBonus,
-                intelligence = baseStats[3] + race.intBonus,
-                agility = baseStats[4] + race.agiBonus,
-                luck = baseStats[5] + race.luckBonus,
-                wisdom = baseStats[6] + race.wisBonus
+                strength = maxOf(1, baseStats[0] + race.strBonus),
+                vitality = maxOf(1, baseStats[1] + race.vitBonus),
+                defense = maxOf(1, baseStats[2] + race.defBonus),
+                intelligence = maxOf(1, baseStats[3] + race.intBonus),
+                agility = maxOf(1, baseStats[4] + race.agiBonus),
+                luck = maxOf(1, baseStats[5] + race.luckBonus),
+                wisdom = maxOf(1, baseStats[6] + race.wisBonus)
             )
 
-            val finalizedData = applyClassBonuses(statsAppliedData, className)
+            val finalizedData = applyClassBonuses(statsAppliedData, className).recalculateVitals()
 
-            updatePlayer { finalizedData }
+            repository.updatePlayer(targetSlot) { finalizedData }
+            
             _backstack.clear()
             _backstack.add(Screen.RebirthIntro)
         }

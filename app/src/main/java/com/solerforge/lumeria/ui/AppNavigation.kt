@@ -112,8 +112,6 @@ fun AppNavigation(
                         onSettings = { mainViewModel.navigateTo(Screen.Settings) },
                         onRebirth = { mainViewModel.navigateTo(Screen.RebirthRequirements) },
                         onRaid = { mainViewModel.navigateTo(Screen.Raid) },
-                        selectedTabIndex = mainViewModel.gameMenuTabIndex,
-                        onTabSelected = { mainViewModel.updateGameMenuTab(it) },
                         onReturnToMain = { mainViewModel.replaceWith(Screen.MainMenu) },
                         playerData = playerData,
                         towerUnlockMessage = mainViewModel.towerUnlockMessage,
@@ -346,6 +344,7 @@ fun AppNavigation(
                         mainViewModel.selectedStoryArc?.let { arc ->
                             StoryDialogueScreen(
                                 arc = arc,
+                                playerName = playerData.playerName,
                                 eventIndex = mainViewModel.currentEventIndex,
                                 onNext = { mainViewModel.advanceStoryEvent() },
                                 onChoiceSelected = { option -> 
@@ -507,6 +506,7 @@ fun AppNavigation(
 
                     Screen.RebirthIntro -> RebirthIntroScreen(
                         playerName = playerData.playerName,
+                        playerRace = playerData.playerRace,
                         onContinue = { mainViewModel.replaceWith(Screen.GameMenu) }
                     )
 
@@ -541,6 +541,14 @@ fun AppNavigation(
                 products = products,
                 onPurchase = { activity, product -> billingViewModel.makePurchase(activity, product) },
                 onDismiss = { showDonationDialog = false }
+            )
+        }
+        if (mainViewModel.showCorruptionRecovery) {
+            com.solerforge.lumeria.components.CorruptionRecoveryDialog(
+                onRestoreBackup = { mainViewModel.restoreBackup() },
+                onRestoreCloud = { mainViewModel.restoreFromCloud() },
+                onStartFresh = { mainViewModel.startFresh() },
+                onDismiss = { mainViewModel.dismissCorruptionRecovery() }
             )
         }
     }

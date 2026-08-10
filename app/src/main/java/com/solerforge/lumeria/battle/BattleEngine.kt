@@ -124,7 +124,7 @@ object BattleEngine {
         var parryActive = false 
 
         when (skill.effectType) {
-            "Buff" -> {
+            "Buff", "DamageBuff" -> {
                 activeDamageMultiplier = 1.25
                 attackBuffTurns = 3
                 newLogs.add(LogEntry("$pName uses ${skill.name}! Attack increased!", Color.Green))
@@ -604,6 +604,8 @@ object BattleEngine {
 
     private fun applyPassiveDamage(state: BattleUiState): Pair<BattleUiState, List<LogEntry>> {
         val newLogs = mutableListOf<LogEntry>()
+        val pName = state.currentPlayerSnapshot.playerName
+        var playerHp = state.playerHp
         var enemyHp = state.enemyHp
         var enemy2Hp = state.enemy2Hp
         
@@ -611,6 +613,11 @@ object BattleEngine {
             val burnDmg = (state.enemy.maxHp * 0.05).toInt().coerceAtLeast(1)
             enemyHp = maxOf(0, enemyHp - burnDmg)
             newLogs.add(LogEntry("Burn damage: $burnDmg to ${state.enemy.name}", Color(0xFFFF5722)))
+        }
+        if (state.playerPoisonTurns > 0) {
+            val poisonDmg = (state.currentPlayerSnapshot.maxHp * 0.04).toInt().coerceAtLeast(1)
+            playerHp = maxOf(0, playerHp - poisonDmg)
+            newLogs.add(LogEntry("Poison damage: $poisonDmg to $pName", Color(0xFF4CAF50)))
         }
         if (state.poisonTurns > 0) {
             val poisonDmg = (state.enemy.maxHp * 0.04).toInt().coerceAtLeast(1)
@@ -643,11 +650,13 @@ object BattleEngine {
         
         return Pair(
             state.copy(
+                playerHp = playerHp,
                 enemyHp = enemyHp,
                 enemy2Hp = enemy2Hp,
                 burnTurns = maxOf(0, state.burnTurns - 1),
                 enemy2BurnTurns = maxOf(0, state.enemy2BurnTurns - 1),
                 poisonTurns = maxOf(0, state.poisonTurns - 1),
+                playerPoisonTurns = maxOf(0, state.playerPoisonTurns - 1),
                 enemy2PoisonTurns = maxOf(0, state.enemy2PoisonTurns - 1),
                 bleedTurns = maxOf(0, state.bleedTurns - 1),
                 enemy2BleedTurns = maxOf(0, state.enemy2BleedTurns - 1),
@@ -699,14 +708,14 @@ object BattleEngine {
         newLogs.add(LogEntry("${state.enemy.name} attacks for $enemyDmgDealt damage.", Color.Red))
         
         // --- Enemy Passive: Poison Touch ---
-        var poisonTurns = state.poisonTurns
+        var playerPoisonTurns = state.playerPoisonTurns
         if (state.enemy.passive == com.solerforge.lumeria.data.EnemyPassive.POISON_TOUCH && enemyDmgDealt > 0 && !isDodge) {
-            poisonTurns = 3
+            playerPoisonTurns = 3
             newLogs.add(LogEntry("$pName was poisoned by ${state.enemy.name}!", Color(0xFF4CAF50)))
         }
         
         return Pair(
-            state.copy(playerHp = playerHp, enemyHp = enemyHp, secondWindUsed = secondWindUsed, poisonTurns = poisonTurns),
+            state.copy(playerHp = playerHp, enemyHp = enemyHp, secondWindUsed = secondWindUsed, playerPoisonTurns = playerPoisonTurns),
             newLogs
         )
     }
@@ -852,9 +861,9 @@ object BattleEngine {
         }
 
         // --- Enemy Passive: Poison Touch (Boss/Arena) ---
-        var poisonTurns = state.poisonTurns
+        var playerPoisonTurns = state.playerPoisonTurns
         if (state.enemy.passive == com.solerforge.lumeria.data.EnemyPassive.POISON_TOUCH && baseDmg > 0 && !isDodge) {
-            poisonTurns = 3
+            playerPoisonTurns = 3
             newLogs.add(LogEntry("$pName was poisoned by ${state.enemy.name}!", Color(0xFF4CAF50)))
         }
 
@@ -944,7 +953,7 @@ object BattleEngine {
                 secondWindUsed = secondWindUsed,
                 enemyEvasionBonus = enemyEvasionBonus,
                 enemyEvasionBuffTurns = enemyEvasionBuffTurns,
-                poisonTurns = poisonTurns
+                playerPoisonTurns = playerPoisonTurns
             ),
             newLogs
         )

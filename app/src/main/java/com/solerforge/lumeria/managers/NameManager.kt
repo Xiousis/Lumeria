@@ -9,7 +9,7 @@ object NameManager {
     private val NAMES_COLLECTION = "names"
 
     suspend fun isNameAvailable(name: String, deviceId: String? = null): Boolean {
-        if (name.isBlank() || name.length < 3) return false
+        if (name.isBlank() || name.length !in 3..12) return false
         // Bypass for testing if needed, but for now strict
         if (name.lowercase().trim() == "xious") return false
         
@@ -21,8 +21,8 @@ object NameManager {
             }
             
             if (doc == null) {
-                Log.w("NameManager", "Name check timed out for '$name'. Assuming available for testing.")
-                return true
+                Log.w("NameManager", "Name check timed out for '$name'.")
+                return false
             }
             
             if (!doc.exists()) return true
@@ -32,12 +32,12 @@ object NameManager {
             owner == deviceId
         } catch (e: Exception) {
             Log.e("NameManager", "Error checking name availability: ${e.message}")
-            // During testing/offline, we don't want to block the user
-            true
+            false
         }
     }
 
     suspend fun claimName(name: String, deviceId: String): Boolean {
+        if (name.length !in 3..12) return false
         val nameId = name.lowercase().trim()
         return try {
             val db = FirebaseFirestore.getInstance()
@@ -63,8 +63,8 @@ object NameManager {
             }
             
             if (result == null) {
-                Log.w("NameManager", "Claim name timed out. Allowing for testing.")
-                true
+                Log.w("NameManager", "Claim name timed out.")
+                false
             } else {
                 result
             }
@@ -72,8 +72,8 @@ object NameManager {
             if (e.message == "Name already taken") {
                 false
             } else {
-                Log.e("NameManager", "Error claiming name: ${e.message}. Allowing for testing.")
-                true
+                Log.e("NameManager", "Error claiming name: ${e.message}.")
+                false
             }
         }
     }

@@ -6,12 +6,12 @@ import kotlin.random.Random
 
 object RaceDatabase {
     val races = listOf(
-        // COMMON (Total: 50.0%)
+        // COMMON (Total: 49.2%)
         Race(
             name = "Human",
             description = "A versatile and adaptive race with balanced potential.",
             rarity = RaceRarity.Common,
-            rollChance = 30.0,
+            rollChance = 29.2,
             isMonster = false,
             strBonus = 5, vitBonus = 5, defBonus = 5, intBonus = 5, agiBonus = 5, luckBonus = 5, wisBonus = 5
         ),
@@ -222,7 +222,7 @@ object RaceDatabase {
             strBonus = 15
         ),
 
-        // LEGENDARY (Total: 1.4994%)
+        // LEGENDARY (Total: 1.4993%)
         Race(
             name = "Demon",
             description = "An apex predator from the void. Massive destructive power.",
@@ -250,6 +250,76 @@ object RaceDatabase {
             intBonus = 60,
             defBonus = 60,
             agiBonus = -20
+        ),
+
+        // MYTHIC (Total: 0.8%)
+        Race(
+            name = "Astral Celestial",
+            description = "A being of pure cosmic energy, transcending mortal understanding.",
+            rarity = RaceRarity.Mythic,
+            rollChance = 0.1,
+            isMonster = false,
+            intBonus = 350, wisBonus = 350, agiBonus = 200, vitBonus = 100
+        ),
+        Race(
+            name = "Solar Archon",
+            description = "The living embodiment of the sun's core. Blinding power.",
+            rarity = RaceRarity.Mythic,
+            rollChance = 0.1,
+            isMonster = false,
+            strBonus = 400, vitBonus = 300, defBonus = 300, agiBonus = 50
+        ),
+        Race(
+            name = "Lunar Sovereign",
+            description = "Master of the moon and stars. Rules the night with elegance.",
+            rarity = RaceRarity.Mythic,
+            rollChance = 0.1,
+            isMonster = false,
+            agiBonus = 300, luckBonus = 350, wisBonus = 250, intBonus = 100
+        ),
+        Race(
+            name = "Genesis Primordial",
+            description = "The original builders of reality. Possess the spark of creation.",
+            rarity = RaceRarity.Mythic,
+            rollChance = 0.1,
+            isMonster = false,
+            strBonus = 250, vitBonus = 250, defBonus = 250, intBonus = 250, agiBonus = 250, luckBonus = 250, wisBonus = 250
+        ),
+        Race(
+            name = "Void Abomination",
+            description = "An existence that should not be. The void's hunger made manifest.",
+            rarity = RaceRarity.Mythic,
+            rollChance = 0.1,
+            isMonster = true,
+            canWearGear = false, canUsePotions = false, canHavePets = false,
+            strBonus = 450, intBonus = 450, agiBonus = 300, vitBonus = 150, wisBonus = -100
+        ),
+        Race(
+            name = "Chaos Overlord",
+            description = "Ruler of absolute entropy. Where they walk, reality unravels.",
+            rarity = RaceRarity.Mythic,
+            rollChance = 0.1,
+            isMonster = true,
+            canUsePotions = false, canHavePets = false,
+            intBonus = 400, luckBonus = 400, vitBonus = 300, strBonus = 200
+        ),
+        Race(
+            name = "Abyssal Devourer",
+            description = "A monster that has consumed entire worlds. Infinite hunger.",
+            rarity = RaceRarity.Mythic,
+            rollChance = 0.1,
+            isMonster = true,
+            canWearGear = false, canUsePotions = false, canHavePets = false,
+            strBonus = 600, vitBonus = 500, defBonus = 200, agiBonus = -50
+        ),
+        Race(
+            name = "Eternal Singularity",
+            description = "The point of no return. Gravity and time obey only them.",
+            rarity = RaceRarity.Mythic,
+            rollChance = 0.1,
+            isMonster = true,
+            canWearGear = false, canUsePotions = false, canHavePets = false,
+            defBonus = 500, vitBonus = 500, wisBonus = 300, agiBonus = -100
         ),
 
         // GOD TIER (Total: 0.0007%)

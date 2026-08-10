@@ -63,6 +63,7 @@ data class BattleUiState(
     val burnTurns: Int = 0,
     val enemy2BurnTurns: Int = 0,
     val poisonTurns: Int = 0,
+    val playerPoisonTurns: Int = 0,
     val enemy2PoisonTurns: Int = 0,
     val bleedTurns: Int = 0,
     val enemy2BleedTurns: Int = 0,

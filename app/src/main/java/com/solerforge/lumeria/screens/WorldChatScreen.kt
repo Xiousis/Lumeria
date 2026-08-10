@@ -23,7 +23,10 @@ import androidx.compose.ui.unit.sp
 import com.solerforge.lumeria.R
 import com.solerforge.lumeria.data.PlayerData
 
-data class ChatMessage(val sender: String, val message: String, val color: Color, val isMe: Boolean = false)
+import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
+import com.solerforge.lumeria.database.RaceDatabase
+import com.solerforge.lumeria.models.ChatChannel
+import com.solerforge.lumeria.models.ChatMessage
 
 @Composable
 fun WorldChatScreen(
@@ -32,7 +35,18 @@ fun WorldChatScreen(
     onReturn: () -> Unit
 ) {
     var textState by remember { mutableStateOf("") }
-    val chatMessages = viewModel.messages
+    val race = RaceDatabase.getRace(playerData.playerRace)
+    val isMonster = playerData.isReborn && race.isMonster
+    val currentChannel = viewModel.currentChannel
+    val chatMessages = viewModel.messages.filter { it.channel == currentChannel }
+
+    val availableChannels = remember(isMonster) {
+        if (isMonster) {
+            listOf(ChatChannel.WORLD, ChatChannel.MONSTERS_DEN)
+        } else {
+            listOf(ChatChannel.WORLD, ChatChannel.HEROES_TAVERN)
+        }
+    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         Image(
@@ -60,9 +74,9 @@ fun WorldChatScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Heroes' Circle [HEROES]",
+                    text = if (isMonster) "Monsters' Den [ABYSS]" else "Heroes' Tavern [VALOR]",
                     style = MaterialTheme.typography.headlineSmall,
-                    color = Color.Cyan,
+                    color = if (isMonster) Color.Red else Color.Cyan,
                     fontWeight = FontWeight.Black
                 )
                 Text(
@@ -74,6 +88,39 @@ fun WorldChatScreen(
             }
 
             Spacer(modifier = Modifier.height(16.dp))
+
+            // CHANNEL TABS
+            TabRow(
+                selectedTabIndex = availableChannels.indexOf(currentChannel).coerceAtLeast(0),
+                containerColor = Color.Transparent,
+                contentColor = Color.Cyan,
+                divider = {},
+                indicator = { tabPositions ->
+                    if (availableChannels.indexOf(currentChannel) >= 0) {
+                        TabRowDefaults.Indicator(
+                            Modifier.tabIndicatorOffset(tabPositions[availableChannels.indexOf(currentChannel)]),
+                            color = if (isMonster && currentChannel == ChatChannel.MONSTERS_DEN) Color.Red else Color.Cyan
+                        )
+                    }
+                }
+            ) {
+                availableChannels.forEach { channel ->
+                    Tab(
+                        selected = currentChannel == channel,
+                        onClick = { viewModel.setChannel(channel) },
+                        text = {
+                            Text(
+                                channel.displayName,
+                                color = if (currentChannel == channel) Color.White else Color.Gray,
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
 
             LazyColumn(
                 modifier = Modifier
@@ -99,13 +146,20 @@ fun WorldChatScreen(
                     value = textState,
                     onValueChange = { textState = it },
                     modifier = Modifier.weight(1f),
-                    placeholder = { Text("Speak to the Legends...", color = Color.Gray) },
+                    placeholder = { 
+                        val placeholderText = when(currentChannel) {
+                            ChatChannel.WORLD -> "Speak to the world..."
+                            ChatChannel.MONSTERS_DEN -> "Grumble in the shadows..."
+                            ChatChannel.HEROES_TAVERN -> "Share a tale of valor..."
+                        }
+                        Text(placeholderText, color = Color.Gray) 
+                    },
                     colors = TextFieldDefaults.colors(
                         focusedContainerColor = Color.DarkGray.copy(alpha = 0.5f),
                         unfocusedContainerColor = Color.DarkGray.copy(alpha = 0.3f),
                         focusedTextColor = Color.White,
                         unfocusedTextColor = Color.White,
-                        cursorColor = Color.Cyan
+                        cursorColor = if (isMonster) Color.Red else Color.Cyan
                     ),
                     shape = RoundedCornerShape(24.dp)
                 )
@@ -115,13 +169,13 @@ fun WorldChatScreen(
                 IconButton(
                     onClick = {
                         if (textState.isNotBlank()) {
-                            viewModel.sendMessage(playerData.playerName, textState)
+                            viewModel.sendMessage(playerData.playerName, textState, currentChannel)
                             textState = ""
                         }
                     },
                     modifier = Modifier
                         .size(48.dp)
-                        .background(Color.Cyan, CircleShape)
+                        .background(if (isMonster && currentChannel == ChatChannel.MONSTERS_DEN) Color.Red else Color.Cyan, CircleShape)
                 ) {
                     Icon(
                         painter = painterResource(id = android.R.drawable.ic_menu_send),

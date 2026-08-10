@@ -111,7 +111,7 @@ object StoryBossDatabase {
             moveset = listOf(
                 BossAttack("Steam Blast", 2.2, "Releases scalding steam.", "IgnoreArmor", cooldown = 3),
                 BossAttack("Piston Punch", 2.5, "A mechanical punch of high power.", "Normal"),
-                BossAttack("Overdrive", 0.0, "Increases speed and attack.", "Buff", cooldown = 6)
+                BossAttack("Overdrive", 0.0, "Increases speed and attack.", "DamageBuff", cooldown = 6)
             ),
             description = "A steam-powered monstrosity created by the mad artificers of the old world. Its mechanical strength is fueled by a core of pure energy."
         ),
@@ -167,7 +167,7 @@ object StoryBossDatabase {
             moveset = listOf(
                 BossAttack("Sky Strike", 2.5, "Attacks from the clouds.", "Normal"),
                 BossAttack("Tail Swipe", 1.8, "A wide arc that stuns.", "Stun", cooldown = 3),
-                BossAttack("Dragon Roar", 0.0, "Greatly increases attack power.", "Buff", cooldown = 5)
+                BossAttack("Dragon Roar", 0.0, "Greatly increases attack power.", "DamageBuff", cooldown = 5)
             ),
             description = "The undisputed master of the high peaks. This ancient predator has reigned supreme for centuries, feared by all who fly."
         ),
@@ -181,7 +181,7 @@ object StoryBossDatabase {
             moveset = listOf(
                 BossAttack("Time Warp", 1.2, "Distorts time to stun.", "Stun", cooldown = 2),
                 BossAttack("Temporal Rift", 2.5, "Rips through the space-time continuum.", "IgnoreArmor", cooldown = 4),
-                BossAttack("Accelerate", 0.0, "Increases speed and damage.", "Buff", cooldown = 6)
+                BossAttack("Accelerate", 0.0, "Increases speed and damage.", "DamageBuff", cooldown = 6)
             ),
             description = "A guardian of the temporal rifts, existing outside of normal time. It ensures that the threads of destiny remain unbroken and untangled."
         ),
@@ -265,7 +265,7 @@ object StoryBossDatabase {
             moveset = listOf(
                 BossAttack("God-Slaying Edge", 5.0, "Ends legends.", "Normal"),
                 BossAttack("Reality Erasure", 8.0, "Deletes defenses.", "IgnoreArmor", cooldown = 6),
-                BossAttack("Void Eternal", 0.0, "Infinite power.", "Buff", cooldown = 5)
+                BossAttack("Void Eternal", 0.0, "Infinite power.", "SuperBuff", cooldown = 5)
             ),
             description = "A mortal who achieved godhood through the consumption of countless souls. He now views the world as nothing more than a plaything."
         ),
@@ -365,7 +365,7 @@ object StoryBossDatabase {
                 BossAttack("Universe Erasure", 15.0, "The end of all things. Absolute destruction.", "IgnoreArmor", cooldown = 4),
                 BossAttack("Absolute Hunger", 8.0, "Consumes the player's life force.", "Lifesteal", cooldown = 3),
                 BossAttack("Reality Collapse", 6.0, "Existence itself breaks down.", "MultiHit", cooldown = 2),
-                BossAttack("The Void Eternal", 0.0, "Ascends beyond the concept of death.", "Buff", cooldown = 10)
+                BossAttack("The Void Eternal", 0.0, "Ascends beyond the concept of death.", "SuperBuff", cooldown = 10)
             ),
             description = "The culmination of total annihilation, where entity and void become one. To look upon this form is to witness the heat death of the universe."
         ),
@@ -380,7 +380,7 @@ object StoryBossDatabase {
             moveset = listOf(
                 BossAttack("Flame Spear", 2.2, "A burning thrust.", "Normal"),
                 BossAttack("Wild Hunt", 1.5, "Strikes multiple times.", "MultiHit", cooldown = 3),
-                BossAttack("Battle Cry", 0.0, "Increases damage and heals slightly.", "Buff", cooldown = 5)
+                BossAttack("Battle Cry", 0.0, "Increases damage and heals slightly.", "DamageBuff", cooldown = 5)
             ),
             description = "A warrior-priestess who channels the primal power of fire. Her spear burns with the intensity of a thousand suns."
         ),
@@ -434,7 +434,7 @@ object StoryBossDatabase {
                 BossAttack("Universal Breath", 6.0, "A blast of pure creation energy.", "Normal"),
                 BossAttack("Timeline Fracture", 2.5, "Strikes multiple times, destabilizing reality.", "MultiHit", cooldown = 2),
                 BossAttack("Cosmic Silence", 3.5, "A crushing vacuum that stuns.", "Stun", cooldown = 3),
-                BossAttack("Architect's Will", 0.0, "Heals 500,000 HP and increases power.", "Buff", cooldown = 5),
+                BossAttack("Architect's Will", 0.0, "Heals 500,000 HP and increases power.", "SuperBuff", cooldown = 5),
                 BossAttack("Black Hole Singularity", 5.0, "Consumes your very essence.", "Lifesteal", cooldown = 4),
                 BossAttack("The Big Bang", 25.0, "The absolute end. Total annihilation.", "IgnoreArmor", cooldown = 8)
             ),
@@ -452,86 +452,6 @@ object StoryBossDatabase {
                 BossAttack("Chain Grasp", 1.0, "Pulls you closer to stun.", "Stun", cooldown = 3)
             ),
             description = "A once-noble protector who has been twisted by the influence of the void. He now guards the gates of the dark realm with mindless fury."
-        ),
-        
-        // HERO KINGDOM BOSSES (For Monster Side)
-        Boss(
-            name = "Sergeant Miller",
-            hp = 1200,
-            level = 8,
-            rewardXp = 500,
-            rewardGold = 300,
-            defense = 30,
-            moveset = listOf(
-                BossAttack("Heavy Shield", 0.0, "Boosts defense.", "DefenseBuff"),
-                BossAttack("Guard Strike", 1.8, "Slow but heavy blow.", "Normal")
-            ),
-            description = "A stern guard who enforces order in the slums. He has no patience for troublemakers."
-        ),
-        Boss(
-            name = "Captain Harlen",
-            hp = 5000,
-            level = 25,
-            rewardXp = 3000,
-            rewardGold = 2500,
-            defense = 120,
-            moveset = listOf(
-                BossAttack("Market Justice", 2.2, "A swift rapier thrust.", "Normal"),
-                BossAttack("Call for Backup", 0.8, "Guards join the fray.", "MultiHit", cooldown = 3)
-            ),
-            description = "Commander of the Market District. He takes his duty to protect commerce very seriously."
-        ),
-        Boss(
-            name = "Lady Elara",
-            hp = 15000,
-            level = 45,
-            rewardXp = 10000,
-            rewardGold = 8000,
-            defense = 250,
-            moveset = listOf(
-                BossAttack("Rose Thorn", 1.8, "A piercing attack that bleeds.", "Bleed"),
-                BossAttack("Garden's Grace", 0.0, "Heals using the flowers.", "Heal", cooldown = 4)
-            ),
-            description = "A noblewoman who protects the Royal Gardens with both blade and petal-magic."
-        ),
-        Boss(
-            name = "Grand Inquisitor",
-            hp = 45000,
-            level = 65,
-            rewardXp = 35000,
-            rewardGold = 20000,
-            defense = 500,
-            moveset = listOf(
-                BossAttack("Holy Fire", 2.5, "Burn the heretic!", "Normal"),
-                BossAttack("Light's Judgment", 3.5, "Absolute punishment.", "IgnoreArmor", cooldown = 4)
-            ),
-            description = "The highest authority in the Temple District. He sees monsters where others see shadows."
-        ),
-        Boss(
-            name = "General Ironheart",
-            hp = 120000,
-            level = 85,
-            rewardXp = 100000,
-            rewardGold = 50000,
-            defense = 1500,
-            moveset = listOf(
-                BossAttack("Iron Fortress", 0.0, "Becomes nearly invulnerable.", "DefenseBuff", cooldown = 5),
-                BossAttack("Heart-Piercer", 4.0, "A legendary spear thrust.", "Normal")
-            ),
-            description = "The supreme commander of the King's Guard. His heart is as cold and hard as the steel he wears."
-        ),
-        Boss(
-            name = "King Lumeria",
-            hp = 500000,
-            level = 105,
-            rewardXp = 500000,
-            rewardGold = 250000,
-            defense = 3000,
-            moveset = listOf(
-                BossAttack("King's Wrath", 4.0, "The power of a kingdom.", "MultiHit"),
-                BossAttack("Divine Sovereignty", 0.0, "Full HP restore and power up.", "Heal", cooldown = 10)
-            ),
-            description = "The ruler of Lumeria. He has led his people through countless crises, but this might be the last."
         )
     )
 

@@ -25,7 +25,7 @@ object LegacyStoryDatabase {
         StoryArc(
             id = 1002,
             title = "The Ancient Whisper",
-            requiredLevel = 20,
+            requiredLevel = 21,
             description = "The trees of the Arboretum speak of a forgotten era.",
             locationName = "Ancient Arboretum",
             events = listOf(
@@ -38,7 +38,7 @@ object LegacyStoryDatabase {
         StoryArc(
             id = 1003,
             title = "Refracted Truths",
-            requiredLevel = 40,
+            requiredLevel = 41,
             description = "Journey into the Prismatic Depths to see through the void.",
             locationName = "Prismatic Depths",
             events = listOf(
@@ -51,7 +51,7 @@ object LegacyStoryDatabase {
         StoryArc(
             id = 1004,
             title = "The Unbreakable Peak",
-            requiredLevel = 60,
+            requiredLevel = 61,
             description = "Challenge the Ironbound Peaks, where Xious once stood.",
             locationName = "Ironbound Peaks",
             events = listOf(
@@ -64,7 +64,7 @@ object LegacyStoryDatabase {
         StoryArc(
             id = 1005,
             title = "The Eternal Mist",
-            requiredLevel = 80,
+            requiredLevel = 81,
             description = "Face the horrors that never sleep in the Fen.",
             locationName = "Eternal Fen",
             events = listOf(
@@ -77,7 +77,7 @@ object LegacyStoryDatabase {
         StoryArc(
             id = 1006,
             title = "The Captured Sun",
-            requiredLevel = 100,
+            requiredLevel = 101,
             description = "Reclaim the power of the sun from Solaris.",
             locationName = "Solaris Volcano",
             events = listOf(
@@ -90,7 +90,7 @@ object LegacyStoryDatabase {
         StoryArc(
             id = 1007,
             title = "The Spire of Souls",
-            requiredLevel = 120,
+            requiredLevel = 121,
             description = "Climb the Abyssal Spire to face the Magister.",
             locationName = "Abyssal Spire",
             events = listOf(
@@ -103,7 +103,7 @@ object LegacyStoryDatabase {
         StoryArc(
             id = 1008,
             title = "The Storm's Eye",
-            requiredLevel = 140,
+            requiredLevel = 141,
             description = "Conquer the Floating Isles and tame the Zephyr.",
             locationName = "The Floating Isles",
             events = listOf(
@@ -116,7 +116,7 @@ object LegacyStoryDatabase {
         StoryArc(
             id = 1009,
             title = "The Drowned Legacy",
-            requiredLevel = 155,
+            requiredLevel = 156,
             description = "Dive into the Sunken City to find the founder's secrets.",
             locationName = "Sunken City of Lumeria",
             events = listOf(
@@ -129,7 +129,7 @@ object LegacyStoryDatabase {
         StoryArc(
             id = 1010,
             title = "The River of Time",
-            requiredLevel = 170,
+            requiredLevel = 171,
             description = "Navigate the Valley of Echoes where time fractures.",
             locationName = "Valley of Echoes",
             events = listOf(
@@ -142,7 +142,7 @@ object LegacyStoryDatabase {
         StoryArc(
             id = 1011,
             title = "The Binding of Fate",
-            requiredLevel = 185,
+            requiredLevel = 186,
             description = "Face the Tundra and decide your own destiny.",
             locationName = "Frozen Tundra of Fate",
             events = listOf(
@@ -155,7 +155,7 @@ object LegacyStoryDatabase {
         StoryArc(
             id = 1012,
             title = "The Origin and the End",
-            requiredLevel = 195,
+            requiredLevel = 196,
             description = "The final confrontation at the Genesis Nexus.",
             locationName = "The Genesis Nexus",
             events = listOf(

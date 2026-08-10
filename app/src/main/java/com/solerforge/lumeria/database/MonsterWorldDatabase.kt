@@ -29,7 +29,7 @@ object MonsterWorldDatabase {
             bossUnlocked = true,
             x = 0.2f,
             y = 0.7f,
-            requiredLevel = 20,
+            requiredLevel = 21,
             isLegacyOnly = true
         ),
         WorldLocation(
@@ -43,7 +43,7 @@ object MonsterWorldDatabase {
             bossUnlocked = true,
             x = 0.8f,
             y = 0.6f,
-            requiredLevel = 40,
+            requiredLevel = 41,
             isLegacyOnly = true
         ),
         WorldLocation(
@@ -57,7 +57,7 @@ object MonsterWorldDatabase {
             bossUnlocked = true,
             x = 0.7f,
             y = 0.4f,
-            requiredLevel = 60,
+            requiredLevel = 61,
             isLegacyOnly = true
         ),
         WorldLocation(
@@ -71,7 +71,7 @@ object MonsterWorldDatabase {
             bossUnlocked = true,
             x = 0.3f,
             y = 0.3f,
-            requiredLevel = 80,
+            requiredLevel = 81,
             isLegacyOnly = true
         ),
         WorldLocation(
@@ -85,7 +85,7 @@ object MonsterWorldDatabase {
             bossUnlocked = true,
             x = 0.1f,
             y = 0.2f,
-            requiredLevel = 100,
+            requiredLevel = 101,
             isLegacyOnly = true
         ),
         WorldLocation(
@@ -99,7 +99,7 @@ object MonsterWorldDatabase {
             bossUnlocked = true,
             x = 0.9f,
             y = 0.1f,
-            requiredLevel = 120,
+            requiredLevel = 121,
             isLegacyOnly = true
         ),
         WorldLocation(
@@ -113,7 +113,7 @@ object MonsterWorldDatabase {
             bossUnlocked = true,
             x = 0.5f,
             y = 0.05f,
-            requiredLevel = 140,
+            requiredLevel = 141,
             isLegacyOnly = true
         ),
         WorldLocation(
@@ -127,7 +127,7 @@ object MonsterWorldDatabase {
             bossUnlocked = true,
             x = 0.2f,
             y = 0.5f,
-            requiredLevel = 155,
+            requiredLevel = 156,
             isLegacyOnly = true
         ),
         WorldLocation(
@@ -141,7 +141,7 @@ object MonsterWorldDatabase {
             bossUnlocked = true,
             x = 0.5f,
             y = 0.0f,
-            requiredLevel = 180,
+            requiredLevel = 181,
             isLegacyOnly = true
         )
     )
