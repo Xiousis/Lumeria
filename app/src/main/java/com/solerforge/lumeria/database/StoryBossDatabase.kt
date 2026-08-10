@@ -452,6 +452,86 @@ object StoryBossDatabase {
                 BossAttack("Chain Grasp", 1.0, "Pulls you closer to stun.", "Stun", cooldown = 3)
             ),
             description = "A once-noble protector who has been twisted by the influence of the void. He now guards the gates of the dark realm with mindless fury."
+        ),
+        
+        // HERO KINGDOM BOSSES (For Monster Side)
+        Boss(
+            name = "Sergeant Miller",
+            hp = 1200,
+            level = 8,
+            rewardXp = 500,
+            rewardGold = 300,
+            defense = 30,
+            moveset = listOf(
+                BossAttack("Heavy Shield", 0.0, "Boosts defense.", "DefenseBuff"),
+                BossAttack("Guard Strike", 1.8, "Slow but heavy blow.", "Normal")
+            ),
+            description = "A stern guard who enforces order in the slums. He has no patience for troublemakers."
+        ),
+        Boss(
+            name = "Captain Harlen",
+            hp = 5000,
+            level = 25,
+            rewardXp = 3000,
+            rewardGold = 2500,
+            defense = 120,
+            moveset = listOf(
+                BossAttack("Market Justice", 2.2, "A swift rapier thrust.", "Normal"),
+                BossAttack("Call for Backup", 0.8, "Guards join the fray.", "MultiHit", cooldown = 3)
+            ),
+            description = "Commander of the Market District. He takes his duty to protect commerce very seriously."
+        ),
+        Boss(
+            name = "Lady Elara",
+            hp = 15000,
+            level = 45,
+            rewardXp = 10000,
+            rewardGold = 8000,
+            defense = 250,
+            moveset = listOf(
+                BossAttack("Rose Thorn", 1.8, "A piercing attack that bleeds.", "Bleed"),
+                BossAttack("Garden's Grace", 0.0, "Heals using the flowers.", "Heal", cooldown = 4)
+            ),
+            description = "A noblewoman who protects the Royal Gardens with both blade and petal-magic."
+        ),
+        Boss(
+            name = "Grand Inquisitor",
+            hp = 45000,
+            level = 65,
+            rewardXp = 35000,
+            rewardGold = 20000,
+            defense = 500,
+            moveset = listOf(
+                BossAttack("Holy Fire", 2.5, "Burn the heretic!", "Normal"),
+                BossAttack("Light's Judgment", 3.5, "Absolute punishment.", "IgnoreArmor", cooldown = 4)
+            ),
+            description = "The highest authority in the Temple District. He sees monsters where others see shadows."
+        ),
+        Boss(
+            name = "General Ironheart",
+            hp = 120000,
+            level = 85,
+            rewardXp = 100000,
+            rewardGold = 50000,
+            defense = 1500,
+            moveset = listOf(
+                BossAttack("Iron Fortress", 0.0, "Becomes nearly invulnerable.", "DefenseBuff", cooldown = 5),
+                BossAttack("Heart-Piercer", 4.0, "A legendary spear thrust.", "Normal")
+            ),
+            description = "The supreme commander of the King's Guard. His heart is as cold and hard as the steel he wears."
+        ),
+        Boss(
+            name = "King Lumeria",
+            hp = 500000,
+            level = 105,
+            rewardXp = 500000,
+            rewardGold = 250000,
+            defense = 3000,
+            moveset = listOf(
+                BossAttack("King's Wrath", 4.0, "The power of a kingdom.", "MultiHit"),
+                BossAttack("Divine Sovereignty", 0.0, "Full HP restore and power up.", "Heal", cooldown = 10)
+            ),
+            description = "The ruler of Lumeria. He has led his people through countless crises, but this might be the last."
         )
     )
 

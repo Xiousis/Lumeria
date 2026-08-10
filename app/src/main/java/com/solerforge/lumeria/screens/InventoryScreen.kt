@@ -4,6 +4,7 @@ import com.solerforge.lumeria.R
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.WindowInsets
@@ -63,6 +64,9 @@ fun InventoryScreen(
     var sortMode by remember { mutableStateOf(SortMode.DEFAULT) }
     var hideCommon by remember { mutableStateOf(value = false) }
     val context = LocalContext.current
+    
+    val race = com.solerforge.lumeria.database.RaceDatabase.getRace(playerData.playerRace)
+    val canWearGear = !playerData.isReborn || race.canWearGear
 
     val rarityMap = remember {
         mapOf(
@@ -278,6 +282,25 @@ fun InventoryScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
 
+            if (!canWearGear && (selectedTab == InventoryTab.COMBAT || selectedTab == InventoryTab.APPAREL)) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp)
+                        .background(Color.Red.copy(alpha = 0.2f), RoundedCornerShape(8.dp))
+                        .border(1.dp, Color.Red.copy(alpha = 0.5f), RoundedCornerShape(8.dp))
+                        .padding(16.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "Standard human equipment does not fit your form. You can only equip gear forged for your race (${race.name}).",
+                        color = Color.White,
+                        style = MaterialTheme.typography.bodyMedium,
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                    )
+                }
+            }
+
             LazyColumn(
                 modifier = Modifier
                     .weight(1f)
@@ -304,7 +327,10 @@ fun InventoryScreen(
                                 val diff = itemData.attack - currentWeapon.attack
                                 val statDiff = if (!isEquipped && (diff != 0)) "${if (diff > 0) "+" else ""}$diff ATK" else null
                                 val isClassMatch = itemData.requiredClasses.isEmpty() || itemData.requiredClasses.contains(inventorySnapshot.playerClass)
+                                val isRaceMatch = itemData.requiredRaces.isEmpty() || itemData.requiredRaces.contains(inventorySnapshot.playerRace)
                                 
+                                val canHold = canWearGear || (itemData.requiredRaces.contains(inventorySnapshot.playerRace))
+
                                 InventoryItemRow(
                                     name = itemName, 
                                     stat = "${itemData.attack} ATK", 
@@ -312,12 +338,12 @@ fun InventoryScreen(
                                     description = itemData.description,
                                     lore = itemData.lore,
                                     isEquipped = isEquipped, 
-                                    actionLabel = if (isClassMatch) "Equip" else "Incompatible",
+                                    actionLabel = if (!canHold) "Restricted" else (if (isClassMatch && isRaceMatch) "Equip" else "Incompatible"),
                                     statDiff = statDiff,
                                     count = count,
                                     requiredClasses = itemData.requiredClasses
                                 ) {
-                                    if (isClassMatch) {
+                                    if (canHold && isClassMatch && isRaceMatch) {
                                         inventorySnapshot = inventorySnapshot.copy(equippedWeapon = itemName).recalculateVitals()
                                         onPlayerUpdate(inventorySnapshot)
                                     }
@@ -349,12 +375,12 @@ fun InventoryScreen(
                                     description = itemData.description,
                                     lore = "",
                                     isEquipped = isEquipped, 
-                                    actionLabel = if (isClassMatch) "Equip" else "Incompatible",
+                                    actionLabel = if (!canWearGear) "Restricted" else (if (isClassMatch) "Equip" else "Incompatible"),
                                     statDiff = statDiff,
                                     count = count,
                                     requiredClasses = itemData.requiredClasses
                                 ) {
-                                    if (isClassMatch) {
+                                    if (canWearGear && isClassMatch) {
                                         inventorySnapshot = inventorySnapshot.copy(equippedShield = itemName).recalculateVitals()
                                         onPlayerUpdate(inventorySnapshot)
                                     }
@@ -387,12 +413,12 @@ fun InventoryScreen(
                                     description = itemData.description,
                                     lore = itemData.lore,
                                     isEquipped = isEquipped, 
-                                    actionLabel = if (isClassMatch) "Equip" else "Incompatible",
+                                    actionLabel = if (!canWearGear) "Restricted" else (if (isClassMatch) "Equip" else "Incompatible"),
                                     statDiff = statDiff,
                                     count = count,
                                     requiredClasses = itemData.requiredClasses
                                 ) {
-                                    if (isClassMatch) {
+                                    if (canWearGear && isClassMatch) {
                                         inventorySnapshot = inventorySnapshot.copy(equippedHead = itemName).recalculateVitals()
                                         onPlayerUpdate(inventorySnapshot)
                                     }
@@ -416,6 +442,9 @@ fun InventoryScreen(
                                 val diff = itemData.defense - currentArmor.defense
                                 val statDiff = if (!isEquipped && (diff != 0)) "${if (diff > 0) "+" else ""}$diff DEF" else null
                                 val isClassMatch = itemData.requiredClasses.isEmpty() || itemData.requiredClasses.contains(inventorySnapshot.playerClass)
+                                val isRaceMatch = itemData.requiredRaces.isEmpty() || itemData.requiredRaces.contains(inventorySnapshot.playerRace)
+                                
+                                val canWear = canWearGear || (itemData.requiredRaces.contains(inventorySnapshot.playerRace))
 
                                 InventoryItemRow(
                                     name = itemName, 
@@ -424,12 +453,12 @@ fun InventoryScreen(
                                     description = itemData.description,
                                     lore = itemData.lore,
                                     isEquipped = isEquipped, 
-                                    actionLabel = if (isClassMatch) "Equip" else "Incompatible",
+                                    actionLabel = if (!canWear) "Restricted" else (if (isClassMatch && isRaceMatch) "Equip" else "Incompatible"),
                                     statDiff = statDiff,
                                     count = count,
                                     requiredClasses = itemData.requiredClasses
                                 ) {
-                                    if (isClassMatch) {
+                                    if (canWear && isClassMatch && isRaceMatch) {
                                         inventorySnapshot = inventorySnapshot.copy(equippedArmor = itemName).recalculateVitals()
                                         onPlayerUpdate(inventorySnapshot)
                                     }
@@ -461,12 +490,12 @@ fun InventoryScreen(
                                     description = itemData.description,
                                     lore = "",
                                     isEquipped = isEquipped, 
-                                    actionLabel = if (isClassMatch) "Equip" else "Incompatible",
+                                    actionLabel = if (!canWearGear) "Restricted" else (if (isClassMatch) "Equip" else "Incompatible"),
                                     statDiff = statDiff,
                                     count = count,
                                     requiredClasses = itemData.requiredClasses
                                 ) {
-                                    if (isClassMatch) {
+                                    if (canWearGear && isClassMatch) {
                                         inventorySnapshot = inventorySnapshot.copy(equippedBoots = itemName).recalculateVitals()
                                         onPlayerUpdate(inventorySnapshot)
                                     }
@@ -491,6 +520,9 @@ fun InventoryScreen(
                                 val itemData = GameDatabase.getOffHand(itemName)
                                 val currentOffHand = if (isEquipped2) GameDatabase.getOffHand(inventorySnapshot.equippedOffHand2) else GameDatabase.getOffHand(inventorySnapshot.equippedOffHand)
                                 val isClassMatch = itemData.requiredClasses.isEmpty() || itemData.requiredClasses.contains(inventorySnapshot.playerClass)
+                                val isRaceMatch = itemData.requiredRaces.isEmpty() || itemData.requiredRaces.contains(inventorySnapshot.playerRace)
+                                
+                                val canUse = canWearGear || (itemData.requiredRaces.contains(inventorySnapshot.playerRace))
                                 
                                 val statText = buildString {
                                     if (itemData.strength > 0) append("${itemData.strength} STR ")
@@ -523,12 +555,12 @@ fun InventoryScreen(
                                         description = itemData.description,
                                         lore = itemData.lore,
                                         isEquipped = isEquipped, 
-                                        actionLabel = if (isClassMatch) "Equip Slot 1" else "Incompatible",
+                                        actionLabel = if (!canUse) "Restricted" else (if (isClassMatch && isRaceMatch) "Equip Slot 1" else "Incompatible"),
                                         statDiff = statDiff,
                                         count = count,
                                         requiredClasses = itemData.requiredClasses
                                     ) {
-                                        if (isClassMatch) {
+                                        if (canUse && isClassMatch && isRaceMatch) {
                                             inventorySnapshot = inventorySnapshot.copy(equippedOffHand = itemName).recalculateVitals()
                                             onPlayerUpdate(inventorySnapshot)
                                         }
@@ -537,15 +569,15 @@ fun InventoryScreen(
                                     if (!isEquipped) {
                                         Button(
                                             onClick = {
-                                                if (isClassMatch) {
+                                                if (canUse && isClassMatch && isRaceMatch) {
                                                     inventorySnapshot = inventorySnapshot.copy(equippedOffHand2 = itemName).recalculateVitals()
                                                     onPlayerUpdate(inventorySnapshot)
                                                 }
                                             },
-                                            enabled = isClassMatch,
+                                            enabled = canUse && isClassMatch && isRaceMatch,
                                             modifier = Modifier.padding(start = 16.dp, top = 4.dp).fillMaxWidth(0.6f)
                                         ) {
-                                            Text(if (isClassMatch) "Equip Slot 2" else "Incompatible")
+                                            Text(if (!canUse) "Restricted" else (if (isClassMatch && isRaceMatch) "Equip Slot 2" else "Incompatible"))
                                         }
                                     }
                                 }

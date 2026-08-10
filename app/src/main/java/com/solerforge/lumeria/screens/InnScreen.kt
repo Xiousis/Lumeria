@@ -44,6 +44,7 @@ import kotlin.time.Duration.Companion.milliseconds
 fun InnScreen(
     modifier: Modifier = Modifier,
     playerData: PlayerData,
+    isMonsterMode: Boolean = false,
     onPlayerUpdate: (PlayerData) -> Unit,
     onReturn: () -> Unit,
 ) {
@@ -61,7 +62,11 @@ fun InnScreen(
     val context = androidx.compose.ui.platform.LocalContext.current
 
     LaunchedEffect(Unit) {
-        com.solerforge.lumeria.utils.MusicManager.playMusic(context, R.raw.yumis_inn_vocal_theme)
+        if (isMonsterMode) {
+            com.solerforge.lumeria.utils.MusicManager.playMusic(context, R.raw.dark_citadel_battle_theme)
+        } else {
+            com.solerforge.lumeria.utils.MusicManager.playMusic(context, R.raw.yumis_inn_vocal_theme)
+        }
     }
 
     LaunchedEffect(isResting) {
@@ -90,8 +95,8 @@ fun InnScreen(
     Box(modifier = modifier.fillMaxSize()) {
         // BACKGROUND
         Image(
-            painter = painterResource(id = R.drawable.yumi),
-            contentDescription = "Yumi's Inn Background",
+            painter = painterResource(id = if (isMonsterMode) R.drawable.lord_umbra else R.drawable.yumi),
+            contentDescription = "Inn Background",
             modifier = Modifier
                 .fillMaxSize()
                 .graphicsLayer(scaleX = 1.1f, scaleY = 1.1f),
@@ -145,9 +150,9 @@ fun InnScreen(
                     Spacer(modifier = Modifier.height(8.dp))
                     val dialogueText = when {
                         isResting -> "..."
-                        justRested -> "\"Good morning! You look much better now.\""
-                        !canAfford -> "\"Welcome to Yumi's Inn! Oh... you don't seem to have enough gold for a room right now.\""
-                        else -> "\"Welcome to Yumi's Inn! Want to stay the night?\""
+                        justRested -> if (isMonsterMode) "\"Your power has been restored.\"" else "\"Good morning! You look much better now.\""
+                        !canAfford -> if (isMonsterMode) "\"You lack the offerings required for the lair.\"" else "\"Welcome to Yumi's Inn! Oh... you don't seem to have enough gold for a room right now.\""
+                        else -> if (isMonsterMode) "\"The shadows welcome you. Will you regenerate?\"" else "\"Welcome to Yumi's Inn! Want to stay the night?\""
                     }
                     Text(
                         text = dialogueText,
@@ -167,7 +172,7 @@ fun InnScreen(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 RpgButton(
-                    text = "Stay (Rest) - ${CurrencyUtils.formatGold(restCost)}",
+                    text = if (isMonsterMode) "Regenerate - ${CurrencyUtils.formatGold(restCost)}" else "Stay (Rest) - ${CurrencyUtils.formatGold(restCost)}",
                     modifier = Modifier.fillMaxWidth(),
                     onClick = {
                         if (canAfford && !isResting) {

@@ -387,6 +387,9 @@ fun TownSquareTab(
     playerData: PlayerData,
 ) {
     val unlocked = playerData.unlockedFeatures
+    val race = com.solerforge.lumeria.database.RaceDatabase.getRace(playerData.playerRace)
+    val isMonster = playerData.isReborn && race.isMonster
+    
     Column(
         modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -401,33 +404,77 @@ fun TownSquareTab(
             )
         }
 
-        MenuCard("THE ROYAL COURT", "Visit King Alaric and review your standing.", onKingdom, isLocked = !unlocked.contains("THE ROYAL COURT"))
+        MenuCard(
+            title = if (isMonster) "OVERLORD'S THRONE" else "THE ROYAL COURT", 
+            subtitle = if (isMonster) "Review your dominion and influence." else "Visit King Alaric and review your standing.", 
+            onClick = onKingdom, 
+            isLocked = !unlocked.contains("THE ROYAL COURT")
+        )
         
         val guildUnlocked = playerData.renown >= 7500
         MenuCard(
-            title = "THE GUILD",
-            subtitle = if (guildUnlocked) "Join a House and learn elemental magic." else "Become Respected Adventurer to unlock.",
+            title = if (isMonster) "THE SYNDICATE" else "THE GUILD",
+            subtitle = if (guildUnlocked) {
+                if (isMonster) "Gather with your kind and master dark arts." else "Join a House and learn elemental magic."
+            } else {
+                "Become Respected Adventurer to unlock."
+            },
             onClick = { if (guildUnlocked) onGuild() },
             isLocked = !guildUnlocked || !unlocked.contains("THE GUILD")
         )
 
-        MenuCard("FISHING POND", "Relax and catch some legendary fish.", onFishing, isLocked = !unlocked.contains("FISHING POND"))
-        MenuCard("FAMILIAR NURSERY", "Find a loyal companion to aid you.", onFamiliarStore, isLocked = !unlocked.contains("FAMILIAR NURSERY"))
-        MenuCard("IRONCLAD BANK", "Deposit gold to protect it from defeat penalties.", onBank, isLocked = !unlocked.contains("IRONCLAD BANK"))
-        MenuCard("THE FORGE", "Upgrade your weapons and armor to +5.", onBlacksmith, isLocked = !unlocked.contains("THE FORGE"))
-        MenuCard("BILLY'S STORE", "Buy new gear or sell your old equipment.", onShop, isLocked = !unlocked.contains("BILLY'S STORE"))
-        MenuCard("THE ELDER", "Seek wisdom, respec stats, or make a wish.", onElder, isLocked = !unlocked.contains("THE ELDER"))
+        MenuCard(
+            title = if (isMonster) "ABYSSAL LAKE" else "FISHING POND", 
+            subtitle = if (isMonster) "Dredge the depths for eldritch life." else "Relax and catch some legendary fish.", 
+            onClick = onFishing, 
+            isLocked = !unlocked.contains("FISHING POND")
+        )
         
         MenuCard(
-            title = "THE INN",
-            subtitle = "Rest and recover your strength at Yumi's Inn.",
+            title = if (isMonster) "BEAST PEN" else "FAMILIAR NURSERY", 
+            subtitle = if (isMonster) "Subjugate a companion to serve you." else "Find a loyal companion to aid you.", 
+            onClick = onFamiliarStore, 
+            isLocked = !unlocked.contains("FAMILIAR NURSERY")
+        )
+        
+        MenuCard(
+            title = if (isMonster) "THE HOARD" else "IRONCLAD BANK", 
+            subtitle = if (isMonster) "Stash your riches in a secret vault." else "Deposit gold to protect it from defeat penalties.", 
+            onClick = onBank, 
+            isLocked = !unlocked.contains("IRONCLAD BANK")
+        )
+        
+        MenuCard(
+            title = if (isMonster) "THE ARMORY" else "THE FORGE", 
+            subtitle = if (isMonster) "Sharpen your claws and reinforce your hide." else "Upgrade your weapons and armor to +5.", 
+            onClick = onBlacksmith, 
+            isLocked = !unlocked.contains("THE FORGE")
+        )
+        
+        MenuCard(
+            title = if (isMonster) "THE BLACK MARKET" else "BILLY'S STORE", 
+            subtitle = if (isMonster) "Trade for forbidden gear and artifacts." else "Buy new gear or sell your old equipment.", 
+            onClick = onShop, 
+            isLocked = !unlocked.contains("BILLY'S STORE")
+        )
+        
+        MenuCard(
+            title = if (isMonster) "THE ANCIENT ONE" else "THE ELDER", 
+            subtitle = if (isMonster) "Commune with the primeval essence." else "Seek wisdom, respec stats, or make a wish.", 
+            onClick = onElder, 
+            isLocked = !unlocked.contains("THE ELDER")
+        )
+        
+        MenuCard(
+            title = if (isMonster) "THE LAIR" else "THE INN",
+            subtitle = if (isMonster) "Rest and regenerate your dark power." else "Rest and recover your strength at Yumi's Inn.",
             onClick = onInn,
             isLocked = !unlocked.contains("THE INN")
         )
 
         MenuCard(
-            title = "THE GAMBLING HOUSE",
-            subtitle = "Try your luck at Blackjack and double your gold.",
+            title = if (isMonster) "DEN OF DECEIT" else "THE GAMBLING HOUSE",
+            subtitle = if (isMonster) "Take what is yours through trickery." else "Try your luck at Blackjack and double your gold.",
             onClick = onGambling,
             isLocked = !unlocked.contains("THE GAMBLING HOUSE")
         )

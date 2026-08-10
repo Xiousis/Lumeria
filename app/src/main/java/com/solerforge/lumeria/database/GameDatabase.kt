@@ -14,7 +14,8 @@ object GameDatabase {
         val requiredLocation: String = "Training Fields",
         val requiredRank: Int = 0,
         val isBossDrop: Boolean = false,
-        val requiredClasses: List<String> = emptyList()
+        val requiredClasses: List<String> = emptyList(),
+        val requiredRaces: List<String> = emptyList()
     )
 
     data class Armor(
@@ -27,7 +28,8 @@ object GameDatabase {
         val requiredLocation: String = "Training Fields",
         val requiredRank: Int = 0,
         val isBossDrop: Boolean = false,
-        val requiredClasses: List<String> = emptyList()
+        val requiredClasses: List<String> = emptyList(),
+        val requiredRaces: List<String> = emptyList()
     )
 
     data class HeadGear(
@@ -40,7 +42,8 @@ object GameDatabase {
         val requiredLocation: String = "Training Fields",
         val requiredRank: Int = 0,
         val isBossDrop: Boolean = false,
-        val requiredClasses: List<String> = emptyList()
+        val requiredClasses: List<String> = emptyList(),
+        val requiredRaces: List<String> = emptyList()
     )
 
     data class Boots(
@@ -52,7 +55,8 @@ object GameDatabase {
         val requiredLocation: String = "Training Fields",
         val requiredRank: Int = 0,
         val isBossDrop: Boolean = false,
-        val requiredClasses: List<String> = emptyList()
+        val requiredClasses: List<String> = emptyList(),
+        val requiredRaces: List<String> = emptyList()
     )
 
     data class Shield(
@@ -64,7 +68,8 @@ object GameDatabase {
         val requiredLocation: String = "Training Fields",
         val requiredRank: Int = 0,
         val isBossDrop: Boolean = false,
-        val requiredClasses: List<String> = emptyList()
+        val requiredClasses: List<String> = emptyList(),
+        val requiredRaces: List<String> = emptyList()
     )
 
     data class OffHand(
@@ -83,7 +88,8 @@ object GameDatabase {
         val requiredLocation: String = "Training Fields",
         val requiredRank: Int = 0,
         val isBossDrop: Boolean = false,
-        val requiredClasses: List<String> = emptyList()
+        val requiredClasses: List<String> = emptyList(),
+        val requiredRaces: List<String> = emptyList()
     )
 
     data class Consumable(
@@ -207,7 +213,35 @@ object GameDatabase {
         // God Tier Drops
         Weapon("Starshard Edge", 80, 0, "God Tier", "The crystals reward determination. 20% chance for double attack.", isBossDrop = true),
         Weapon("Fang of Eternity", 110, 0, "God Tier", "A blade that drinks life. 15% Lifesteal.", isBossDrop = true),
-        Weapon("Endbringer", 150, 0, "God Tier", "The end of all things. Critical Hits deal 300% damage.", isBossDrop = true)
+        Weapon("Endbringer", 150, 0, "God Tier", "The end of all things. Critical Hits deal 300% damage.", isBossDrop = true),
+
+        // --- Race-Specific Monster Weapons ---
+        Weapon("Dragon Claws", 25, 3500, "Rare", "Natural weapons of a dragonkin.", requiredRaces = listOf("Dragonkin"), requiredLocation = "Training Fields"),
+        Weapon("Dragon God's Claws", 145, 5500000, "Mythic", "Claws that have tasted the blood of gods.", requiredRaces = listOf("Dragonkin"), requiredLocation = "Dark Citadel"),
+        Weapon("Primal Fangs", 28, 4000, "Rare", "Fierce fangs of a young werewolf.", requiredRaces = listOf("Werewolf"), requiredLocation = "Training Fields"),
+        Weapon("Lunar Ravager Fangs", 155, 6800000, "Mythic", "Fangs empowered by the eternal moon.", requiredRaces = listOf("Werewolf"), requiredLocation = "Dark Citadel"),
+        Weapon("Arcane Eyestalk", 32, 5500, "Rare", "A focus for a beholder's mental power.", requiredRaces = listOf("Beholder"), requiredLocation = "Training Fields"),
+        Weapon("Eye Tyrant's Focus", 165, 8500000, "Mythic", "A focus that channels pure destruction.", requiredRaces = listOf("Beholder"), requiredLocation = "Dark Citadel"),
+        Weapon("Corrosive Nucleus", 22, 2800, "Rare", "The pulsating acidic heart of a slime.", requiredRaces = listOf("Slime"), requiredLocation = "Training Fields"),
+        Weapon("Acidic Overlord Nucleus", 135, 4800000, "Mythic", "A nucleus dripping with world-dissolving acid.", requiredRaces = listOf("Slime"), requiredLocation = "Dark Citadel"),
+        Weapon("Stardust Wand", 20, 3200, "Rare", "A wand that glitters with fae magic.", requiredRaces = listOf("Fairy"), requiredLocation = "Training Fields"),
+        Weapon("Fae Queen's Scepter", 130, 4200000, "Mythic", "A scepter woven from pure celestial magic.", requiredRaces = listOf("Fairy"), requiredLocation = "Dark Citadel"),
+        Weapon("Ethereal Scythe", 38, 6500, "Rare", "A blade that cuts through the physical and spiritual.", requiredRaces = listOf("Ghost"), requiredLocation = "Training Fields"),
+        Weapon("Soul Reaper's Blade", 175, 12000000, "Mythic", "A weapon that harvests the very essence of life.", requiredRaces = listOf("Ghost"), requiredLocation = "Dark Citadel"),
+        Weapon("Integrated Laser", 42, 8000, "Rare", "A low-power tactical combat laser.", requiredRaces = listOf("Cyborg"), requiredLocation = "Training Fields"),
+        Weapon("Photon Annihilator", 185, 15000000, "Mythic", "A devastating energy weapon from a lost age.", requiredRaces = listOf("Cyborg"), requiredLocation = "Dark Citadel"),
+        Weapon("Void Blade", 85, 1800000, "Legendary", "A blade forged in the deepest abyss.", requiredRaces = listOf("Demon"), requiredLocation = "Shadow Marsh"),
+        Weapon("Abyssal Doomblade", 230, 22000000, "God Tier", "The personal blade of a Demon Overlord.", requiredRaces = listOf("Demon"), requiredRank = 5),
+        Weapon("Undead Heart", 95, 2000000, "Legendary", "A pulsing necrotic focus of pure undeath.", requiredRaces = listOf("Dracolich"), requiredLocation = "Shadow Marsh"),
+        Weapon("Phylactery Focus", 220, 20000000, "God Tier", "A focus containing the soul of a lich.", requiredRaces = listOf("Dracolich"), requiredRank = 5),
+        Weapon("Scepter of Hell", 155, 5500000, "Mythic", "The symbol of demonic sovereignty.", requiredRaces = listOf("Royal Demon"), requiredLocation = "Dark Citadel"),
+        Weapon("Diabolic Overlord Scepter", 260, 38000000, "God Tier", "A weapon that commands the legions of hell.", requiredRaces = listOf("Royal Demon"), requiredRank = 6),
+        Weapon("Mountain Smasher", 140, 4500000, "Mythic", "A hammer made of petrified ironwood.", requiredRaces = listOf("Titan"), requiredLocation = "Dragon Peaks"),
+        Weapon("Earth-Breaker Hammer", 250, 32000000, "God Tier", "A massive weapon that can level cities.", requiredRaces = listOf("Titan"), requiredRank = 6),
+        Weapon("Singularity Core", 165, 7000000, "Mythic", "The condensed heart of a dying star.", requiredRaces = listOf("Void Sovereign"), requiredLocation = "Dark Citadel"),
+        Weapon("Event Horizon Piercer", 270, 45000000, "God Tier", "A weapon that tears the fabric of space.", requiredRaces = listOf("Void Sovereign"), requiredRank = 6),
+        Weapon("Primal Breath", 145, 5000000, "Mythic", "The focused kinetic energy of an elder dragon.", requiredRaces = listOf("Elder Dragon"), requiredLocation = "Dragon Peaks"),
+        Weapon("Cataclysmic Dragon Breath", 240, 28000000, "God Tier", "The pure primal flame of the first dragon.", requiredRaces = listOf("Elder Dragon"), requiredRank = 6)
     )
 
     val armors = listOf(
@@ -286,7 +320,35 @@ object GameDatabase {
         Armor("Rotten Essence", 0, 0, "Rare", isBossDrop = true),
         Armor("Dragon Scale", 0, 0, "Rare", isBossDrop = true),
         Armor("Xarthos Soul", 0, 0, "Rare", isBossDrop = true),
-        Armor("Godwalker", 0, 0, "God Tier", isBossDrop = true)
+        Armor("Godwalker", 0, 0, "God Tier", isBossDrop = true),
+
+        // --- Race-Specific Monster Armor ---
+        Armor("Obsidian Scales", 65, 480000, "Legendary", "Hardened volcanic scales of a dragonkin.", requiredRaces = listOf("Dragonkin"), requiredLocation = "Dragon Peaks"),
+        Armor("Dragon Lord's Plate", 210, 15000000, "God Tier", "Indestructible plate fused with dragon blood.", requiredRaces = listOf("Dragonkin"), requiredRank = 6),
+        Armor("Lunar Fur", 58, 420000, "Legendary", "Protective fur that shimmers with moonlight.", requiredRaces = listOf("Werewolf"), requiredLocation = "Dragon Peaks"),
+        Armor("Fenrir's Eternal Pelt", 195, 12000000, "God Tier", "The mantle of the legendary wolf-god.", requiredRaces = listOf("Werewolf"), requiredRank = 6),
+        Armor("Abyssal Shell", 62, 550000, "Legendary", "A protective shell hardened by the abyss.", requiredRaces = listOf("Beholder"), requiredLocation = "Dragon Peaks"),
+        Armor("Gaze-Reflecting Carapace", 200, 18000000, "God Tier", "Armor that reflects the gaze of the gazer.", requiredRaces = listOf("Beholder"), requiredRank = 6),
+        Armor("Gelatinous Skin", 70, 650000, "Legendary", "Tough, non-Newtonian slime skin.", requiredRaces = listOf("Slime"), requiredLocation = "Dragon Peaks"),
+        Armor("Unstoppable Ooze Membrane", 220, 25000000, "God Tier", "A membrane that absorbs and redirects force.", requiredRaces = listOf("Slime"), requiredRank = 6),
+        Armor("Gossamer Wings", 50, 300000, "Legendary", "Magically reinforced wings of a fairy.", requiredRaces = listOf("Fairy"), requiredLocation = "Dragon Peaks"),
+        Armor("Celestial Starlight Shroud", 180, 9500000, "God Tier", "A shroud woven from captured starlight.", requiredRaces = listOf("Fairy"), requiredRank = 6),
+        Armor("Spectral Shroud", 55, 450000, "Legendary", "A ghostly veil that blurs the wearer's form.", requiredRaces = listOf("Ghost"), requiredLocation = "Dragon Peaks"),
+        Armor("Haunting Void Raiment", 205, 14000000, "God Tier", "Armor made of solid shadow and deathly mist.", requiredRaces = listOf("Ghost"), requiredRank = 6),
+        Armor("Titanium Plating", 75, 850000, "Legendary", "High-grade cybernetic reinforcement.", requiredRaces = listOf("Cyborg"), requiredLocation = "Dragon Peaks"),
+        Armor("Neutronium Alloy Chassis", 230, 28000000, "God Tier", "A chassis built to withstand a supernova.", requiredRaces = listOf("Cyborg"), requiredRank = 6),
+        Armor("Hellfire Carapace", 100, 2800000, "Mythic", "Demonic armor that burns with eternal fire.", requiredRaces = listOf("Demon"), requiredLocation = "Dark Citadel"),
+        Armor("Diabolic Plate of Ruin", 250, 40000000, "God Tier", "The impenetrable armor of a demon lord.", requiredRaces = listOf("Demon"), requiredRank = 6),
+        Armor("Bone Plating", 90, 2200000, "Mythic", "Reinforced skeletal plating of a dracolich.", requiredRaces = listOf("Dracolich"), requiredLocation = "Dark Citadel"),
+        Armor("Lich-King's Skeletal Mail", 240, 35000000, "God Tier", "Mail steeped in millennia of death magic.", requiredRaces = listOf("Dracolich"), requiredRank = 6),
+        Armor("Crown of Thorns", 150, 6500000, "Mythic", "A crown that grants profane protection.", requiredRaces = listOf("Royal Demon"), requiredLocation = "Dark Citadel"),
+        Armor("Archduke's Sovereign Mantle", 290, 55000000, "God Tier", "The pinnacle of demonic protective regalia.", requiredRaces = listOf("Royal Demon"), requiredRank = 6),
+        Armor("Bedrock Armor", 160, 7500000, "Mythic", "Armor hewn from the roots of the world.", requiredRaces = listOf("Titan"), requiredLocation = "Dark Citadel"),
+        Armor("Continent-Shifting Plate", 310, 65000000, "God Tier", "Armor that holds the weight of tectonic plates.", requiredRaces = listOf("Titan"), requiredRank = 6),
+        Armor("Event Horizon", 180, 9500000, "Mythic", "Armor that absorbs space and light.", requiredRaces = listOf("Void Sovereign"), requiredLocation = "Dark Citadel"),
+        Armor("Void-Emperor's Regalia", 330, 85000000, "God Tier", "The absolute protection of the void ruler.", requiredRaces = listOf("Void Sovereign"), requiredRank = 6),
+        Armor("Ancient Scales", 140, 5500000, "Mythic", "Scales that have seen the birth of worlds.", requiredRaces = listOf("Elder Dragon"), requiredLocation = "Dark Citadel"),
+        Armor("Celestial Dragon Shell", 270, 50000000, "God Tier", "The indestructible hide of an Elder Dragon.", requiredRaces = listOf("Elder Dragon"), requiredRank = 6)
     )
 
     val headGears = listOf(
@@ -711,7 +773,161 @@ object GameDatabase {
             "Archer" -> listOf(13, 8, 6, 4, 17, 9, 3)
             "Bard" -> listOf(6, 10, 7, 7, 10, 10, 10)
             "Berserker" -> listOf(24, 20, 2, 2, 8, 2, 2)
+
+            // Human
+            "Hero" -> listOf(15, 15, 15, 15, 15, 15, 15)
+            "King's Guard" -> listOf(15, 20, 25, 5, 10, 5, 10)
+            "High Sage" -> listOf(5, 10, 10, 30, 10, 10, 25)
+            "Grand Commander" -> listOf(20, 20, 20, 10, 10, 10, 25)
+
+            // Elf
+            "High Elf" -> listOf(5, 10, 5, 35, 15, 15, 25)
+            "Spellblade" -> listOf(20, 15, 15, 25, 20, 10, 15)
+            "Forest Warden" -> listOf(15, 25, 20, 10, 20, 10, 20)
+
+            // Dwarf
+            "Mountain Thane" -> listOf(30, 25, 20, 5, 10, 5, 15)
+            "Runekeeper" -> listOf(15, 20, 20, 25, 5, 5, 30)
+            "Iron Guard" -> listOf(20, 35, 40, 2, 5, 2, 10)
+
+            // Gnome
+            "Clockwork Tinkerer" -> listOf(10, 10, 15, 30, 15, 20, 25)
+            "Arcane Inventor" -> listOf(5, 10, 10, 40, 10, 20, 30)
+            "Burrow Sentinel" -> listOf(15, 25, 30, 10, 10, 15, 15)
+
+            // Half-Elf
+            "Wanderer Spellblade" -> listOf(25, 15, 10, 25, 20, 10, 15)
+            "Urban Stalker" -> listOf(15, 10, 10, 10, 35, 25, 5)
+            "Diplomat" -> listOf(5, 10, 10, 20, 10, 25, 35)
+
+            // Half-Goblin
+            "Scrappy Scavenger" -> listOf(15, 15, 10, 10, 25, 45, 10)
+            "Tunnel Runner" -> listOf(10, 10, 10, 5, 45, 35, 5)
+            "Boom-Maker" -> listOf(10, 10, 5, 30, 15, 40, 10)
+
+            // Halfling
+            "Master Thief" -> listOf(10, 10, 5, 10, 35, 40, 5)
+            "Lucky Wanderer" -> listOf(10, 15, 10, 10, 25, 60, 10)
+            "Shire Protector" -> listOf(15, 20, 25, 5, 15, 20, 10)
+
+            // Half-Orc
+            "Tribal Warlord" -> listOf(35, 30, 20, 5, 15, 10, 10)
+            "Pit Fighter" -> listOf(40, 35, 15, 2, 20, 15, 2)
+
+            // Half-Giant
+            "Colossus" -> listOf(50, 45, 30, 2, 5, 5, 2)
+            "World Shaper" -> listOf(40, 40, 40, 20, 5, 5, 20)
+            
+            // Dragonkin
+            "Dragon Knight" -> listOf(25, 25, 20, 10, 10, 5, 5)
+            "Flame Breather" -> listOf(15, 15, 15, 30, 5, 5, 15)
+            "Scaled Vanguard" -> listOf(20, 35, 30, 5, 5, 5, 10)
+            "Wyrm Stalker" -> listOf(25, 15, 10, 5, 25, 15, 5)
+
+            // Dark Elf
+            "Shadow Stalker" -> listOf(15, 10, 5, 10, 25, 15, 10)
+            "Nightblade" -> listOf(25, 10, 10, 15, 30, 15, 5)
+            "Void Weaver" -> listOf(5, 10, 5, 35, 15, 10, 20)
+            "Obsidian Archer" -> listOf(20, 15, 10, 5, 25, 15, 10)
+
+            // Vampire
+            "Blood Mage" -> listOf(5, 35, 5, 30, 10, 10, 15)
+            "Night Stalker" -> listOf(20, 15, 10, 5, 35, 15, 10)
+            "Thrall Master" -> listOf(10, 20, 15, 25, 10, 15, 25)
+            "Dread Knight" -> listOf(35, 25, 20, 10, 5, 5, 10)
+
+            // Werewolf
+            "Pack Leader" -> listOf(25, 20, 15, 5, 15, 15, 20)
+            "Lunar Ravager" -> listOf(40, 25, 10, 5, 30, 10, 5)
+            "Feral Berserker" -> listOf(50, 30, 5, 2, 20, 5, 2)
+            "Moonlit Hunter" -> listOf(25, 15, 10, 5, 35, 20, 5)
+
+            // Beholder
+            "Eye Tyrant" -> listOf(5, 25, 25, 50, 10, 10, 45)
+            "Gaze Weaver" -> listOf(2, 15, 15, 60, 5, 10, 50)
+            "Arcane Sentinel" -> listOf(10, 35, 35, 40, 5, 5, 30)
+            "Reality Warper" -> listOf(5, 20, 20, 70, 15, 20, 60)
+
+            // Slime
+            "Slime Sage" -> listOf(10, 50, 30, 15, 15, 10, 15)
+            "Amorphous Tank" -> listOf(10, 70, 45, 2, 5, 5, 10)
+            "Corrosive Striker" -> listOf(35, 40, 20, 10, 20, 10, 5)
+            "Mimic Master" -> listOf(20, 35, 25, 20, 25, 30, 20)
+
+            // Fairy
+            "Enchanter" -> listOf(2, 10, 5, 40, 20, 25, 40)
+            "Pixie Trickster" -> listOf(5, 10, 5, 25, 40, 50, 20)
+            "Nature Guardian" -> listOf(15, 30, 25, 35, 15, 15, 35)
+            "Luminous Sprite" -> listOf(2, 10, 5, 55, 30, 20, 50)
+
+            // Ghost
+            "Ethereal Assassin" -> listOf(25, 10, 5, 10, 50, 30, 10)
+            "Soul Reaper" -> listOf(35, 15, 10, 30, 20, 15, 25)
+            "Haunting Spectre" -> listOf(5, 15, 10, 45, 35, 20, 40)
+            "Phantasm Lord" -> listOf(10, 20, 15, 55, 25, 25, 50)
+
+            // Cyborg
+            "Technomancer" -> listOf(15, 20, 30, 40, 10, 5, 20)
+            "Cyber Commando" -> listOf(40, 35, 35, 10, 20, 10, 5)
+            "Logic Core" -> listOf(5, 25, 40, 50, 10, 5, 50)
+            "Mecha Pilot" -> listOf(25, 45, 50, 15, 15, 10, 10)
+
+            // Demon
+            "Void Reaver" -> listOf(40, 30, 25, 40, 20, 10, 20)
+            "Abyssal Juggernaut" -> listOf(60, 50, 45, 10, 10, 5, 10)
+            "Hellfire Sorcerer" -> listOf(10, 25, 20, 70, 20, 15, 35)
+            "Chaos Bringer" -> listOf(50, 40, 30, 40, 25, 25, 10)
+
+            // Angel
+            "Seraph" -> listOf(25, 30, 30, 60, 20, 10, 50)
+            "Archangel" -> listOf(45, 40, 35, 50, 25, 15, 40)
+            "Divine Shield" -> listOf(30, 60, 70, 20, 10, 10, 45)
+            "Celestial Archer" -> listOf(35, 25, 20, 30, 55, 20, 25)
+
+            // Dracolich
+            "Death Knight" -> listOf(65, 55, 50, 40, 15, 10, 25)
+            "Bone Dragon" -> listOf(70, 70, 60, 20, 10, 5, 15)
+            "Necrotic Wyrm" -> listOf(40, 45, 40, 65, 25, 20, 50)
+            "Eternal Lich" -> listOf(15, 50, 40, 85, 20, 30, 70)
+
+            // Royal Demon
+            "Infernal Overlord" -> listOf(85, 75, 65, 85, 45, 25, 40)
+            "Hell King" -> listOf(100, 80, 70, 60, 40, 30, 30)
+            "Demon Prince" -> listOf(75, 70, 60, 95, 55, 40, 55)
+            "Archduke of Ruin" -> listOf(90, 85, 80, 75, 30, 20, 60)
+
+            // Shadow Monarch
+            "Monarch of Shadows" -> listOf(70, 60, 40, 90, 120, 60, 70)
+            "Shadow Sovereign" -> listOf(90, 75, 55, 80, 100, 50, 60)
+            "Lord of Darkness" -> listOf(60, 70, 60, 110, 90, 70, 100)
+            "Umbral Conqueror" -> listOf(110, 85, 70, 60, 80, 40, 50)
+
+            // Titan
+            "World Breaker" -> listOf(120, 100, 90, 10, 10, 10, 20)
+            "Earth Shaper" -> listOf(70, 90, 80, 80, 20, 20, 70)
+            "Colossal Guardian" -> listOf(80, 130, 120, 20, 10, 10, 50)
+            "Mountain King" -> listOf(105, 110, 100, 30, 25, 25, 40)
+
+            // Void Sovereign
+            "Void Walker" -> listOf(60, 70, 60, 120, 80, 70, 120)
+            "Rift Master" -> listOf(40, 60, 50, 140, 90, 80, 130)
+            "Singularity Lord" -> listOf(100, 80, 70, 110, 60, 50, 100)
+            "Cosmic Devourer" -> listOf(80, 100, 90, 100, 70, 90, 110)
+
+            // Elder Dragon
+            "Dragon Lord" -> listOf(130, 120, 90, 60, 50, 30, 50)
+            "Ancient Wyrm" -> listOf(100, 110, 100, 90, 40, 25, 70)
+            "Sky Emperor" -> listOf(90, 90, 80, 100, 110, 60, 80)
+            "Primal Guardian" -> listOf(110, 140, 110, 40, 35, 30, 60)
+
+            // Nephilim
+            "Arbiter" -> listOf(85, 85, 85, 85, 85, 85, 85)
+            "Divine Hybrid" -> listOf(95, 80, 75, 95, 85, 80, 90)
+            "Chaos Balancer" -> listOf(90, 90, 90, 90, 90, 90, 90)
+            "Nephilim Vanguard" -> listOf(110, 100, 100, 70, 70, 60, 70)
+            
             else -> listOf(14, 12, 10, 4, 8, 6, 6) // Warrior
         }
     }
+
 }

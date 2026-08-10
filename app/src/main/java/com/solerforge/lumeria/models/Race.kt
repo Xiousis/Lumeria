@@ -16,6 +16,10 @@ data class Race(
     val description: String,
     val rarity: RaceRarity,
     val rollChance: Double, // Percentage (0.0 to 100.0)
+    val isMonster: Boolean = false,
+    val canWearGear: Boolean = true,
+    val canUsePotions: Boolean = true,
+    val canHavePets: Boolean = true,
     val strBonus: Int = 0,
     val vitBonus: Int = 0,
     val defBonus: Int = 0,

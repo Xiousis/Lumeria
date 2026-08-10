@@ -16,6 +16,7 @@ data class Guild(
     val description: String = "A new guild in Lumeria.",
     val createdAt: Long = System.currentTimeMillis(),
     val isPublic: Boolean = true,
+    val isMonsterGuild: Boolean = false,
     val trophies: List<String> = emptyList(),
     val warRating: Int = 1000,
     val warWins: Int = 0,

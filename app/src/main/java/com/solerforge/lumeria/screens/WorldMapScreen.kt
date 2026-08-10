@@ -67,7 +67,12 @@ fun WorldMapScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                val visibleLocations = if (playerData.isReborn) {
+                val race = com.solerforge.lumeria.database.RaceDatabase.getRace(playerData.playerRace)
+                val isMonster = playerData.isReborn && race.isMonster
+
+                val visibleLocations = if (isMonster) {
+                    com.solerforge.lumeria.database.MonsterWorldDatabase.locations
+                } else if (playerData.isReborn) {
                     WorldDatabase.legacyLocations
                 } else {
                     WorldDatabase.locations.filter { !it.isLegacyOnly }

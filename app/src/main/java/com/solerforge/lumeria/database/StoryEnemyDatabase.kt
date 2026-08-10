@@ -26,6 +26,17 @@ object StoryEnemyDatabase {
         "Inquisition Guard" to Enemy("Inquisition Guard", "Inquisition Guard", 1300000, 115, rewardXp = 1000000, rewardGold = 400000),
         "Rift Spawn" to Enemy("Rift Spawn", "Rift Spawn", 1800000, 120, rewardXp = 1500000, rewardGold = 500000),
         "Void Horror" to Enemy("Void Horror", "Void Horror", 2500000, 125, rewardXp = 2000000, rewardGold = 750000),
+        
+        // HERO KINGDOM ENEMIES (For Monster Side)
+        "Scared Villager" to Enemy("Scared Villager", "Scared Villager", 100, 1, rewardXp = 50, rewardGold = 200, isHumanoid = true),
+        "Drunkard" to Enemy("Drunkard", "Drunkard", 150, 2, rewardXp = 80, rewardGold = 300, isHumanoid = true),
+        "City Guard Trainee" to Enemy("City Guard Trainee", "City Guard Trainee", 500, 5, rewardXp = 300, rewardGold = 500, isHumanoid = true),
+        "Ironclad Guard" to Enemy("Ironclad Guard", "Ironclad Guard", 2500, 25, rewardXp = 2000, rewardGold = 1500, isHumanoid = true),
+        "Royal Sword-Master" to Enemy("Royal Sword-Master", "Royal Sword-Master", 8000, 45, rewardXp = 6000, rewardGold = 3500, isHumanoid = true),
+        "Templar Knight" to Enemy("Templar Knight", "Templar Knight", 25000, 65, rewardXp = 15000, rewardGold = 8000, isHumanoid = true),
+        "Elite Paladin" to Enemy("Elite Paladin", "Elite Paladin", 75000, 85, rewardXp = 50000, rewardGold = 20000, isHumanoid = true),
+        "Royal Guard Captain" to Enemy("Royal Guard Captain", "Royal Guard Captain", 150000, 105, rewardXp = 100000, rewardGold = 45000, isHumanoid = true),
+
         // SIDE STORY ENEMIES
         "Tribal Scout" to Enemy("Tribal Scout", "Tribal Scout", 1000, 10, rewardXp = 500, rewardGold = 500),
         "Tribal Warrior" to Enemy("Tribal Warrior", "Tribal Warrior", 3500, 20, rewardXp = 1500, rewardGold = 1000),

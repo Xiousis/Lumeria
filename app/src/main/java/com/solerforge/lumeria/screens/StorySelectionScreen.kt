@@ -120,9 +120,28 @@ fun StorySelectionScreen(
                 modifier = Modifier.weight(1f).fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
+                val race = com.solerforge.lumeria.database.RaceDatabase.getRace(playerData.playerRace)
+                val isMonster = playerData.isReborn && race.isMonster
+                
                 val arcs = when (selectedTab) {
-                    "Main" -> if (playerData.isReborn) com.solerforge.lumeria.database.LegacyStoryDatabase.mainArcs else StoryDatabase.arcs.filter { it.id <= 20 }
-                    "Side" -> if (playerData.isReborn) com.solerforge.lumeria.database.LegacyStoryDatabase.sideArcs else com.solerforge.lumeria.database.SideStoryDatabase.allArcs
+                    "Main" -> {
+                        if (isMonster) {
+                            com.solerforge.lumeria.database.MonsterStoryDatabase.mainArcs
+                        } else if (playerData.isReborn) {
+                            com.solerforge.lumeria.database.LegacyStoryDatabase.mainArcs
+                        } else {
+                            StoryDatabase.arcs.filter { it.id <= 20 }
+                        }
+                    }
+                    "Side" -> {
+                        if (isMonster) {
+                            com.solerforge.lumeria.database.MonsterStoryDatabase.sideArcs
+                        } else if (playerData.isReborn) {
+                            com.solerforge.lumeria.database.LegacyStoryDatabase.sideArcs
+                        } else {
+                            com.solerforge.lumeria.database.SideStoryDatabase.allArcs
+                        }
+                    }
                     "Secret" -> com.solerforge.lumeria.database.SecretBossDatabase.secretArcs
                     "Legacy" -> StoryDatabase.arcs.filter { it.id > 20 && it.id < 1000 } // Old archive
                     else -> emptyList()

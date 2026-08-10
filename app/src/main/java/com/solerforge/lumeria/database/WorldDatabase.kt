@@ -265,6 +265,34 @@ object WorldDatabase {
             y = 0.0f,
             requiredLevel = 195,
             isLegacyOnly = true
+        ),
+        WorldLocation(
+            name = "Demonic Abyss",
+            description = "A bottomless pit of pure evil.",
+            levelRange = "Lv 100-150",
+            minLevel = 100,
+            maxLevel = 150,
+            enemies = listOf("Lesser Demon", "Abyssal Imp", "Hellhound", "Shadow Fiend", "Brimstone Golem", "Void Horror", "Chaos Spawn", "Demon Warrior"),
+            boss = "Abyssal Lord",
+            bossUnlocked = true,
+            x = 0.1f,
+            y = 0.1f,
+            requiredLevel = 100,
+            isLegacyOnly = true
+        ),
+        WorldLocation(
+            name = "The Underworld",
+            description = "The realm of the dead.",
+            levelRange = "Lv 151-200",
+            minLevel = 151,
+            maxLevel = 200,
+            enemies = listOf("Skeleton Knight", "Wraith", "Lich Apprentice", "Ghostly Dragon", "Death Weaver", "Soul Eater", "Underworld Cerberus", "Ethereal Horror"),
+            boss = "Hades' Shadow",
+            bossUnlocked = true,
+            x = 0.9f,
+            y = 0.9f,
+            requiredLevel = 150,
+            isLegacyOnly = true
         )
     )
 
@@ -277,7 +305,7 @@ object WorldDatabase {
             "Wind Exam" to WorldLocation("Wind Exam", "Trial of the House of Wind.", "Lv 1-100", 1, 100, emptyList(), "", x=0f, y=0f, requiredLevel = 1),
             "The Eternal Realm" to WorldLocation("The Eternal Realm", "A place beyond time.", "Lv 100", 100, 100, emptyList(), "", x=0f, y=0f, requiredLevel = 100)
         )
-        return (locations + legacyLocations).find { it.name == name }
+        return (locations + legacyLocations + MonsterWorldDatabase.locations).find { it.name == name }
             ?: virtualLocations[name]
             ?: error("Unknown location: $name")
     }

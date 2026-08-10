@@ -8,24 +8,21 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.unit.dp
 import com.solerforge.lumeria.MainViewModel
 import com.solerforge.lumeria.R
 import com.solerforge.lumeria.battle.BattleScreen
 import com.solerforge.lumeria.battle.BattleViewModel
-import com.solerforge.lumeria.battle.HapticType
 import com.solerforge.lumeria.models.Screen
 import com.solerforge.lumeria.screens.*
 import com.solerforge.lumeria.viewmodels.*
-import com.solerforge.lumeria.components.DonationDialog
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.platform.LocalContext
-import android.app.Activity
-import com.solerforge.lumeria.database.GuildDatabase
+import com.solerforge.lumeria.components.DonationDialog
+import android.annotation.SuppressLint
 
 @Composable
 fun AppNavigation(
@@ -35,8 +32,8 @@ fun AppNavigation(
     adventureViewModel: AdventureViewModel,
     billingViewModel: BillingViewModel,
     guildViewModel: GuildViewModel,
-    contentPadding: PaddingValues,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    contentPadding: PaddingValues = PaddingValues(0.dp)
 ) {
     val playerData by mainViewModel.playerData.collectAsState()
     val slot1Data by mainViewModel.slot1Data.collectAsState()
@@ -45,6 +42,7 @@ fun AppNavigation(
     var showDonationDialog by remember { mutableStateOf(false) }
     val context = LocalContext.current
 
+    @SuppressLint("HardwareIds")
     LaunchedEffect(Unit) {
         val deviceId = android.provider.Settings.Secure.getString(context.contentResolver, android.provider.Settings.Secure.ANDROID_ID)
         if (deviceId != null) {
@@ -52,7 +50,7 @@ fun AppNavigation(
         }
     }
 
-    Box(modifier = modifier) {
+    Box(modifier = modifier.padding(contentPadding)) {
         AnimatedContent(
             targetState = mainViewModel.currentScreen,
             transitionSpec = {
@@ -93,22 +91,22 @@ fun AppNavigation(
                         onInventory = { mainViewModel.navigateTo(Screen.Inventory) },
                         onQuests = { mainViewModel.navigateTo(Screen.Quests) },
                         onStats = { mainViewModel.navigateTo(Screen.Stats) },
-                        onElder = { mainViewModel.navigateTo(Screen.ElderRitual) },
+                        onElder = { mainViewModel.navigateFactionAware(Screen.ElderRitual, Screen.TheAncientOne) },
                         onInn = { mainViewModel.onEnterInn() },
-                        onGambling = { mainViewModel.navigateTo(Screen.GamblingHouse) },
+                        onGambling = { mainViewModel.navigateFactionAware(Screen.GamblingHouse, Screen.DenOfDeceit) },
                         onJournal = { mainViewModel.navigateTo(Screen.StoryJournal) },
                         onBestiary = { mainViewModel.navigateTo(Screen.Bestiary) },
                         onArena = { mainViewModel.navigateTo(Screen.ArenaSelection) },
                         onBlacksmith = { mainViewModel.onEnterForge() },
-                        onBank = { mainViewModel.navigateTo(Screen.Bank) },
+                        onBank = { mainViewModel.navigateFactionAware(Screen.Bank, Screen.TheHoard) },
                         onBounty = { mainViewModel.navigateTo(Screen.BountyBoard) },
-                        onKingdom = { mainViewModel.navigateTo(Screen.Kingdom) },
-                        onGuild = { mainViewModel.navigateTo(Screen.Guild) },
+                        onKingdom = { mainViewModel.navigateFactionAware(Screen.Kingdom, Screen.OverlordsThrone) },
+                        onGuild = { mainViewModel.navigateFactionAware(Screen.Guild, Screen.TheSyndicate) },
                         onTower = { mainViewModel.navigateTo(Screen.Tower) },
                         onTrophyRoom = { mainViewModel.navigateTo(Screen.TrophyRoom) },
                         onCodex = { mainViewModel.navigateTo(Screen.Codex) },
-                        onFishing = { mainViewModel.navigateTo(Screen.Fishing) },
-                        onFamiliarStore = { mainViewModel.navigateTo(Screen.FamiliarStore) },
+                        onFishing = { mainViewModel.navigateFactionAware(Screen.Fishing, Screen.AbyssalLake) },
+                        onFamiliarStore = { mainViewModel.navigateFactionAware(Screen.FamiliarStore, Screen.BeastPen) },
                         onWorldChat = { mainViewModel.navigateTo(Screen.WorldChat) },
                         onLeaderboard = { mainViewModel.navigateTo(Screen.Leaderboard) },
                         onSettings = { mainViewModel.navigateTo(Screen.Settings) },
@@ -182,6 +180,115 @@ fun AppNavigation(
                     )
 
                     Screen.Shop -> ShopScreen(
+                        playerData = playerData,
+                        onPlayerUpdate = { mainViewModel.updatePlayer(it) },
+                        onReturn = { mainViewModel.popBackstack() }
+                    )
+
+                    Screen.BlackMarket -> ShopScreen(
+                        playerData = playerData,
+                        isMonsterMode = true,
+                        onPlayerUpdate = { mainViewModel.updatePlayer(it) },
+                        onReturn = { mainViewModel.popBackstack() }
+                    )
+
+                    Screen.Inn -> InnScreen(
+                        playerData = playerData,
+                        onPlayerUpdate = { mainViewModel.updatePlayer(it) },
+                        onReturn = { mainViewModel.popBackstack() }
+                    )
+
+                    Screen.TheLair -> InnScreen(
+                        playerData = playerData,
+                        isMonsterMode = true,
+                        onPlayerUpdate = { mainViewModel.updatePlayer(it) },
+                        onReturn = { mainViewModel.popBackstack() }
+                    )
+
+                    Screen.ElderRitual -> ElderRitualScreen(
+                        playerData = playerData,
+                        onPlayerUpdate = { mainViewModel.updatePlayer(it) },
+                        onReturn = { mainViewModel.popBackstack() }
+                    )
+
+                    Screen.TheAncientOne -> ElderRitualScreen(
+                        playerData = playerData,
+                        isMonsterMode = true,
+                        onPlayerUpdate = { mainViewModel.updatePlayer(it) },
+                        onReturn = { mainViewModel.popBackstack() }
+                    )
+
+                    Screen.GamblingHouse -> GamblingHouseScreen(
+                        playerData = playerData,
+                        onPlayerUpdate = { mainViewModel.updatePlayer(it) },
+                        onReturn = { mainViewModel.popBackstack() }
+                    )
+
+                    Screen.DenOfDeceit -> GamblingHouseScreen(
+                        playerData = playerData,
+                        onPlayerUpdate = { mainViewModel.updatePlayer(it) },
+                        onReturn = { mainViewModel.popBackstack() }
+                    )
+
+                    Screen.Bank, Screen.TheHoard -> BankScreen(
+                        playerData = playerData,
+                        onDeposit = { amount -> economyViewModel.deposit(amount, playerData) { newData -> mainViewModel.updatePlayer(newData) } },
+                        onWithdraw = { amount -> economyViewModel.withdraw(amount, playerData) { newData -> mainViewModel.updatePlayer(newData) } },
+                        onReturn = { mainViewModel.popBackstack() }
+                    )
+
+                    Screen.Kingdom, Screen.OverlordsThrone -> KingdomScreen(
+                        playerData = playerData,
+                        onUpgradeNation = { kingdomViewModel.upgradeNation(playerData) { newData -> mainViewModel.updatePlayer(newData) } },
+                        onClaimReward = { rankId -> kingdomViewModel.claimRankReward(rankId, playerData) { newData -> mainViewModel.updatePlayer(newData) } },
+                        onProclamations = { mainViewModel.navigateTo(Screen.KingdomLaws) },
+                        onReturn = { mainViewModel.popBackstack() }
+                    )
+
+                    Screen.Guild, Screen.TheSyndicate -> GuildScreen(
+                        playerData = playerData,
+                        guildViewModel = guildViewModel,
+                        deviceIdFlow = mainViewModel.deviceId,
+                        onPlayerUpdate = { mainViewModel.updatePlayer(it) },
+                        onNavigateToIntro = { mainViewModel.navigateTo(Screen.GuildIntro) },
+                        onStartExam = { exam -> mainViewModel.onStartGuildExam(exam) },
+                        onReturn = { mainViewModel.popBackstack() }
+                    )
+
+                    Screen.Fishing, Screen.AbyssalLake -> FishingScreen(
+                        playerData = playerData,
+                        onFishCaught = { mainViewModel.onFishCaught(it) },
+                        onReturn = { mainViewModel.popBackstack() }
+                    )
+
+                    Screen.FamiliarStore, Screen.BeastPen -> FamiliarStoreScreen(
+                        playerData = playerData,
+                        onPlayerUpdate = { mainViewModel.updatePlayer(it) },
+                        onReturn = { mainViewModel.popBackstack() }
+                    )
+
+                    Screen.BlackMarketIntro -> LocationIntroScreen(
+                        title = "The Black Market",
+                        history = "In the dark corners of the new world, the Black Market thrives. Forbidden artifacts and soul-bound gear are traded here for gold and blood. Billy's reach does not extend to these shadows. Here, only the strong or the cunning survive the transaction.",
+                        backgroundId = R.drawable.dark_citadel_bg,
+                        onContinue = { mainViewModel.onCompleteBillyIntro() }
+                    )
+
+                    Screen.LairIntro -> LocationIntroScreen(
+                        title = "The Lair",
+                        history = "A sanctuary for those whom the light has forsaken. Deep within the earth, ancient ley lines converge to provide a place of rest and regeneration for monster-kind. It is silent, cold, and perfect for restoring your dark essence.",
+                        backgroundId = R.drawable.lord_umbra,
+                        onContinue = { mainViewModel.onCompleteInnIntro() }
+                    )
+
+                    Screen.ArmoryIntro -> LocationIntroScreen(
+                        title = "The Armory",
+                        history = "Where monsters go to sharpen their claws. The Armory uses primitive but effective techniques to reinforce natural armor and weaponize raw mana. Kazufi's forge is too refined for the requirements of a true beast.",
+                        backgroundId = R.drawable.tower_final_floor_bg,
+                        onContinue = { mainViewModel.onCompleteForgeIntro() }
+                    )
+
+                    Screen.Blacksmith, Screen.TheArmory -> BlacksmithScreen(
                         playerData = playerData,
                         onPlayerUpdate = { mainViewModel.updatePlayer(it) },
                         onReturn = { mainViewModel.popBackstack() }
@@ -281,64 +388,15 @@ fun AppNavigation(
                         )
                     }
 
-                    Screen.Blacksmith -> BlacksmithScreen(
-                        playerData = playerData,
-                        onPlayerUpdate = { mainViewModel.updatePlayer(it) },
-                        onReturn = { mainViewModel.popBackstack() }
-                    )
-
-                    Screen.Bank -> BankScreen(
-                        playerData = playerData,
-                        onDeposit = { amount -> economyViewModel.deposit(amount, playerData, { newData -> mainViewModel.updatePlayer(newData) }) },
-                        onWithdraw = { amount -> economyViewModel.withdraw(amount, playerData, { newData -> mainViewModel.updatePlayer(newData) }) },
-                        onReturn = { mainViewModel.popBackstack() }
-                    )
-
                     Screen.BountyBoard -> BountyBoardScreen(
                         playerData = playerData,
                         onAcceptBounty = { mainViewModel.onAcceptBounty(it) },
                         onReturn = { mainViewModel.popBackstack() }
                     )
 
-                    Screen.Kingdom -> KingdomScreen(
-                        playerData = playerData,
-                        onUpgradeNation = { kingdomViewModel.upgradeNation(playerData, { newData -> mainViewModel.updatePlayer(newData) }) },
-                        onClaimReward = { rankId -> kingdomViewModel.claimRankReward(rankId, playerData, { newData -> mainViewModel.updatePlayer(newData) }) },
-                        onProclamations = { mainViewModel.navigateTo(Screen.KingdomLaws) },
-                        onReturn = { mainViewModel.popBackstack() }
-                    )
-
                     Screen.KingdomLaws -> KingdomLawsScreen(
                         playerData = playerData,
-                        onSelectLaw = { lawId -> kingdomViewModel.selectKingdomLaw(lawId, playerData, { newData -> mainViewModel.updatePlayer(newData) }) },
-                        onReturn = { mainViewModel.popBackstack() }
-                    )
-
-                    Screen.Guild -> GuildScreen(
-                        playerData = playerData,
-                        guildViewModel = guildViewModel,
-                        deviceIdFlow = mainViewModel.deviceId,
-                        onPlayerUpdate = { mainViewModel.updatePlayer(it) },
-                        onNavigateToIntro = { mainViewModel.navigateTo(Screen.GuildIntro) },
-                        onStartExam = { exam -> mainViewModel.onStartGuildExam(exam) },
-                        onReturn = { mainViewModel.popBackstack() }
-                    )
-
-                    Screen.ElderRitual -> ElderRitualScreen(
-                        playerData = playerData,
-                        onPlayerUpdate = { mainViewModel.updatePlayer(it) },
-                        onReturn = { mainViewModel.popBackstack() }
-                    )
-
-                    Screen.Inn -> InnScreen(
-                        playerData = playerData,
-                        onPlayerUpdate = { mainViewModel.updatePlayer(it) },
-                        onReturn = { mainViewModel.popBackstack() }
-                    )
-
-                    Screen.GamblingHouse -> GamblingHouseScreen(
-                        playerData = playerData,
-                        onPlayerUpdate = { mainViewModel.updatePlayer(it) },
+                        onSelectLaw = { lawId -> kingdomViewModel.selectKingdomLaw(lawId, playerData) { newData -> mainViewModel.updatePlayer(newData) } },
                         onReturn = { mainViewModel.popBackstack() }
                     )
 
@@ -391,18 +449,6 @@ fun AppNavigation(
                         onReturn = { mainViewModel.popBackstack() }
                     )
 
-                    Screen.Fishing -> FishingScreen(
-                        playerData = playerData,
-                        onFishCaught = { mainViewModel.onFishCaught(it) },
-                        onReturn = { mainViewModel.popBackstack() }
-                    )
-
-                    Screen.FamiliarStore -> FamiliarStoreScreen(
-                        playerData = playerData,
-                        onPlayerUpdate = { mainViewModel.updatePlayer(it) },
-                        onReturn = { mainViewModel.popBackstack() }
-                    )
-
                     Screen.Codex -> LumeriaCodexScreen(
                         onReturn = { mainViewModel.popBackstack() }
                     )
@@ -449,6 +495,8 @@ fun AppNavigation(
                             buttonText = "CONFIRM REBIRTH",
                             nameAvailability = nameAvailability,
                             isIdentityReady = deviceId != null,
+                            rebirthError = mainViewModel.rebirthError,
+                            onClearError = { mainViewModel.clearRebirthError() },
                             onCheckName = { mainViewModel.checkNameAvailability(it) },
                             onConfirm = { name, gender, className, raceName -> 
                                 mainViewModel.onPerformRebirth(name, gender, className, raceName)
@@ -462,6 +510,10 @@ fun AppNavigation(
                         onContinue = { mainViewModel.replaceWith(Screen.GameMenu) }
                     )
 
+                    Screen.Raid -> RaidScreen(
+                        onReturn = { mainViewModel.popBackstack() }
+                    )
+
                     Screen.WorldChat -> WorldChatScreen(
                         playerData = playerData,
                         onReturn = { mainViewModel.popBackstack() }
@@ -470,21 +522,16 @@ fun AppNavigation(
                     Screen.Leaderboard -> {
                         val globalRankings by mainViewModel.leaderboardGlobal.collectAsState()
                         val pvpRankings by mainViewModel.leaderboardPvP.collectAsState()
-                        val isLoading by mainViewModel.isLeaderboardLoading.collectAsState()
-                        
+                        val isLeaderboardLoading by mainViewModel.isLeaderboardLoading.collectAsState()
                         LaunchedEffect(Unit) { mainViewModel.fetchLeaderboards() }
-                        
+
                         LeaderboardScreen(
                             globalRankings = globalRankings,
                             pvpRankings = pvpRankings,
-                            isLoading = isLoading,
+                            isLoading = isLeaderboardLoading,
                             onReturn = { mainViewModel.popBackstack() }
                         )
                     }
-
-                    Screen.Raid -> RaidScreen(
-                        onReturn = { mainViewModel.popBackstack() }
-                    )
                 }
             }
         }

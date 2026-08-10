@@ -40,6 +40,7 @@ import com.solerforge.lumeria.utils.RarityUtils
 fun ElderRitualScreen(
     modifier: Modifier = Modifier,
     playerData: PlayerData,
+    isMonsterMode: Boolean = false,
     onPlayerUpdate: (PlayerData) -> Unit,
     onReturn: () -> Unit
 ) {
@@ -131,7 +132,9 @@ fun ElderRitualScreen(
 
                         Spacer(modifier = Modifier.height(12.dp))
 
-                        val elderDialogue = if (playerData.freeWishesUsed < 3) {
+                        val elderDialogue = if (isMonsterMode) {
+                            "\"The primeval essence flows through you. What form will you take, spawn?\""
+                        } else if (playerData.freeWishesUsed < 3) {
                             "\"The first 3 wishes are on me, after that you gotta pay this old man.\""
                         } else {
                             "\"What do you seek, cub? Rebirth of your spirit, or a wish upon the ancient stars?\""
@@ -154,10 +157,10 @@ fun ElderRitualScreen(
                                 )
                                 onPlayerUpdate(resetPlayer)
                             },
-                            enabled = canAffordRespec && hasSpentPoints,
+                            enabled = canAffordRespec && hasSpentPoints && !isMonsterMode,
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            Text("Ritual of Rebirth (${CurrencyUtils.formatGold(respecCost)})")
+                            Text(if (isMonsterMode) "Restricted to Heroes" else "Ritual of Rebirth (${CurrencyUtils.formatGold(respecCost)})")
                         }
 
                         Spacer(modifier = Modifier.height(12.dp))
@@ -190,12 +193,15 @@ fun ElderRitualScreen(
                                     performWish()
                                 }
                             },
-                            enabled = canAffordWish,
+                            enabled = canAffordWish && !isMonsterMode,
                             modifier = Modifier.fillMaxWidth(),
-                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFD600))
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = if (isMonsterMode) Color.DarkGray else Color(0xFFFFD600)
+                            )
                         ) {
                             val costText = if (wishCost == 0) "FREE" else CurrencyUtils.formatGold(wishCost)
-                            Text("Make a Wish ($costText)", color = Color.Black, fontWeight = FontWeight.Bold)
+                            val buttonText = if (isMonsterMode) "Monsters Cannot Wish" else "Make a Wish ($costText)"
+                            Text(buttonText, color = if (isMonsterMode) Color.Gray else Color.Black, fontWeight = FontWeight.Bold)
                         }
 
                         // RE-ROLL SELECTED ACTION
@@ -226,12 +232,14 @@ fun ElderRitualScreen(
                                             performSingleReroll()
                                         }
                                     },
-                                    enabled = canAffordWish,
+                                    enabled = canAffordWish && !isMonsterMode,
                                     modifier = Modifier.fillMaxWidth(),
-                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00E5FF))
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = if (isMonsterMode) Color.DarkGray else Color(0xFF00E5FF)
+                                    )
                                 ) {
                                     val costText = if (wishCost == 0) "FREE" else CurrencyUtils.formatGold(wishCost)
-                                    Text("Re-roll ${currentTrait.name} ($costText)", color = Color.Black, fontWeight = FontWeight.Bold)
+                                    Text("Re-roll ${currentTrait.name} ($costText)", color = if (isMonsterMode) Color.Gray else Color.Black, fontWeight = FontWeight.Bold)
                                 }
                             }
                         }

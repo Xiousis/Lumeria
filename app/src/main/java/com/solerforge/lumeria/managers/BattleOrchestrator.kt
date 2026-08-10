@@ -115,7 +115,16 @@ class BattleOrchestrator(
 
     private fun checkSpawnVoidIncursion(current: PlayerData): PlayerData {
         if ((current.voidIncursionLocation == null) && (Math.random() < 0.15)) {
-            val potentialLocations = (if (current.isReborn) WorldDatabase.legacyLocations else WorldDatabase.locations).filter { 
+            val race = RaceDatabase.getRace(current.playerRace)
+            val isMonster = current.isReborn && race.isMonster
+            
+            val potentialLocations = if (isMonster) {
+                MonsterWorldDatabase.locations
+            } else if (current.isReborn) {
+                WorldDatabase.legacyLocations
+            } else {
+                WorldDatabase.locations
+            }.filter { 
                 it.name != current.currentLocation && 
                 (current.level >= it.requiredLevel || current.unlockedLocations.contains(it.name)) 
             }

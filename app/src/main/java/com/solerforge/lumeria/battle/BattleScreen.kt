@@ -19,6 +19,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.res.stringResource
@@ -566,6 +567,8 @@ fun BattleScreen(
                         .clickable(enabled = false) {},
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
+                    val race = com.solerforge.lumeria.database.RaceDatabase.getRace(playerData.playerRace)
+                    
                     Text(stringResource(R.string.battle_items_title), color = Color.Cyan, style = MaterialTheme.typography.titleMedium)
                     Spacer(modifier = Modifier.height(12.dp))
 
@@ -573,7 +576,14 @@ fun BattleScreen(
                         it.contains("Potion") || it.contains("Elixir") || it.contains("Vial") 
                     }.groupingBy { it }.eachCount()
 
-                    if (consumables.isEmpty()) {
+                    if (!race.canUsePotions) {
+                         Text(
+                            text = "Monsters cannot use human consumables. You rely on your natural strength.",
+                            color = Color.Red,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.padding(16.dp)
+                        )
+                    } else if (consumables.isEmpty()) {
                         Text(stringResource(R.string.battle_no_items), color = Color.Gray, modifier = Modifier.padding(16.dp))
                     } else {
                         LazyColumn(modifier = Modifier.heightIn(max = 300.dp)) {

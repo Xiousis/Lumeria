@@ -31,7 +31,15 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import com.solerforge.lumeria.R
+import com.solerforge.lumeria.components.RpgButton
 import com.solerforge.lumeria.data.PlayerData
 import com.solerforge.lumeria.data.PlayerDataRepository
 import com.solerforge.lumeria.data.SaveStatus
@@ -50,6 +58,7 @@ fun MainMenu(
     onSettings: () -> Unit,
 ) {
     val context = LocalContext.current
+    var showNewGameConfirm by remember { mutableStateOf(false) }
     
     LaunchedEffect(activePlayerData.isReborn) {
         val theme = if (activePlayerData.isReborn) R.raw.echoes_of_lumeria_title else R.raw.lumeria_main_menu_theme
@@ -96,7 +105,19 @@ fun MainMenu(
                     .height(100.dp) // Smaller layout height to bring them closer
                     .graphicsLayer(scaleX = 1.5f, scaleY = 1.5f) // Keeping the visual size big
                     .offset(y = 20.dp) // Pushing lower
-                    .clickable { onNewGame() },
+                    .clickable {
+                        val currentResult = when (activeSlot) {
+                            1 -> slot1Data
+                            2 -> slot2Data
+                            3 -> slot3Data
+                            else -> slot1Data
+                        }
+                        if (currentResult.status != SaveStatus.Empty) {
+                            showNewGameConfirm = true
+                        } else {
+                            onNewGame()
+                        }
+                    },
                 contentScale = ContentScale.Fit
             )
 
@@ -120,6 +141,26 @@ fun MainMenu(
                     .graphicsLayer(scaleX = 1.5f, scaleY = 1.5f)
                     .clickable { onSettings() },
                 contentScale = ContentScale.Fit
+            )
+        }
+
+        if (showNewGameConfirm) {
+            AlertDialog(
+                onDismissRequest = { showNewGameConfirm = false },
+                title = { Text("Overwrite Save?", color = Color.White, fontWeight = FontWeight.Black) },
+                text = { Text("Slot $activeSlot contains existing progress. Starting a new game will permanently delete this data. Are you sure?", color = Color.LightGray) },
+                confirmButton = {
+                    RpgButton(text = "Confirm", onClick = {
+                        showNewGameConfirm = false
+                        onNewGame()
+                    }, modifier = Modifier.width(120.dp))
+                },
+                dismissButton = {
+                    TextButton(onClick = { showNewGameConfirm = false }) {
+                        Text("Cancel", color = Color.Gray)
+                    }
+                },
+                containerColor = Color(0xFF1E293B)
             )
         }
     }

@@ -66,6 +66,7 @@ enum class ShopCategory(val displayName: String) {
 fun ShopScreen(
     modifier: Modifier = Modifier,
     playerData: PlayerData,
+    isMonsterMode: Boolean = false,
     onPlayerUpdate: (PlayerData) -> Unit,
     onReturn: () -> Unit,
 ) {
@@ -75,6 +76,9 @@ fun ShopScreen(
     val consumableAmounts = remember { mutableStateMapOf<String, Int>() }
     var pendingEquipItem by remember { mutableStateOf<String?>(null) }
     val context = LocalContext.current
+    
+    val race = com.solerforge.lumeria.database.RaceDatabase.getRace(playerData.playerRace)
+    val canWearGear = !playerData.isReborn || race.canWearGear
 
     // Helper to check if location is unlocked
     val isLocationUnlocked = remember(shopSnapshot) {
@@ -86,13 +90,17 @@ fun ShopScreen(
     }
     
     LaunchedEffect(Unit) {
-        MusicManager.playMusic(context, R.raw.billys_general_store_theme)
+        if (isMonsterMode) {
+            MusicManager.playMusic(context, R.raw.dark_citadel_battle_theme) // Darker theme
+        } else {
+            MusicManager.playMusic(context, R.raw.billys_general_store_theme)
+        }
     }
 
     Box(modifier = modifier.fillMaxSize()) {
         Image(
-            painter = painterResource(id = R.drawable.billys_store_bg),
-            contentDescription = "Billy's Store Background",
+            painter = painterResource(id = if (isMonsterMode) R.drawable.dark_citadel_bg else R.drawable.billys_store_bg),
+            contentDescription = "Shop Background",
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Crop,
         )
@@ -123,9 +131,9 @@ fun ShopScreen(
             )
 
             Text(
-                text = "Billy's General Store",
+                text = if (isMonsterMode) "THE BLACK MARKET" else "Billy's General Store",
                 style = MaterialTheme.typography.headlineMedium,
-                color = Color.White,
+                color = if (isMonsterMode) Color(0xFFA855F7) else Color.White,
                 fontWeight = FontWeight.Black,
                 modifier = Modifier.padding(top = 8.dp, bottom = 4.dp),
             )
@@ -189,6 +197,8 @@ fun ShopScreen(
                     horizontalArrangement = Arrangement.SpaceEvenly,
                 ) {
                     ShopCategory.entries.forEach { tab ->
+                        if (tab == ShopCategory.ITEMS && !race.canUsePotions) return@forEach
+                        
                         val isSelected = buyTab == tab
                         Box(
                             modifier = Modifier
@@ -222,6 +232,25 @@ fun ShopScreen(
                 Spacer(modifier = Modifier.height(8.dp))
             }
 
+            if (!canWearGear && mainTab == "Buy" && (buyTab == ShopCategory.COMBAT || buyTab == ShopCategory.APPAREL)) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                        .background(Color.Red.copy(alpha = 0.2f), RoundedCornerShape(8.dp))
+                        .border(1.dp, Color.Red.copy(alpha = 0.5f), RoundedCornerShape(8.dp))
+                        .padding(16.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "Standard human equipment is too small for you. Seek out gear forged specifically for your race (${race.name}).",
+                        color = Color.White,
+                        style = MaterialTheme.typography.bodyMedium,
+                        textAlign = TextAlign.Center
+                    )
+                }
+            }
+
             LazyColumn(
                 modifier = Modifier
                     .weight(1f)
@@ -237,11 +266,18 @@ fun ShopScreen(
                             // WEAPONS
                             val availableWeapons = GameDatabase.weapons.filter { 
                                 val classMatches = it.requiredClasses.isEmpty() || it.requiredClasses.contains(shopSnapshot.playerClass)
+                                val raceMatches = if (isMonsterMode) {
+                                    it.requiredRaces.contains(shopSnapshot.playerRace) || (it.requiredRaces.isEmpty() && canWearGear)
+                                } else {
+                                    it.requiredRaces.isEmpty()
+                                }
+                                val canHold = canWearGear || it.requiredRaces.contains(shopSnapshot.playerRace)
+                                
                                 (it.price > 0) && (!it.isBossDrop) &&
                                 (it.rarity !in listOf("Legendary", "Mythic", "God Tier") || it.requiredRank > 0) &&
                                 isLocationUnlocked(it.requiredLocation) && 
                                 (currentRankId >= it.requiredRank) &&
-                                classMatches
+                                classMatches && raceMatches && canHold
                             }
                             
                             if (availableWeapons.isNotEmpty()) {
@@ -279,11 +315,18 @@ fun ShopScreen(
                             // SHIELDS
                             val availableShields = GameDatabase.shields.filter {
                                 val classMatches = it.requiredClasses.isEmpty() || it.requiredClasses.contains(shopSnapshot.playerClass)
+                                val raceMatches = if (isMonsterMode) {
+                                    it.requiredRaces.contains(shopSnapshot.playerRace) || (it.requiredRaces.isEmpty() && canWearGear)
+                                } else {
+                                    it.requiredRaces.isEmpty()
+                                }
+                                val canWear = canWearGear || it.requiredRaces.contains(shopSnapshot.playerRace)
+
                                 (it.price > 0) && (!it.isBossDrop) &&
                                 (it.rarity !in listOf("Legendary", "Mythic", "God Tier") || it.requiredRank > 0) &&
                                 isLocationUnlocked(it.requiredLocation) &&
                                 (currentRankId >= it.requiredRank) &&
-                                classMatches
+                                classMatches && raceMatches && canWear
                             }
                             if (availableShields.isNotEmpty()) {
                                 item { Spacer(modifier = Modifier.height(16.dp)) }
@@ -321,11 +364,18 @@ fun ShopScreen(
                             // HEAD GEAR
                             val availableHeadGear = GameDatabase.headGears.filter { 
                                 val classMatches = it.requiredClasses.isEmpty() || it.requiredClasses.contains(shopSnapshot.playerClass)
+                                val raceMatches = if (isMonsterMode) {
+                                    it.requiredRaces.contains(shopSnapshot.playerRace) || (it.requiredRaces.isEmpty() && canWearGear)
+                                } else {
+                                    it.requiredRaces.isEmpty()
+                                }
+                                val canWear = canWearGear || it.requiredRaces.contains(shopSnapshot.playerRace)
+
                                 (it.price > 0) && (!it.isBossDrop) &&
                                 (it.rarity !in listOf("Legendary", "Mythic", "God Tier") || it.requiredRank > 0) &&
                                 isLocationUnlocked(it.requiredLocation) &&
                                 (currentRankId >= it.requiredRank) &&
-                                classMatches
+                                classMatches && raceMatches && canWear
                             }
 
                             if (availableHeadGear.isNotEmpty()) {
@@ -362,11 +412,18 @@ fun ShopScreen(
                             // ARMOR
                             val availableArmor = GameDatabase.armors.filter { 
                                 val classMatches = it.requiredClasses.isEmpty() || it.requiredClasses.contains(shopSnapshot.playerClass)
+                                val raceMatches = if (isMonsterMode) {
+                                    it.requiredRaces.contains(shopSnapshot.playerRace) || (it.requiredRaces.isEmpty() && canWearGear)
+                                } else {
+                                    it.requiredRaces.isEmpty()
+                                }
+                                val canWear = canWearGear || it.requiredRaces.contains(shopSnapshot.playerRace)
+
                                 (it.price > 0) && (!it.isBossDrop) &&
                                 (it.rarity !in listOf("Legendary", "Mythic", "God Tier") || it.requiredRank > 0) &&
                                 isLocationUnlocked(it.requiredLocation) &&
                                 (currentRankId >= it.requiredRank) &&
-                                classMatches
+                                classMatches && raceMatches && canWear
                             }
 
                             if (availableArmor.isNotEmpty()) {
@@ -405,11 +462,18 @@ fun ShopScreen(
                             // BOOTS
                             val availableBoots = GameDatabase.boots.filter {
                                 val classMatches = it.requiredClasses.isEmpty() || it.requiredClasses.contains(shopSnapshot.playerClass)
+                                val raceMatches = if (isMonsterMode) {
+                                    it.requiredRaces.contains(shopSnapshot.playerRace) || (it.requiredRaces.isEmpty() && canWearGear)
+                                } else {
+                                    it.requiredRaces.isEmpty()
+                                }
+                                val canWear = canWearGear || it.requiredRaces.contains(shopSnapshot.playerRace)
+
                                 (it.price > 0) && (!it.isBossDrop) &&
                                 (it.rarity !in listOf("Legendary", "Mythic", "God Tier") || it.requiredRank > 0) &&
                                 isLocationUnlocked(it.requiredLocation) &&
                                 (currentRankId >= it.requiredRank) &&
-                                classMatches
+                                classMatches && raceMatches && canWear
                             }
                             if (availableBoots.isNotEmpty()) {
                                 item { Spacer(modifier = Modifier.height(16.dp)) }
@@ -447,11 +511,18 @@ fun ShopScreen(
                             // OFF-HANDS
                             val availableOffHands = GameDatabase.offHands.filter {
                                 val classMatches = it.requiredClasses.isEmpty() || it.requiredClasses.contains(shopSnapshot.playerClass)
+                                val raceMatches = if (isMonsterMode) {
+                                    it.requiredRaces.contains(shopSnapshot.playerRace) || (it.requiredRaces.isEmpty() && canWearGear)
+                                } else {
+                                    it.requiredRaces.isEmpty()
+                                }
+                                val canWear = canWearGear || it.requiredRaces.contains(shopSnapshot.playerRace)
+
                                 (it.price > 0) && (!it.isBossDrop) &&
                                 (it.rarity !in listOf("Legendary", "Mythic", "God Tier") || it.requiredRank > 0) &&
                                 isLocationUnlocked(it.requiredLocation) &&
                                 (currentRankId >= it.requiredRank) &&
-                                classMatches
+                                classMatches && raceMatches && canWear
                             }
                             if (availableOffHands.isNotEmpty()) {
                                 item { Text("Off-Hands", color = Color.Cyan, style = MaterialTheme.typography.titleMedium) }

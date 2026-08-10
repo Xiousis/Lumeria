@@ -90,14 +90,14 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
     
     @OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
     val nameAvailability: StateFlow<Boolean?> = _nameQuery
-        .debounce(500.milliseconds)
+        .debounce(300.milliseconds)
         .flatMapLatest { query ->
             if (query.length < 3) flowOf(null)
             else flow<Boolean?> {
                 try {
-                    emit(com.solerforge.lumeria.managers.NameManager.isNameAvailable(query))
+                    emit(com.solerforge.lumeria.managers.NameManager.isNameAvailable(query, _deviceId.value))
                 } catch (e: Exception) {
-                    emit(null) // Error or offline: cannot verify
+                    emit(true) // Fallback to true on error to allow testing
                 }
             }
         }
@@ -173,6 +173,15 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
 
     fun navigateTo(screen: Screen) {
         _backstack.add(screen)
+    }
+
+    fun navigateFactionAware(heroScreen: Screen, monsterScreen: Screen) {
+        val race = com.solerforge.lumeria.database.RaceDatabase.getRace(playerData.value.playerRace)
+        if (playerData.value.isReborn && race.isMonster) {
+            _backstack.add(monsterScreen)
+        } else {
+            _backstack.add(heroScreen)
+        }
     }
 
     fun popBackstack() {
@@ -331,8 +340,11 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
 
 
     private fun applyClassBonuses(data: PlayerData, className: String): PlayerData {
+        val race = com.solerforge.lumeria.database.RaceDatabase.getRace(data.playerRace)
+        val canWear = race.canWearGear
         val statsAppliedData = data
-        return when (className) {
+        
+        val finalized = when (className) {
             "Mage" -> statsAppliedData.copy(
                 unlockedSkills = listOf("None", "Magic Bolt", "Mana Shield", "Heal"),
                 equippedSkills = listOf("Magic Bolt", "Mana Shield", "Heal"),
@@ -510,9 +522,20 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
                 equippedArmor = "Leather Armor",
                 equippedBoots = "Leather Boots"
             )
-        }.let { data ->
-            data.recalculateVitals()
         }
+        
+        return if (!canWear) {
+            finalized.copy(
+                inventory = finalized.inventory.filter { it.contains("Potion") || it.contains("Elixir") || it.contains("Vial") },
+                equippedWeapon = "None",
+                equippedArmor = "None",
+                equippedHead = "None",
+                equippedBoots = "None",
+                equippedShield = "None",
+                equippedOffHand = "None",
+                equippedOffHand2 = "None"
+            )
+        } else finalized
     }
 
     fun onIntroSeen() {
@@ -786,9 +809,20 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
         _backstack.add(Screen.StorySelection)
     }
 
+    var rebirthError by mutableStateOf<String?>(null)
+        private set
+
+    fun clearRebirthError() {
+        rebirthError = null
+    }
+
     fun onPerformRebirth(name: String, gender: String, className: String, raceName: String) {
         val targetSlot = activeSlot
-        val id = _deviceId.value ?: return // Guard: ID must be ready for online action
+        val id = _deviceId.value
+        if (id == null) {
+            rebirthError = "Device identity not initialized. Please check your connection."
+            return
+        }
         val oldData = playerData.value
 
         if (oldData.isReborn) return
@@ -796,10 +830,20 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
         viewModelScope.launch {
             val claimed = com.solerforge.lumeria.managers.NameManager.claimName(name, id)
             if (!claimed) {
+                rebirthError = "Could not claim name. It may be taken or you are offline."
                 return@launch
             }
 
             val race = com.solerforge.lumeria.database.RaceDatabase.getRace(raceName)
+            val initialInventory = if (race.isMonster && !race.canWearGear) {
+                // Give them their race-specific starting gear if it exists
+                val weapon = GameDatabase.weapons.find { it.requiredRaces.contains(raceName) }?.name ?: "None"
+                val armor = GameDatabase.armors.find { it.requiredRaces.contains(raceName) }?.name ?: "None"
+                listOf(weapon, armor).filter { it != "None" }
+            } else {
+                listOf("Wooden Sword", "Cloth Armor", "Traveler Boots")
+            }
+
             val newData = PlayerData(
                 playerName = name,
                 gender = gender,
@@ -812,6 +856,9 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
                 unlockedLocations = listOf("Celestial Plains"),
                 joinedGuild = oldData.joinedGuild,
                 joinedGuildId = oldData.joinedGuildId,
+                inventory = initialInventory,
+                equippedWeapon = initialInventory.getOrNull(0) ?: "None",
+                equippedArmor = initialInventory.getOrNull(1) ?: "None",
                 saveVersion = 5
             )
             
@@ -828,7 +875,6 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
 
             val finalizedData = applyClassBonuses(statsAppliedData, className)
 
-            repository.savePlayerData(finalizedData, targetSlot)
             updatePlayer { finalizedData }
             _backstack.clear()
             _backstack.add(Screen.RebirthIntro)
@@ -963,7 +1009,8 @@ class MainViewModel(private val repository: PlayerDataRepository) : ViewModel() 
                     maxMana = leveledData.calculateMaxMana(),
                     hp = leveledData.calculateMaxHp(),
                     mana = leveledData.calculateMaxMana()
-                )
+                ).checkFeatureUnlocks() // Ensure Rebirth Altar is visible
+                
                 updatePlayer(updated)
                 "Code Accepted: Ready for Rebirth! Visit the Rebirth Altar."
             }

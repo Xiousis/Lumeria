@@ -40,6 +40,9 @@ fun FamiliarStoreScreen(
 ) {
     var shopSnapshot by remember(playerData) { mutableStateOf(playerData) }
     val context = LocalContext.current
+
+    val race = com.solerforge.lumeria.database.RaceDatabase.getRace(playerData.playerRace)
+    val canHavePets = race.canHavePets
     
     LaunchedEffect(Unit) {
         // Using Billy's theme for now or a generic one if available
@@ -103,13 +106,33 @@ fun FamiliarStoreScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            LazyColumn(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth()
-                    .padding(horizontal = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
+            if (!canHavePets) {
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth()
+                        .padding(24.dp)
+                        .background(Color.Red.copy(alpha = 0.2f), RoundedCornerShape(12.dp))
+                        .border(1.dp, Color.Red.copy(alpha = 0.5f), RoundedCornerShape(12.dp))
+                        .padding(24.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "Your race (${race.name}) is unable to tame or keep pets. You must walk this path alone.",
+                        color = Color.White,
+                        style = MaterialTheme.typography.headlineSmall,
+                        textAlign = TextAlign.Center,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth()
+                        .padding(horizontal = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
                 val buyableFamiliars = FamiliarDatabase.familiars.filter { 
                     val classMatches = it.requiredClasses.isEmpty() || it.requiredClasses.contains(shopSnapshot.playerClass)
                     it.price > 0 && classMatches
@@ -201,8 +224,9 @@ fun FamiliarStoreScreen(
                 }
             }
         }
+    }
 
-            Image(
+    Image(
                 painter = painterResource(id = R.drawable.return_to_menu_font),
                 contentDescription = "Return",
                 modifier = Modifier

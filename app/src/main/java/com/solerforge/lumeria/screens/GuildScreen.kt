@@ -52,6 +52,9 @@ fun GuildScreen(
     val members by guildViewModel.guildMembers.collectAsState()
     val isLoading by guildViewModel.isLoading.collectAsState()
     val error by guildViewModel.error.collectAsState()
+    
+    val race = com.solerforge.lumeria.database.RaceDatabase.getRace(playerData.playerRace)
+    val isMonster = playerData.isReborn && race.isMonster
 
     LaunchedEffect(playerData.joinedGuildId, playerData.isReborn) {
         if (playerData.joinedGuildId != null) {
@@ -63,10 +66,13 @@ fun GuildScreen(
 
     if (playerData.joinedGuildId == null && playerData.joinedGuild == null) {
         if (playerData.isReborn) {
+            val filteredGuilds = guildList.filter { it.isMonsterGuild == isMonster }
+            
             GuildBrowserScreen(
-                guildList = guildList,
+                guildList = filteredGuilds,
                 isLoading = isLoading,
                 playerData = playerData,
+                isMonster = isMonster,
                 onCreateGuild = { name ->
                     val id = deviceId ?: return@GuildBrowserScreen // Guard
                     if (playerData.gold >= 1000000L) {
@@ -131,12 +137,20 @@ fun GuildBrowserScreen(
     guildList: List<Guild>,
     isLoading: Boolean,
     playerData: PlayerData,
+    isMonster: Boolean,
     onCreateGuild: (String) -> Unit,
     onJoinGuild: (Guild) -> Unit,
     onReturn: () -> Unit
 ) {
     var showCreateDialog by remember { mutableStateOf(false) }
     var guildNameInput by remember { mutableStateOf("") }
+    
+    val title = if (isMonster) "THE SYNDICATE HALL" else "THE GUILD HALL"
+    val subtitle = if (isMonster) "Form or join a criminal underworld" else "Create or join a fellowship of adventurers"
+    val createText = if (isMonster) "Form Syndicate (1,000,000 Gold)" else "Create Guild (1,000,000 Gold)"
+    val listHeader = if (isMonster) "Active Syndicates" else "Available Guilds"
+    val confirmTitle = if (isMonster) "Underworld Decree" else "Founder's Decree"
+    val confirmPrompt = if (isMonster) "Name your syndicate (Max 20 chars):" else "Name your guild (Max 20 chars):"
 
     Box(modifier = Modifier.fillMaxSize()) {
         Image(
@@ -154,14 +168,14 @@ fun GuildBrowserScreen(
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text("THE GUILD HALL", color = Color.Cyan, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Black)
-            Text("Create or join a fellowship of adventurers", color = Color.Gray, style = MaterialTheme.typography.labelSmall)
+            Text(title, color = if (isMonster) Color(0xFFA855F7) else Color.Cyan, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Black)
+            Text(subtitle, color = Color.Gray, style = MaterialTheme.typography.labelSmall)
 
             Spacer(modifier = Modifier.height(24.dp))
 
             if (playerData.isReborn) {
                 RpgButton(
-                    text = "Create Guild (1,000,000 Gold)",
+                    text = createText,
                     onClick = { showCreateDialog = true },
                     modifier = Modifier.fillMaxWidth(0.8f)
                 )
@@ -170,12 +184,12 @@ fun GuildBrowserScreen(
             }
 
             if (isLoading) {
-                CircularProgressIndicator(color = Color.Cyan)
+                CircularProgressIndicator(color = if (isMonster) Color(0xFFA855F7) else Color.Cyan)
             } else {
                 LazyColumn(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    item { Text("Available Guilds", color = Color.White, style = MaterialTheme.typography.titleMedium) }
+                    item { Text(listHeader, color = Color.White, style = MaterialTheme.typography.titleMedium) }
                     items(guildList) { guild ->
-                        GuildListItem(guild, onJoin = { onJoinGuild(guild) })
+                        GuildListItem(guild, isMonster = isMonster, onJoin = { onJoinGuild(guild) })
                     }
                 }
             }
@@ -187,10 +201,10 @@ fun GuildBrowserScreen(
         if (showCreateDialog) {
             AlertDialog(
                 onDismissRequest = { showCreateDialog = false },
-                title = { Text("Founder's Decree", color = Color.White) },
+                title = { Text(confirmTitle, color = Color.White) },
                 text = {
                     Column {
-                        Text("Name your guild (Max 20 chars):", color = Color.LightGray)
+                        Text(confirmPrompt, color = Color.LightGray)
                         Spacer(modifier = Modifier.height(12.dp))
                         OutlinedTextField(
                             value = guildNameInput,
@@ -226,19 +240,20 @@ fun GuildBrowserScreen(
 }
 
 @Composable
-fun GuildListItem(guild: Guild, onJoin: () -> Unit) {
+fun GuildListItem(guild: Guild, isMonster: Boolean, onJoin: () -> Unit) {
+    val accent = if (isMonster) Color(0xFFA855F7) else Color.Cyan
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = Color.Black.copy(alpha = 0.7f)),
-        border = BorderStroke(1.dp, Color.Cyan.copy(alpha = 0.3f))
+        border = BorderStroke(1.dp, accent.copy(alpha = 0.3f))
     ) {
         Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(guild.name, color = Color.White, fontWeight = FontWeight.Black, style = MaterialTheme.typography.titleMedium)
-                Text("Leader: ${guild.leaderName}", color = Color.Gray, style = MaterialTheme.typography.labelSmall)
-                Text("${guild.membersCount}/${guild.maxMembers} Members", color = Color.LightGray, style = MaterialTheme.typography.bodySmall)
+                Text(if (isMonster) "Master: ${guild.leaderName}" else "Leader: ${guild.leaderName}", color = Color.Gray, style = MaterialTheme.typography.labelSmall)
+                Text("${guild.membersCount}/${guild.maxMembers} ${if (isMonster) "Henchmen" else "Members"}", color = Color.LightGray, style = MaterialTheme.typography.bodySmall)
             }
-            RpgButton(text = "Join", onClick = onJoin, modifier = Modifier.height(40.dp))
+            RpgButton(text = if (isMonster) "Enlist" else "Join", onClick = onJoin, modifier = Modifier.height(40.dp))
         }
     }
 }
@@ -255,7 +270,10 @@ fun GuildDashboardScreen(
 ) {
     var selectedTab by remember { mutableStateOf(GuildTab.DASHBOARD) }
     val isLoading by guildViewModel.isLoading.collectAsState()
-    val color = Color.Cyan
+    
+    val race = com.solerforge.lumeria.database.RaceDatabase.getRace(playerData.playerRace)
+    val isMonster = playerData.isReborn && race.isMonster
+    val color = if (isMonster) Color(0xFFA855F7) else Color.Cyan
 
     Box(modifier = Modifier.fillMaxSize()) {
         Image(
@@ -339,13 +357,13 @@ fun GuildDashboardScreen(
                                     border = BorderStroke(1.dp, Color.White.copy(alpha = 0.1f))
                                 ) {
                                     Column(modifier = Modifier.padding(16.dp)) {
-                                        Text("MOTD", color = Color.Cyan, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelSmall)
+                                        Text(if (isMonster) "ORDERS" else "MOTD", color = color, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelSmall)
                                         Spacer(modifier = Modifier.height(4.dp))
                                         Text(guild.announcement, color = Color.White, style = MaterialTheme.typography.bodyMedium)
                                     }
                                 }
                                 Spacer(modifier = Modifier.height(16.dp))
-                                Text("War Readiness", color = Color.White, fontWeight = FontWeight.Bold)
+                                Text(if (isMonster) "Conquest Progress" else "War Readiness", color = Color.White, fontWeight = FontWeight.Bold)
                                 Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                                     Text("Rating: ${guild.warRating}", color = Color.Red, style = MaterialTheme.typography.bodyLarge)
                                     Text("Record: ${guild.warWins}W / ${guild.warLosses}L", color = Color.Gray)
@@ -354,7 +372,7 @@ fun GuildDashboardScreen(
                         }
                         GuildTab.MEMBERS -> {
                             LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                                item { Text("Guild Roster (${members.size}/${guild.maxMembers})", color = Color.White, style = MaterialTheme.typography.labelSmall) }
+                                item { Text(if (isMonster) "Syndicate Roster (${members.size}/${guild.maxMembers})" else "Guild Roster (${members.size}/${guild.maxMembers})", color = Color.White, style = MaterialTheme.typography.labelSmall) }
                                 items(members) { member ->
                                     MemberRow(member)
                                 }
@@ -362,11 +380,11 @@ fun GuildDashboardScreen(
                         }
                         GuildTab.VAULT -> {
                             Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
-                                Text("Guild Treasure Vault", color = Color.Yellow, style = MaterialTheme.typography.titleMedium)
+                                Text(if (isMonster) "The War Chest" else "Guild Treasure Vault", color = Color.Yellow, style = MaterialTheme.typography.titleMedium)
                                 Text(CurrencyUtils.formatGold(guild.guildVault), color = Color.White, style = MaterialTheme.typography.displaySmall, fontWeight = FontWeight.Black)
                                 Spacer(modifier = Modifier.height(32.dp))
                                 RpgButton(
-                                    text = "Donate 5,000 Gold",
+                                    text = if (isMonster) "Contribute 5,000 Gold" else "Donate 5,000 Gold",
                                     enabled = !isLoading && playerData.gold >= 5000,
                                     onClick = {
                                         if (playerData.gold >= 5000) {

@@ -18,6 +18,7 @@ class GuildManager(private val context: Context) {
     }
 
     suspend fun createGuild(name: String, player: PlayerData, deviceId: String): Result<String> {
+        val race = com.solerforge.lumeria.database.RaceDatabase.getRace(player.playerRace)
         val guildId = guildsCollection.document().id
         val guild = Guild(
             id = guildId,
@@ -25,6 +26,7 @@ class GuildManager(private val context: Context) {
             leaderId = deviceId,
             leaderName = player.playerName,
             membersCount = 1,
+            isMonsterGuild = player.isReborn && race.isMonster,
             createdAt = System.currentTimeMillis()
         )
 
@@ -46,6 +48,9 @@ class GuildManager(private val context: Context) {
     }
 
     suspend fun joinGuild(guildId: String, player: PlayerData, deviceId: String): Result<Unit> {
+        val race = com.solerforge.lumeria.database.RaceDatabase.getRace(player.playerRace)
+        val playerIsMonster = player.isReborn && race.isMonster
+        
         return try {
             val guildDoc = guildsCollection.document(guildId)
             val memberDoc = guildDoc.collection("members").document(deviceId)
@@ -53,6 +58,15 @@ class GuildManager(private val context: Context) {
                 val snapshot = transaction.get(guildDoc)
                 val guild = snapshot.toObject(Guild::class.java) ?: throw Exception("Guild not found")
                 
+                // RESTRICTION: Monster vs Hero
+                if (guild.isMonsterGuild != playerIsMonster) {
+                    if (playerIsMonster) {
+                        throw Exception("Monsters cannot join Hero guilds.")
+                    } else {
+                        throw Exception("Heroes cannot join Monster syndicates.")
+                    }
+                }
+
                 // HIGH: Prevent member count inflation
                 if (transaction.get(memberDoc).exists()) {
                     throw Exception("Already a member of this guild")

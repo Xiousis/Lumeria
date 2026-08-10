@@ -31,6 +31,8 @@ fun CharacterCreationScreen(
     buttonText: String = "BEGIN JOURNEY",
     nameAvailability: Boolean?,
     isIdentityReady: Boolean = true,
+    rebirthError: String? = null,
+    onClearError: () -> Unit = {},
     onCheckName: (String) -> Unit,
     onConfirm: (name: String, gender: String, className: String, raceName: String) -> Unit,
     onCancel: () -> Unit
@@ -41,6 +43,7 @@ fun CharacterCreationScreen(
     
     var selectedRace by remember { mutableStateOf(RaceDatabase.getRace("Human")) }
     var isRolling by remember { mutableStateOf(false) }
+    var showMonsterWarning by remember { mutableStateOf(false) }
 
     val classes = remember(selectedRace) { ClassDatabase.getAvailableClasses(selectedRace.name) }
     
@@ -101,20 +104,31 @@ fun CharacterCreationScreen(
 
             if (name.length >= 3) {
                 Text(
-                    text = when (nameAvailability) {
-                        true -> "Name Available"
-                        false -> "Name Already Taken"
-                        null -> "Checking..."
+                    text = when {
+                        name.lowercase().trim() == "xious" -> "Name 'Xious' is reserved for the Legend."
+                        nameAvailability == true -> "Name Available"
+                        nameAvailability == false -> "Name Already Taken"
+                        else -> "Checking Name Availability..."
                     },
-                    color = when (nameAvailability) {
-                        true -> Color.Green
-                        false -> Color.Red
-                        null -> Color.Gray
+                    color = when {
+                        name.lowercase().trim() == "xious" || nameAvailability == false -> Color.Red
+                        nameAvailability == true -> Color.Green
+                        else -> Color.Gray
                     },
                     fontSize = 12.sp,
                     modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
                     textAlign = TextAlign.Start
                 )
+                
+                if (nameAvailability == null && name.length >= 3) {
+                     Text(
+                        text = "If this persists, check your internet connection.",
+                        color = Color.Gray,
+                        fontSize = 10.sp,
+                        modifier = Modifier.fillMaxWidth(),
+                        textAlign = TextAlign.Start
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -248,7 +262,13 @@ fun CharacterCreationScreen(
             RpgButton(
                 text = buttonText,
                 enabled = name.isNotBlank() && nameAvailability == true && isIdentityReady && !isRolling,
-                onClick = { onConfirm(name, gender, selectedClass, selectedRace.name) },
+                onClick = { 
+                    if (selectedRace.isMonster) {
+                        showMonsterWarning = true
+                    } else {
+                        onConfirm(name, gender, selectedClass, selectedRace.name)
+                    }
+                },
                 containerColor = Color(0xFF6200EE),
                 modifier = Modifier.fillMaxWidth().height(64.dp)
             )
@@ -257,6 +277,59 @@ fun CharacterCreationScreen(
                 text = "Cancel",
                 color = Color.Gray,
                 modifier = Modifier.clickable { onCancel() }.padding(16.dp)
+            )
+        }
+
+        rebirthError?.let {
+            AlertDialog(
+                onDismissRequest = onClearError,
+                title = { Text("Rebirth Error") },
+                text = { Text(it) },
+                confirmButton = {
+                    Button(onClick = onClearError) { Text("OK") }
+                }
+            )
+        }
+
+        if (showMonsterWarning) {
+            AlertDialog(
+                onDismissRequest = { showMonsterWarning = false },
+                title = { Text("MONSTER RACE WARNING", color = Color.Red, fontWeight = FontWeight.Bold) },
+                text = {
+                    Column {
+                        Text("You are about to rebirth as a ${selectedRace.name}.", fontWeight = FontWeight.Bold, color = Color.White)
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Text("Monsters face significant restrictions compared to Heroes:", color = Color.LightGray)
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text("• Cannot roll for permanent traits.", color = Color.Yellow)
+                        if (!selectedRace.canWearGear) {
+                            Text("• Cannot equip standard human weapons or armor.", color = Color.Yellow)
+                        }
+                        if (!selectedRace.canHavePets) {
+                            Text("• Cannot have pets.", color = Color.Yellow)
+                        }
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text("This path is intended for experienced players seeking a unique challenge. Are you sure you want to proceed?", color = Color.White)
+                    }
+                },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            showMonsterWarning = false
+                            onConfirm(name, gender, selectedClass, selectedRace.name)
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
+                    ) {
+                        Text("CONFIRM REBIRTH", color = Color.White, fontWeight = FontWeight.Bold)
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showMonsterWarning = false }) {
+                        Text("GO BACK", color = Color.White)
+                    }
+                },
+                containerColor = Color(0xFF1A1A1A),
+                textContentColor = Color.White
             )
         }
     }
